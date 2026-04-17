@@ -17,7 +17,7 @@
   - Test: 100% — ARIA role `option`; accessible name = label; tooltip appears.
   - Effort: 2h
 
-- [ ] **Step 3**: Pointer-based drag source (`useDragStart`)
+- [x] **Step 3**: Pointer-based drag source (`useDragStart`)
   - File(s): `src/features/palette/useDragStart.ts`, `src/features/palette/DragContext.tsx`, `tests/unit/features/palette/useDragStart.test.ts`
   - Contents: Pointer-down captures; records `startX/Y`; on movement > 3px threshold, enters "dragging" state and sets global drag payload `{ kind }`; `Escape` cancels; pointer-up ends drag.
   - Test: 100% — full pointer capture lifecycle; threshold enforced; Escape cancels.
