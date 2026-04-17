@@ -15,6 +15,8 @@ import { MiniMap } from "@/features/canvas/MiniMap";
 import { nodeTypes } from "@/features/canvas/nodeTypes";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { useViewportPersistence } from "@/features/canvas/useViewportPersistence";
+import { validateConnection } from "@/domain/validation/connectionRules";
+import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
 import { useDragContext } from "@/features/palette/DragContext";
 import { useWorkflowStore } from "@/store/hooks";
 import type { SelectMode } from "@/store/slices/selectionSlice";
@@ -139,6 +141,27 @@ export function Canvas() {
     [tryConnect],
   );
 
+  const isValidConnection = useCallback(
+    (connection: Connection) => {
+      if (!connection.source || !connection.target) return false;
+      const graph = {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        id: "store",
+        name: "store",
+        nodes,
+        edges,
+      };
+      const result = validateConnection(
+        graph,
+        { nodeId: connection.source, portId: connection.sourceHandle ?? "out" },
+        { nodeId: connection.target, portId: connection.targetHandle ?? "in" },
+        registry,
+      );
+      return result.ok;
+    },
+    [nodes, edges, registry],
+  );
+
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- role="application" is interactive per WAI-ARIA
     <div
@@ -167,6 +190,7 @@ export function Canvas() {
         onSelectionChange={handleSelectionChange}
         onMoveEnd={handleMoveEnd}
         onConnect={handleConnect}
+        isValidConnection={isValidConnection}
       >
         <Background />
         <MiniMap />
