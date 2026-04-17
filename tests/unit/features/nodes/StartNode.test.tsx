@@ -15,6 +15,13 @@ vi.mock("@xyflow/react", () => ({
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
 }));
 
+// Mock store hooks for openInspector
+const mockOpenInspector = vi.fn();
+vi.mock("@/store/hooks", () => ({
+  useWorkflowStore: (selector: (state: Record<string, unknown>) => unknown) =>
+    selector({ openInspector: mockOpenInspector }),
+}));
+
 afterEach(() => {
   cleanup();
 });

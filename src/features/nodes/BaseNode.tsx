@@ -16,6 +16,8 @@ function NodeIcon({ name }: { readonly name: string }) {
 }
 
 export interface BaseNodeProps {
+  /** Node ID for keyboard interactions */
+  readonly nodeId?: string;
   /** Display title in the header */
   readonly title: string;
   /** Lucide icon name (kebab-case, e.g. "play" or "circle-check") */
@@ -26,6 +28,8 @@ export interface BaseNodeProps {
   readonly children?: ReactNode;
   /** Override border-radius (e.g. "9999px" for pill shape) */
   readonly borderRadius?: string;
+  /** Callback when Enter is pressed on this node */
+  readonly onEnter?: () => void;
 }
 
 const OUTER_STYLE: React.CSSProperties = {
@@ -55,8 +59,16 @@ const BODY_STYLE: React.CSSProperties = {
   padding: "8px 10px",
 };
 
-export function BaseNode({ title, icon, selected = false, children, borderRadius }: BaseNodeProps) {
-  /* eslint-disable jsx-a11y/role-supports-aria-props, jsx-a11y/no-noninteractive-tabindex */
+export function BaseNode({
+  nodeId,
+  title,
+  icon,
+  selected = false,
+  children,
+  borderRadius,
+  onEnter,
+}: BaseNodeProps) {
+  /* eslint-disable jsx-a11y/role-supports-aria-props, jsx-a11y/no-noninteractive-tabindex, jsx-a11y/no-noninteractive-element-interactions */
   return (
     <div
       role="group"
@@ -64,6 +76,7 @@ export function BaseNode({ title, icon, selected = false, children, borderRadius
       aria-selected={selected}
       data-selected={selected}
       data-testid="base-node"
+      data-node-id={nodeId}
       tabIndex={0}
       style={{
         ...OUTER_STYLE,
@@ -75,6 +88,11 @@ export function BaseNode({ title, icon, selected = false, children, borderRadius
       }}
       onBlur={(e) => {
         e.currentTarget.style.boxShadow = "";
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && onEnter) {
+          onEnter();
+        }
       }}
     >
       <div data-testid="node-header" style={HEADER_STYLE}>
@@ -88,5 +106,5 @@ export function BaseNode({ title, icon, selected = false, children, borderRadius
       )}
     </div>
   );
-  /* eslint-enable jsx-a11y/role-supports-aria-props, jsx-a11y/no-noninteractive-tabindex */
+  /* eslint-enable jsx-a11y/role-supports-aria-props, jsx-a11y/no-noninteractive-tabindex, jsx-a11y/no-noninteractive-element-interactions */
 }
