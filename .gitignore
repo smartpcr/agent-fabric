@@ -30,6 +30,9 @@ test-results/
 playwright-report/
 blob-report/
 
+# TypeScript build info
+tsconfig.tsbuildinfo
+
 # Logs
 *.log
 npm-debug.log*
