@@ -30,6 +30,10 @@ export interface BaseNodeProps {
   readonly borderRadius?: string;
   /** Callback when Enter is pressed on this node */
   readonly onEnter?: () => void;
+  /** Callback when Delete/Backspace is pressed on this node */
+  readonly onDelete?: () => void;
+  /** Callback when the node receives focus (e.g., via Tab) */
+  readonly onNodeFocus?: () => void;
 }
 
 const OUTER_STYLE: React.CSSProperties = {
@@ -67,6 +71,8 @@ export function BaseNode({
   children,
   borderRadius,
   onEnter,
+  onNodeFocus,
+  onDelete,
 }: BaseNodeProps) {
   /* eslint-disable jsx-a11y/role-supports-aria-props, jsx-a11y/no-noninteractive-tabindex, jsx-a11y/no-noninteractive-element-interactions */
   return (
@@ -85,6 +91,7 @@ export function BaseNode({
       }}
       onFocus={(e) => {
         e.currentTarget.style.boxShadow = FOCUS_RING;
+        onNodeFocus?.();
       }}
       onBlur={(e) => {
         e.currentTarget.style.boxShadow = "";
@@ -92,6 +99,9 @@ export function BaseNode({
       onKeyDown={(e) => {
         if (e.key === "Enter" && onEnter) {
           onEnter();
+        } else if ((e.key === "Delete" || e.key === "Backspace") && onDelete) {
+          e.preventDefault();
+          onDelete();
         }
       }}
     >

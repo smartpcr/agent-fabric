@@ -117,6 +117,50 @@ test.describe("Select + delete a node via keyboard", () => {
     await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
   });
 
+  test("Tab-focus node then Delete removes it (keyboard-only flow)", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    const canvasBox = await getBox(canvas);
+
+    // Drop a task node onto the canvas
+    const taskItem = page.locator('[role="option"][data-kind="task"]');
+    await dragPaletteToCanvas(
+      taskItem,
+      canvas,
+      canvasBox.x + canvasBox.width / 2,
+      canvasBox.y + canvasBox.height / 2,
+    );
+
+    // Verify node exists
+    const nodeLocator = page.locator(".react-flow__node[data-id]");
+    await expect(nodeLocator).toHaveCount(1, { timeout: 5000 });
+    const dataId = await nodeLocator.getAttribute("data-id");
+
+    // Focus the canvas area first
+    await canvas.focus();
+
+    // Tab until the xyflow node receives focus (xyflow nodes have tabindex=0)
+    // The node may need several Tab presses to reach depending on DOM order
+    let focused = false;
+    for (let i = 0; i < 20; i++) {
+      await page.keyboard.press("Tab");
+      const activeId = await page.evaluate(() => {
+        const el = document.activeElement;
+        return el?.getAttribute("data-id") ?? el?.closest("[data-id]")?.getAttribute("data-id");
+      });
+      if (activeId === dataId) {
+        focused = true;
+        break;
+      }
+    }
+    expect(focused).toBe(true);
+
+    // Press Delete while the node is focused — keydown bubbles to canvas handler
+    await page.keyboard.press("Delete");
+
+    // Assert node is gone
+    await expect(nodeLocator).toHaveCount(0, { timeout: 5000 });
+  });
+
   test("click node to select, press Delete, node is removed", async ({ page }) => {
     const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
     const canvasBox = await getBox(canvas);

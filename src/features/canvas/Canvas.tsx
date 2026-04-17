@@ -107,6 +107,21 @@ export function Canvas() {
     setPan(vp.x, vp.y);
   }, [getViewport, setZoom, setPan]);
 
+  // When an xyflow node wrapper receives focus (e.g. via Tab), select it in our store
+  const handleFocusCapture = useCallback(
+    (e: React.FocusEvent) => {
+      const target = e.target as HTMLElement;
+      const nodeWrapper = target.closest<HTMLElement>(".react-flow__node[data-id]");
+      if (nodeWrapper) {
+        const nodeId = nodeWrapper.getAttribute("data-id");
+        if (nodeId) {
+          selectAction(nodeId, "replace");
+        }
+      }
+    },
+    [selectAction],
+  );
+
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- role="application" is interactive per WAI-ARIA
     <div
@@ -116,6 +131,7 @@ export function Canvas() {
       tabIndex={-1}
       onPointerUp={handlePointerUp}
       onKeyDown={handleKeyDown}
+      onFocusCapture={handleFocusCapture}
     >
       <ReactFlow
         nodes={rfNodes}
