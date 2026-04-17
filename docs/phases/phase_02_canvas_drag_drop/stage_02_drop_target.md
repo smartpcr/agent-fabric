@@ -29,7 +29,7 @@
   - Test: 100% — drop on palette is a no-op; no `addNode` dispatch.
   - Effort: 1h
 
-- [ ] **Step 5**: Snap-to-grid on drop (when enabled)
+- [x] **Step 5**: Snap-to-grid on drop (when enabled)
   - File(s): `src/features/canvas/SnapGrid.ts`, `src/store/slices/viewportSlice.ts` (extend), `tests/unit/features/canvas/SnapGrid.test.ts`
   - Contents: `snapToGrid(pos, size=16)` rounds to nearest multiple; `viewportSlice.snapEnabled: boolean` toggled from Controls; applied in `Canvas.onDrop` when enabled.
   - Test: 100% — rounding behavior; disabled bypasses; grid size configurable.
