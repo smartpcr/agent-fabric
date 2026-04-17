@@ -11,6 +11,8 @@ export function Canvas() {
   const { state: dragState, endDrag } = useDragContext();
   const addNode = useWorkflowStore((s) => s.addNode);
   const registry = useWorkflowStore((s) => s.registry);
+  const nodes = useWorkflowStore((s) => s.nodes);
+  const edges = useWorkflowStore((s) => s.edges);
   const snapEnabled = useWorkflowStore((s) => s.snapEnabled);
   const snapGridSize = useWorkflowStore((s) => s.snapGridSize);
   const toggleSnap = useWorkflowStore((s) => s.toggleSnap);
@@ -41,7 +43,7 @@ export function Canvas() {
       style={{ width: "100%", height: "100%" }}
       onPointerUp={handlePointerUp}
     >
-      <ReactFlow nodes={[]} edges={[]}>
+      <ReactFlow nodes={nodes} edges={edges}>
         <Background />
         <Controls>
           <button

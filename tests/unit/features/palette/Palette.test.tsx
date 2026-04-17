@@ -3,6 +3,7 @@ import { render, screen, within, act, cleanup, renderHook } from "@testing-libra
 import userEvent from "@testing-library/user-event";
 import { z } from "zod";
 import { Palette } from "@/features/palette/Palette";
+import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore } from "@/store/hooks";
@@ -48,7 +49,11 @@ function setupRegistry() {
 }
 
 function renderPalette() {
-  return render(<Palette />);
+  return render(
+    <DragProvider>
+      <Palette />
+    </DragProvider>,
+  );
 }
 
 describe("Palette", () => {
@@ -239,7 +244,11 @@ describe("Palette", () => {
     });
     storeUnmount();
 
-    render(<Palette getViewportCenter={getViewportCenter} />);
+    render(
+      <DragProvider>
+        <Palette getViewportCenter={getViewportCenter} />
+      </DragProvider>,
+    );
 
     const options = screen.getAllByRole("option");
     const firstOption = options[0];

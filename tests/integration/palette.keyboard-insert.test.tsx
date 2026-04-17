@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, cleanup, act, renderHook } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Palette } from "@/features/palette/Palette";
+import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore } from "@/store/hooks";
@@ -72,7 +73,11 @@ describe("Integration: Palette keyboard insertion", () => {
     const viewportCenter = { x: 400, y: 300 };
     const getViewportCenter = () => viewportCenter;
 
-    render(<Palette getViewportCenter={getViewportCenter} />);
+    render(
+      <DragProvider>
+        <Palette getViewportCenter={getViewportCenter} />
+      </DragProvider>,
+    );
 
     const options = screen.getAllByRole("option");
     expect(options.length).toBeGreaterThanOrEqual(1);
@@ -95,7 +100,11 @@ describe("Integration: Palette keyboard insertion", () => {
   it("Enter creates node at default position when no getViewportCenter provided", async () => {
     const user = userEvent.setup();
 
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
 
     const options = screen.getAllByRole("option");
     const firstOption = options[0];
@@ -115,7 +124,11 @@ describe("Integration: Palette keyboard insertion", () => {
     const user = userEvent.setup();
     const viewportCenter = { x: 200, y: 150 };
 
-    render(<Palette getViewportCenter={() => viewportCenter} />);
+    render(
+      <DragProvider>
+        <Palette getViewportCenter={() => viewportCenter} />
+      </DragProvider>,
+    );
 
     const options = screen.getAllByRole("option");
     expect(options.length).toBeGreaterThanOrEqual(3);
@@ -137,7 +150,11 @@ describe("Integration: Palette keyboard insertion", () => {
   it("Enter does nothing when target has no data-kind (e.g. listbox itself)", async () => {
     const user = userEvent.setup();
 
-    render(<Palette getViewportCenter={() => ({ x: 0, y: 0 })} />);
+    render(
+      <DragProvider>
+        <Palette getViewportCenter={() => ({ x: 0, y: 0 })} />
+      </DragProvider>,
+    );
 
     const listbox = screen.getByRole("listbox");
     listbox.focus();
@@ -152,7 +169,11 @@ describe("Integration: Palette keyboard insertion", () => {
     const user = userEvent.setup();
     const viewportCenter = { x: 100, y: 100 };
 
-    render(<Palette getViewportCenter={() => viewportCenter} />);
+    render(
+      <DragProvider>
+        <Palette getViewportCenter={() => viewportCenter} />
+      </DragProvider>,
+    );
 
     const options = screen.getAllByRole("option");
     expect(options.length).toBeGreaterThanOrEqual(2);
@@ -185,7 +206,11 @@ describe("Integration: ConnectedPalette uses useReactFlow viewport", () => {
 
     const user = userEvent.setup();
 
-    render(<ConnectedPalette />);
+    render(
+      <DragProvider>
+        <ConnectedPalette />
+      </DragProvider>,
+    );
 
     const options = screen.getAllByRole("option");
     expect(options.length).toBeGreaterThanOrEqual(1);
@@ -213,7 +238,11 @@ describe("Integration: ConnectedPalette uses useReactFlow viewport", () => {
 
     const user = userEvent.setup();
 
-    render(<ConnectedPalette />);
+    render(
+      <DragProvider>
+        <ConnectedPalette />
+      </DragProvider>,
+    );
 
     const options = screen.getAllByRole("option");
     options[0].focus();
