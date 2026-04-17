@@ -3,6 +3,7 @@ import { ReactFlow, Controls, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Grid3X3 } from "lucide-react";
 import { Background } from "@/features/canvas/Background";
+import { nodeTypes } from "@/features/canvas/nodeTypes";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { useDragContext } from "@/features/palette/DragContext";
 import { useWorkflowStore } from "@/store/hooks";
@@ -43,7 +44,7 @@ export function Canvas() {
       style={{ width: "100%", height: "100%" }}
       onPointerUp={handlePointerUp}
     >
-      <ReactFlow nodes={nodes} edges={edges}>
+      <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes}>
         <Background />
         <Controls>
           <button

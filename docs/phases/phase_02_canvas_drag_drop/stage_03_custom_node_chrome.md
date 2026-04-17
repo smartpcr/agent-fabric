@@ -17,7 +17,7 @@
   - Test: 100% — renders single handle; ARIA name correct.
   - Effort: 2h
 
-- [ ] **Step 3**: `TaskNode` React component
+- [x] **Step 3**: `TaskNode` React component
   - File(s): `src/features/nodes/TaskNode.tsx`, `tests/unit/features/nodes/TaskNode.test.tsx`
   - Contents: Title from `data.name`; input handle top-center; output handle bottom-center; icon per `spec.icon`.
   - Test: 100% — title binds to data; handles present; icon lookup.
