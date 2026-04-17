@@ -11,7 +11,7 @@
   - Test: 100% — `any`↔anything; equality; whitelist; strict mismatch rejected.
   - Effort: 2h
 
-- [ ] **Step 2**: `validateConnection(graph, src, tgt, registry)`
+- [x] **Step 2**: `validateConnection(graph, src, tgt, registry)`
   - File(s): `src/domain/validation/connectionRules.ts`, `tests/unit/domain/validation/connectionRules.test.ts`
   - Contents: Returns `Result<void, ConnectionInvalidError>`; rules: direction (output→input), existence of ports on both nodes, dataType assignability, cardinality (`single` target must have no existing inbound edge on that port), no self-loop on same port, loop-back edges only from `canHaveBackEdge` nodes.
   - Test: 100% — 12 scenarios mapped to each rule; each failure returns a specific error `code`.
