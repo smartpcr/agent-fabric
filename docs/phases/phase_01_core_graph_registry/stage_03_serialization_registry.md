@@ -11,7 +11,7 @@
   - Test: 100% — Zod accepts a valid payload; rejects missing fields; rejects wrong `schemaVersion`.
   - Effort: 3h
 
-- [ ] **Step 2**: `serialize(graph): GraphJson`
+- [x] **Step 2**: `serialize(graph): GraphJson`
   - File(s): `src/domain/serialization/serialize.ts`, `tests/unit/domain/serialization/serialize.test.ts`
   - Contents: Deterministic key order (alphabetical); runs `validateGraph` first; throws `SerializationError` on invalid input.
   - Test: 100% — stable output byte-for-byte across runs; rejects invalid graph; preserves all fields.
