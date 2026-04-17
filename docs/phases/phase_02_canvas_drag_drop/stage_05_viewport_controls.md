@@ -29,7 +29,7 @@
   - Test: 100% — toggle flips state; pattern changes.
   - Effort: 2h
 
-- [ ] **Step 5**: Viewport persistence per workflow (restore on load)
+- [x] **Step 5**: Viewport persistence per workflow (restore on load)
   - File(s): `src/store/slices/viewportSlice.ts` (extend), `src/features/persistence/useAutoSave.ts` (stub wiring), `tests/integration/viewport.persist.test.tsx`
   - Contents: `viewportSlice` persists `{x, y, zoom}`; included in saved graph payload; on load, `useReactFlow().setViewport(...)` restores.
   - Test: Integration — set viewport → save → restore → viewport matches.
