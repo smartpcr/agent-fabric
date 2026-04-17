@@ -37,6 +37,13 @@ export type EdgeChange =
   | { readonly type: "remove"; readonly id: string }
   | { readonly type: "select"; readonly id: string; readonly selected: boolean };
 
+export interface TryConnectParams {
+  readonly source: string;
+  readonly sourcePort: string;
+  readonly target: string;
+  readonly targetPort: string;
+}
+
 export interface GraphSlice {
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];
@@ -45,6 +52,8 @@ export interface GraphSlice {
   /** Batch-remove all currently selected nodes and their connected edges in a single undo step */
   deleteSelected: () => void;
   connectPorts: (params: ConnectPortsParams) => Result<WorkflowEdge, ConnectionInvalidError>;
+  /** Convenience action: maps simple ids to connectPorts; returns result */
+  tryConnect: (params: TryConnectParams) => Result<WorkflowEdge, ConnectionInvalidError>;
   updateNodeData: (id: string, newData: unknown) => Result<void, ValidationError[]>;
   updateNodePosition: (id: string, position: Position) => void;
   applyNodeChanges: (changes: NodeChange[]) => void;
@@ -109,6 +118,14 @@ export function createGraphSlice(
 
       set((s) => ({ edges: [...s.edges, edge] }));
       return { ok: true, value: edge };
+    },
+    tryConnect: (params: TryConnectParams) => {
+      const state = get();
+      return state.connectPorts({
+        source: { nodeId: params.source, portId: params.sourcePort },
+        target: { nodeId: params.target, portId: params.targetPort },
+        registry: state.registry,
+      });
     },
     updateNodeData: (id: string, newData: unknown) => {
       const state = get();

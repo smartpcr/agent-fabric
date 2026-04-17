@@ -35,7 +35,7 @@
   - Test: 100% — spec shape; rendering via `TaskNode` produces 5 handles.
   - Effort: 2h
 
-- [ ] **Step 6**: Integration — multi-port node renders 5 handles with correct ARIA names
+- [x] **Step 6**: Integration — multi-port node renders 5 handles with correct ARIA names
   - File(s): `tests/integration/nodes.multiport.test.tsx`
   - Contents: Mount with multi-port spec; assert 5 handles; names match spec labels.
   - Test: Green.
