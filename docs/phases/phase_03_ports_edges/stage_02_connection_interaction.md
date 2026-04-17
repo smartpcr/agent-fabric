@@ -1,10 +1,11 @@
 # Phase 3 — Stage 2: Connection Interaction
+
 > Live-validated drag-to-connect with snap, keyboard path, and undo.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: Wire `onConnect` from xyflow → `graphSlice.tryConnect`
+- [x] **Step 1**: Wire `onConnect` from xyflow → `graphSlice.tryConnect`
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/unit/features/canvas/Canvas.onConnect.test.tsx`
   - Contents: Map xyflow `Connection` shape to our `{ source, sourcePort, target, targetPort }`; call store action; ignore if result is `err`.
   - Test: 100% — valid connection persisted with correct port ids.
@@ -41,6 +42,7 @@
   - Effort: 1h
 
 ## Acceptance for Stage 2
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on touched files.
 - Keyboard-only connection works end-to-end.
