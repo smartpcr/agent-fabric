@@ -4,7 +4,7 @@
 
 ## Steps
 
-- [ ] **Step 1**: Add `@xyflow/react` and render an empty canvas
+- [x] **Step 1**: Add `@xyflow/react` and render an empty canvas
   - File(s): `src/features/editor/EditorPage.tsx`, `src/features/canvas/Canvas.tsx`, `src/features/canvas/Background.tsx`, `src/App.tsx`, `package.json`
   - Contents: Install `@xyflow/react`; `Canvas` renders `<ReactFlow>` with `<Background variant="dots" gap={16}/>` and `<Controls/>`; `Canvas` mounts with `role="application"` and an accessible name "Workflow Canvas".
   - Test: Component test renders `Canvas`; asserts `getByRole('application', { name: /workflow canvas/i })` is present.
