@@ -11,10 +11,12 @@ import "@xyflow/react/dist/style.css";
 import { Grid3X3 } from "lucide-react";
 import { Background } from "@/features/canvas/Background";
 import { CanvasControls } from "@/features/canvas/Controls";
+import { KeyboardConnectContext } from "@/features/canvas/KeyboardConnectContext";
 import { MiniMap } from "@/features/canvas/MiniMap";
 import { nodeTypes } from "@/features/canvas/nodeTypes";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { findSnapTarget, getHandlePositions } from "@/features/canvas/snapToHandle";
+import { useKeyboardConnect } from "@/features/canvas/useKeyboardConnect";
 import { useViewportPersistence } from "@/features/canvas/useViewportPersistence";
 import { validateConnection } from "@/domain/validation/connectionRules";
 import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
@@ -54,6 +56,15 @@ export function Canvas() {
   const connectDragSourceRef = useRef<ConnectDragSource | null>(null);
   const lastPointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  const {
+    connectState,
+    enterConnectMode,
+    cancel: cancelConnect,
+    moveNext,
+    movePrev,
+    confirm: confirmConnect,
+  } = useKeyboardConnect(nodes, edges, registry, tryConnect);
 
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
   const rfNodes = useMemo(() => nodes.map((n) => ({ ...n, type: n.kind })), [nodes]);
@@ -100,13 +111,50 @@ export function Canvas() {
     [selectMany],
   );
 
+  const handleConnectModeKey = useCallback(
+    (e: React.KeyboardEvent): boolean => {
+      if (!connectState.active) return false;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        cancelConnect();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        confirmConnect();
+      } else if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        e.preventDefault();
+        moveNext();
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        movePrev();
+      }
+      return true;
+    },
+    [connectState.active, cancelConnect, confirmConnect, moveNext, movePrev],
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (handleConnectModeKey(e)) return;
+
       if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
         deleteSelected();
       } else if (e.key === "Escape") {
         clearSelection();
+      } else if (e.key === "Enter") {
+        const target = e.target as HTMLElement;
+        if (
+          target.classList.contains("react-flow__handle") &&
+          target.dataset.handletype !== "target"
+        ) {
+          const nodeWrapper = target.closest<HTMLElement>("[data-id]");
+          const nodeId = nodeWrapper?.getAttribute("data-id");
+          const portId = target.dataset.handleid;
+          if (nodeId && portId) {
+            e.preventDefault();
+            enterConnectMode(nodeId, portId);
+          }
+        }
       } else if (e.key === "+" || e.key === "=") {
         void zoomIn();
       } else if (e.key === "-") {
@@ -117,7 +165,16 @@ export function Canvas() {
         toggleInteractive();
       }
     },
-    [deleteSelected, clearSelection, zoomIn, zoomOut, fitView, toggleInteractive],
+    [
+      handleConnectModeKey,
+      deleteSelected,
+      clearSelection,
+      zoomIn,
+      zoomOut,
+      fitView,
+      toggleInteractive,
+      enterConnectMode,
+    ],
   );
 
   const handleMoveEnd = useCallback(() => {
@@ -244,53 +301,69 @@ export function Canvas() {
       onKeyDown={handleKeyDown}
       onFocusCapture={handleFocusCapture}
     >
-      <ReactFlow
-        nodes={rfNodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        selectionMode={SelectionMode.Partial}
-        panOnScroll
-        zoomOnPinch
-        minZoom={0.1}
-        maxZoom={4}
-        nodesDraggable={interactive}
-        nodesConnectable={interactive}
-        elementsSelectable={interactive}
-        onNodeClick={handleNodeClick}
-        onPaneClick={handlePaneClick}
-        onSelectionChange={handleSelectionChange}
-        onMoveEnd={handleMoveEnd}
-        onConnect={handleConnect}
-        onConnectStart={handleConnectStart}
-        onConnectEnd={handleConnectEnd}
-        isValidConnection={isValidConnection}
-        connectionRadius={20}
+      <KeyboardConnectContext.Provider value={enterConnectMode}>
+        <ReactFlow
+          nodes={rfNodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          selectionMode={SelectionMode.Partial}
+          panOnScroll
+          zoomOnPinch
+          minZoom={0.1}
+          maxZoom={4}
+          nodesDraggable={interactive}
+          nodesConnectable={interactive}
+          elementsSelectable={interactive}
+          onNodeClick={handleNodeClick}
+          onPaneClick={handlePaneClick}
+          onSelectionChange={handleSelectionChange}
+          onMoveEnd={handleMoveEnd}
+          onConnect={handleConnect}
+          onConnectStart={handleConnectStart}
+          onConnectEnd={handleConnectEnd}
+          isValidConnection={isValidConnection}
+          connectionRadius={20}
+        >
+          <Background />
+          <MiniMap />
+          <Controls>
+            <CanvasControls />
+            <button
+              type="button"
+              data-testid="snap-toggle"
+              aria-label={snapEnabled ? "Disable snap to grid" : "Enable snap to grid"}
+              aria-pressed={snapEnabled}
+              onClick={toggleSnap}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                padding: "4px",
+                background: snapEnabled ? "rgba(59, 130, 246, 0.15)" : "transparent",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              <Grid3X3 size={14} aria-hidden="true" />
+            </button>
+          </Controls>
+        </ReactFlow>
+      </KeyboardConnectContext.Provider>
+      <div
+        aria-live="assertive"
+        role="status"
+        data-testid="connect-announcement"
+        style={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          overflow: "hidden",
+          clip: "rect(0,0,0,0)",
+        }}
       >
-        <Background />
-        <MiniMap />
-        <Controls>
-          <CanvasControls />
-          <button
-            type="button"
-            data-testid="snap-toggle"
-            aria-label={snapEnabled ? "Disable snap to grid" : "Enable snap to grid"}
-            aria-pressed={snapEnabled}
-            onClick={toggleSnap}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              padding: "4px",
-              background: snapEnabled ? "rgba(59, 130, 246, 0.15)" : "transparent",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            <Grid3X3 size={14} aria-hidden="true" />
-          </button>
-        </Controls>
-      </ReactFlow>
+        {connectState.announcement}
+      </div>
     </div>
   );
 }
