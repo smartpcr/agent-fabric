@@ -1,5 +1,25 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const allProjects = [
+  {
+    name: "chromium",
+    use: { ...devices["Desktop Chrome"] },
+  },
+  {
+    name: "firefox",
+    use: { ...devices["Desktop Firefox"] },
+  },
+  {
+    name: "webkit",
+    use: { ...devices["Desktop Safari"] },
+  },
+];
+
+const browserFilter = process.env["PW_BROWSERS"];
+const projects = browserFilter
+  ? allProjects.filter((p) => browserFilter.split(",").includes(p.name))
+  : allProjects;
+
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: true,
@@ -11,12 +31,7 @@ export default defineConfig({
     baseURL: "http://localhost:4173",
     trace: "on-first-retry",
   },
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-    },
-  ],
+  projects,
   webServer: {
     command: "npm run preview",
     port: 4173,
