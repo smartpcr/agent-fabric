@@ -5,6 +5,7 @@ import {
   useReactFlow,
   SelectionMode,
   type NodeMouseHandler,
+  type Connection,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Grid3X3 } from "lucide-react";
@@ -36,6 +37,7 @@ export function Canvas() {
   const setPan = useWorkflowStore((s) => s.setPan);
   const interactive = useWorkflowStore((s) => s.interactive);
   const toggleInteractive = useWorkflowStore((s) => s.toggleInteractive);
+  const tryConnect = useWorkflowStore((s) => s.tryConnect);
   const { screenToFlowPosition, getViewport, zoomIn, zoomOut, fitView } = useReactFlow();
 
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
@@ -124,6 +126,19 @@ export function Canvas() {
     [selectAction],
   );
 
+  const handleConnect = useCallback(
+    (connection: Connection) => {
+      if (!connection.source || !connection.target) return;
+      tryConnect({
+        source: connection.source,
+        sourcePort: connection.sourceHandle ?? "out",
+        target: connection.target,
+        targetPort: connection.targetHandle ?? "in",
+      });
+    },
+    [tryConnect],
+  );
+
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- role="application" is interactive per WAI-ARIA
     <div
@@ -151,6 +166,7 @@ export function Canvas() {
         onPaneClick={handlePaneClick}
         onSelectionChange={handleSelectionChange}
         onMoveEnd={handleMoveEnd}
+        onConnect={handleConnect}
       >
         <Background />
         <MiniMap />
