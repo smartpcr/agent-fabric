@@ -14,11 +14,12 @@ export function PaletteCategory({
   onToggle,
 }: PaletteCategoryProps) {
   return (
-    <div data-testid={`palette-category-${category}`}>
+    <div data-testid={`palette-category-${category}`} aria-hidden="true">
       <button
         type="button"
         aria-expanded={defaultExpanded}
         onClick={onToggle}
+        tabIndex={-1}
         style={{
           width: "100%",
           textAlign: "left",

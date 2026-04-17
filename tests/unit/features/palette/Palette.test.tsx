@@ -101,7 +101,7 @@ describe("Palette", () => {
   it("category section has a toggle button with aria-expanded", () => {
     renderPalette();
     const categoryDiv = screen.getByTestId("palette-category-flow");
-    const button = within(categoryDiv).getByRole("button");
+    const button = within(categoryDiv).getByRole("button", { hidden: true });
     expect(button).toHaveAttribute("aria-expanded", "true");
   });
 
@@ -110,7 +110,7 @@ describe("Palette", () => {
     renderPalette();
 
     const categoryDiv = screen.getByTestId("palette-category-flow");
-    const button = within(categoryDiv).getByRole("button");
+    const button = within(categoryDiv).getByRole("button", { hidden: true });
 
     expect(screen.getAllByRole("option").length).toBeGreaterThanOrEqual(3);
 

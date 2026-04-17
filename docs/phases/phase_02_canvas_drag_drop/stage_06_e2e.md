@@ -17,7 +17,7 @@
   - Test: Green.
   - Effort: 2h
 
-- [ ] **Step 3**: E2E — pan/zoom/fit-view; viewport persists across reload
+- [x] **Step 3**: E2E — pan/zoom/fit-view; viewport persists across reload
   - File(s): `tests/e2e/build-workflow.spec.ts` (extend)
   - Contents: Wheel zoom; click fit-view; reload page; assert viewport restored to same values.
   - Test: Green.
