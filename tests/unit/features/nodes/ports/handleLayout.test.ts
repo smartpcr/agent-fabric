@@ -26,19 +26,8 @@ describe("computeHandlePositions", () => {
     expect(at(result, 0).edge).toBe("top");
   });
 
-  it("places 2 ports at padding and 1-padding with default padding", () => {
+  it("places 2 ports at ~33% and ~67%", () => {
     const result = computeHandlePositions({ count: 2, edge: "bottom" });
-    expect(result).toHaveLength(2);
-    expect(at(result, 0).offset).toBeCloseTo(0.1);
-    expect(at(result, 1).offset).toBeCloseTo(0.9);
-  });
-
-  it("places 2 ports at ~33% and ~67% with 1/3 padding", () => {
-    const result = computeHandlePositions({
-      count: 2,
-      edge: "bottom",
-      padding: 1 / 3,
-    });
     expect(result).toHaveLength(2);
     expect(at(result, 0).offset).toBeCloseTo(1 / 3);
     expect(at(result, 1).offset).toBeCloseTo(2 / 3);
@@ -48,8 +37,8 @@ describe("computeHandlePositions", () => {
     const result = computeHandlePositions({ count: 5, edge: "left" });
     expect(result).toHaveLength(5);
 
-    // With default padding 0.1, range is [0.1, 0.9], step = 0.8/4 = 0.2
-    const expected = [0.1, 0.3, 0.5, 0.7, 0.9];
+    // Positions at k/6 for k = 1..5
+    const expected = [1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6];
     for (let i = 0; i < 5; i++) {
       expect(at(result, i).offset).toBeCloseTo(at(expected, i));
       expect(at(result, i).index).toBe(i);
@@ -64,22 +53,27 @@ describe("computeHandlePositions", () => {
       padding: 0.2,
     });
     expect(result).toHaveLength(3);
-    // Range is [0.2, 0.8], step = 0.6/2 = 0.3
-    expect(at(result, 0).offset).toBeCloseTo(0.2);
+    // Positions at 1/4=0.25, 2/4=0.5, 3/4=0.75 — all within [0.2, 0.8]
+    expect(at(result, 0).offset).toBeCloseTo(0.25);
     expect(at(result, 1).offset).toBeCloseTo(0.5);
-    expect(at(result, 2).offset).toBeCloseTo(0.8);
+    expect(at(result, 2).offset).toBeCloseTo(0.75);
   });
 
   it("clamps offsets to [padding, 1 - padding]", () => {
+    // 5 handles with padding=0.25: raw positions 1/6≈0.167, ..., 5/6≈0.833
+    // First clamped up to 0.25, last clamped down to 0.75
     const result = computeHandlePositions({
-      count: 3,
+      count: 5,
       edge: "top",
-      padding: 0.2,
+      padding: 0.25,
     });
     for (const pos of result) {
-      expect(pos.offset).toBeGreaterThanOrEqual(0.2);
-      expect(pos.offset).toBeLessThanOrEqual(0.8);
+      expect(pos.offset).toBeGreaterThanOrEqual(0.25);
+      expect(pos.offset).toBeLessThanOrEqual(0.75);
     }
+    // First and last should be clamped
+    expect(at(result, 0).offset).toBeCloseTo(0.25);
+    expect(at(result, 4).offset).toBeCloseTo(0.75);
   });
 
   it("handles padding of 0 (no padding)", () => {
@@ -88,9 +82,10 @@ describe("computeHandlePositions", () => {
       edge: "top",
       padding: 0,
     });
-    expect(at(result, 0).offset).toBeCloseTo(0);
+    // Positions at 1/4=0.25, 2/4=0.5, 3/4=0.75
+    expect(at(result, 0).offset).toBeCloseTo(0.25);
     expect(at(result, 1).offset).toBeCloseTo(0.5);
-    expect(at(result, 2).offset).toBeCloseTo(1);
+    expect(at(result, 2).offset).toBeCloseTo(0.75);
   });
 
   it("clamps padding above 0.5 to 0.5", () => {
@@ -99,7 +94,7 @@ describe("computeHandlePositions", () => {
       edge: "bottom",
       padding: 0.8,
     });
-    // Even with extreme padding, single port is at 50%
+    // Single port at 1/2 = 0.5, padding clamped to 0.5, offset = max(0.5, min(0.5, 0.5)) = 0.5
     expect(at(result, 0).offset).toBeCloseTo(0.5);
   });
 
@@ -107,10 +102,11 @@ describe("computeHandlePositions", () => {
     const result = computeHandlePositions({ count: 10, edge: "right" });
     expect(result).toHaveLength(10);
 
-    // Step = 0.8/9 ≈ 0.0889
+    // Positions at k/11 for k=1..10, clamped to [0.1, 0.9]
     for (let i = 0; i < 10; i++) {
-      const expectedOffset = 0.1 + (0.8 / 9) * i;
-      expect(at(result, i).offset).toBeCloseTo(expectedOffset);
+      const raw = (i + 1) / 11;
+      const expected = Math.max(0.1, Math.min(0.9, raw));
+      expect(at(result, i).offset).toBeCloseTo(expected);
       expect(at(result, i).index).toBe(i);
     }
   });
@@ -127,7 +123,7 @@ describe("computeHandlePositions", () => {
   it("returns monotonically increasing offsets", () => {
     const result = computeHandlePositions({ count: 7, edge: "top" });
     for (let i = 1; i < result.length; i++) {
-      expect(at(result, i).offset).toBeGreaterThan(at(result, i - 1).offset);
+      expect(at(result, i).offset).toBeGreaterThanOrEqual(at(result, i - 1).offset);
     }
   });
 });

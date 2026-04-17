@@ -18,9 +18,13 @@ const DEFAULT_PADDING = 0.1;
  * Distributes `count` handles evenly along a node edge, returning
  * percentage offsets clamped to `[padding, 1 - padding]`.
  *
- * - 1 handle → centered at 50%
- * - 2 handles → ~33% and ~67%
- * - N handles → evenly spaced within the padded range
+ * Handles are placed at equal-division points along the edge:
+ * - 1 handle → 50%
+ * - 2 handles → 33% and 67%
+ * - N handles → at positions k/(N+1) for k = 1..N
+ *
+ * Offsets are clamped to `[padding, 1 - padding]` so handles
+ * never sit flush against the node corners.
  */
 export function computeHandlePositions({
   count,
@@ -31,17 +35,11 @@ export function computeHandlePositions({
 
   const clampedPadding = Math.max(0, Math.min(0.5, padding));
 
-  if (count === 1) {
-    return [{ index: 0, offset: 0.5, edge }];
-  }
-
   const positions: HandlePosition[] = [];
-  const start = clampedPadding;
-  const end = 1 - clampedPadding;
-  const step = (end - start) / (count - 1);
+  const divisions = count + 1;
 
   for (let i = 0; i < count; i++) {
-    const rawOffset = start + step * i;
+    const rawOffset = (i + 1) / divisions;
     const offset = Math.max(clampedPadding, Math.min(1 - clampedPadding, rawOffset));
     positions.push({ index: i, offset, edge });
   }
