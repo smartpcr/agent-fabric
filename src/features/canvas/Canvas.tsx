@@ -102,6 +102,10 @@ export function Canvas() {
         edges={edges}
         nodeTypes={nodeTypes}
         selectionMode={SelectionMode.Partial}
+        panOnScroll
+        zoomOnPinch
+        minZoom={0.1}
+        maxZoom={4}
         onNodeClick={handleNodeClick}
         onPaneClick={handlePaneClick}
         onSelectionChange={handleSelectionChange}
