@@ -85,14 +85,19 @@ export function createGraphSlice(
     },
     deleteSelected: () => {
       const selected = get().selected;
-      if (selected.size === 0) return;
+      const selectedEdges = get().selectedEdges;
+      if (selected.size === 0 && selectedEdges.size === 0) return;
       // Batch node/edge removal AND selection clear in a single set() so zundo
       // records exactly one undo step.
       set((state) => ({
         nodes: state.nodes.filter((n) => !selected.has(n.id)),
-        edges: state.edges.filter((e) => !selected.has(e.source) && !selected.has(e.target)),
+        edges: state.edges.filter(
+          (e) => !selectedEdges.has(e.id) && !selected.has(e.source) && !selected.has(e.target),
+        ),
         selected: new Set<string>(),
         selectedNodeIds: [] as string[],
+        selectedEdges: new Set<string>(),
+        selectedEdgeIds: [] as string[],
       }));
     },
     connectPorts: (params: ConnectPortsParams) => {
