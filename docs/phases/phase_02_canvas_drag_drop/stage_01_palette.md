@@ -29,7 +29,7 @@
   - Test: 100% — filters narrow list; typing resets count; empty query shows all.
   - Effort: 3h
 
-- [ ] **Step 5**: Keyboard insertion (Enter on focused item adds node to canvas center)
+- [x] **Step 5**: Keyboard insertion (Enter on focused item adds node to canvas center)
   - File(s): `src/features/palette/Palette.tsx` (extend), `src/store/slices/graphSlice.ts` (wire), `tests/integration/palette.keyboard-insert.test.tsx`
   - Contents: On `Enter` while a palette item is focused, dispatch `addNode(kind, viewportCenter)`; viewport center computed via `useReactFlow().getViewport()`.
   - Test: 100% (unit) + integration — dispatched action creates node at expected position.
