@@ -1,10 +1,11 @@
 # Phase 3 — Stage 3: Edge Rendering
+
 > Custom edge components with labels, inline editing, selection, deletion, and the edge-type map.
 > Status: `[ ]` not started · **Effort**: 16h
 
 ## Steps
 
-- [ ] **Step 1**: `DefaultEdge` with bezier routing + arrow marker
+- [x] **Step 1**: `DefaultEdge` with bezier routing + arrow marker
   - File(s): `src/features/edges/DefaultEdge.tsx`, `tests/unit/features/edges/DefaultEdge.test.tsx`
   - Contents: xyflow `getBezierPath`; `<BaseEdge path={...} markerEnd={...}/>`; arrow-head via `<defs><marker>...`.
   - Test: 100% — path rendered; marker-end attribute set.
@@ -47,6 +48,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 3
+
 - All 7 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/features/edges/**`.
 - Edge labels editable inline with keyboard commit/cancel.
