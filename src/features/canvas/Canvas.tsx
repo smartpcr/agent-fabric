@@ -42,8 +42,10 @@ export function Canvas() {
   const snapGridSize = useWorkflowStore((s) => s.snapGridSize);
   const toggleSnap = useWorkflowStore((s) => s.toggleSnap);
   const selectAction = useWorkflowStore((s) => s.select);
+  const selectEdge = useWorkflowStore((s) => s.selectEdge);
   const selectMany = useWorkflowStore((s) => s.selectMany);
   const clearSelection = useWorkflowStore((s) => s.clear);
+  const clearEdges = useWorkflowStore((s) => s.clearEdges);
   const deleteSelected = useWorkflowStore((s) => s.deleteSelected);
   const setZoom = useWorkflowStore((s) => s.setZoom);
   const setPan = useWorkflowStore((s) => s.setPan);
@@ -110,9 +112,23 @@ export function Canvas() {
     [selectAction],
   );
 
+  const handleEdgeClick = useCallback(
+    (event: React.MouseEvent, edge: { id: string }) => {
+      let mode: SelectMode = "replace";
+      if (event.shiftKey) {
+        mode = "add";
+      } else if (event.ctrlKey || event.metaKey) {
+        mode = "toggle";
+      }
+      selectEdge(edge.id, mode);
+    },
+    [selectEdge],
+  );
+
   const handlePaneClick = useCallback(() => {
     clearSelection();
-  }, [clearSelection]);
+    clearEdges();
+  }, [clearSelection, clearEdges]);
 
   const handleSelectionChange = useCallback(
     ({ nodes: selectedNodes }: { nodes: Array<{ id: string }> }) => {
@@ -325,6 +341,7 @@ export function Canvas() {
           nodesConnectable={interactive}
           elementsSelectable={interactive}
           onNodeClick={handleNodeClick}
+          onEdgeClick={handleEdgeClick}
           onPaneClick={handlePaneClick}
           onSelectionChange={handleSelectionChange}
           onMoveEnd={handleMoveEnd}

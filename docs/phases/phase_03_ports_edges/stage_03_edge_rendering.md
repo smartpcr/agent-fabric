@@ -17,7 +17,7 @@
   - Test: 100% — label visible at midpoint; truncation; hover title.
   - Effort: 2h
 
-- [ ] **Step 3**: Inline edge label editing (double-click → input)
+- [x] **Step 3**: Inline edge label editing (double-click → input)
   - File(s): `src/features/edges/InlineLabelEditor.tsx`, `tests/unit/features/edges/InlineLabelEditor.test.tsx`
   - Contents: Double-click replaces label with `<input>`; Enter commits, Escape cancels, Blur commits; focus-trap inside input.
   - Test: 100% — Enter commits, Escape cancels; store receives `updateEdgeLabel` on commit.
