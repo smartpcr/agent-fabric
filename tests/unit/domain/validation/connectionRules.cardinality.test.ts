@@ -79,10 +79,13 @@ describe("connectionRules — single cardinality enforcement", () => {
       g = addNodeToGraph(g, src1);
       g = addNodeToGraph(g, src2);
       g = addNodeToGraph(g, tgt);
-      g = addEdgeToGraph(
-        g,
-        makeEdge({ source: src1.id, sourcePort: "out", target: tgt.id, targetPort: "in" }),
-      );
+      const existingEdge = makeEdge({
+        source: src1.id,
+        sourcePort: "out",
+        target: tgt.id,
+        targetPort: "in",
+      });
+      g = addEdgeToGraph(g, existingEdge);
 
       const result = validateConnection(
         g,
@@ -93,6 +96,7 @@ describe("connectionRules — single cardinality enforcement", () => {
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.error.code).toBe("CARDINALITY_EXCEEDED");
+        expect(result.error.conflictingEdgeId).toBe(existingEdge.id);
       }
     });
 
@@ -258,8 +262,8 @@ describe("connectionRules — single cardinality enforcement", () => {
     });
   });
 
-  describe("existing edge identification", () => {
-    it("identifies the existing edge by matching target node and port", () => {
+  describe("existing edge identification for UI highlighting", () => {
+    it("returns conflictingEdgeId in the error for deterministic UI highlighting", () => {
       const src1 = makeNode({ kind: "source", data: {} });
       const src2 = makeNode({ kind: "source", data: {} });
       const tgt = makeNode({ kind: "single-in", data: {} });
@@ -276,12 +280,6 @@ describe("connectionRules — single cardinality enforcement", () => {
       });
       g = addEdgeToGraph(g, existingEdge);
 
-      // Verify the existing edge can be found for UI highlighting
-      const conflictingEdge = g.edges.find((e) => e.target === tgt.id && e.targetPort === "in");
-      expect(conflictingEdge).toBeDefined();
-      expect(conflictingEdge?.id).toBe(existingEdge.id);
-
-      // And confirm the rejection
       const result = validateConnection(
         g,
         { nodeId: src2.id, portId: "out" },
@@ -291,6 +289,38 @@ describe("connectionRules — single cardinality enforcement", () => {
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.error.code).toBe("CARDINALITY_EXCEEDED");
+        expect(result.error.conflictingEdgeId).toBe(existingEdge.id);
+      }
+    });
+
+    it("conflictingEdgeId matches the first inbound edge on the target port", () => {
+      const src1 = makeNode({ kind: "source", data: {} });
+      const src2 = makeNode({ kind: "source", data: {} });
+      const tgt = makeNode({ kind: "single-in", data: {} });
+      let g = makeGraph("G");
+      g = addNodeToGraph(g, src1);
+      g = addNodeToGraph(g, src2);
+      g = addNodeToGraph(g, tgt);
+
+      const firstEdge = makeEdge({
+        source: src1.id,
+        sourcePort: "out",
+        target: tgt.id,
+        targetPort: "in",
+      });
+      g = addEdgeToGraph(g, firstEdge);
+
+      const result = validateConnection(
+        g,
+        { nodeId: src2.id, portId: "out" },
+        { nodeId: tgt.id, portId: "in" },
+        registry,
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        // The conflicting edge ID should be deterministic — always the existing inbound edge
+        expect(result.error.conflictingEdgeId).toBeDefined();
+        expect(result.error.conflictingEdgeId).toBe(firstEdge.id);
       }
     });
   });
