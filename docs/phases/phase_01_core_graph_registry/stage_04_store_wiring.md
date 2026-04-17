@@ -35,7 +35,7 @@
   - Test: 100% — happy path; NaN/Infinity clamp.
   - Effort: 2h
 
-- [ ] **Step 6**: `graphSlice`: bulk `applyNodeChanges` / `applyEdgeChanges` (xyflow change shapes)
+- [x] **Step 6**: `graphSlice`: bulk `applyNodeChanges` / `applyEdgeChanges` (xyflow change shapes)
   - File(s): `src/store/slices/graphSlice.ts` (extend), `tests/unit/store/slices/graphSlice.applyChanges.test.ts`
   - Contents: Handles the 5 change kinds — `add`, `remove`, `position`, `select`, `dimensions`. Routes each to the right action/state update.
   - Test: 100% — one test per kind; mixed batch applies correctly.
