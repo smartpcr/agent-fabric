@@ -29,7 +29,7 @@
   - Test: Unit: `createStore()` returns an object containing keys from all five slices; initial state matches an inline snapshot; the store survives a round-trip via `JSON.parse(JSON.stringify(store.getState()))` when `executionSlice` is excluded.
   - Effort: 2h
 
-- [ ] **Step 5**: App-wide error boundary + toast system
+- [x] **Step 5**: App-wide error boundary + toast system
   - File(s): `src/providers/ErrorBoundary.tsx`, `src/features/editor/Toast.tsx`, `src/hooks/useToast.ts`
   - Contents: Class-component error boundary renders `FallbackUi` with a recovery button; toast queue via Radix `Toast.Provider`; `useToast().show({ title, description, variant })` pushes into queue; auto-dismiss after 4s.
   - Test: Unit: rendering a child that throws shows fallback; clicking recover re-mounts children. `useToast` test asserts a shown toast is visible and dismisses after fake-timer advance.
