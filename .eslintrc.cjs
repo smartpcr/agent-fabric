@@ -31,6 +31,7 @@ module.exports = {
   ],
   extends: [
     "eslint:recommended",
+    "typescript-strict",
     "plugin:@typescript-eslint/strict-type-checked",
     "plugin:react/recommended",
     "plugin:react/jsx-runtime",
@@ -49,6 +50,14 @@ module.exports = {
       "error",
       { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
     ],
+    // Overrides for eslint-config-typescript-strict rules that conflict with project conventions
+    "unicode-bom": "off",
+    "capitalized-comments": "off",
+    "no-inline-comments": "off",
+    "no-undefined": "off",
+    "line-comment-position": "off",
+    "no-underscore-dangle": "off",
+    "multiline-comment-style": "off",
   },
   ignorePatterns: ["dist/", "node_modules/", "coverage/", "*.config.*"],
 };
