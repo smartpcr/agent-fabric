@@ -23,7 +23,7 @@
   - Test: 100% — each button dispatches correctly; shortcuts firing in canvas only.
   - Effort: 3h
 
-- [ ] **Step 4**: Background grid + snap-grid toggle
+- [x] **Step 4**: Background grid + snap-grid toggle
   - File(s): `src/features/canvas/Background.tsx` (extend), `src/features/editor/Toolbar.tsx` (new), `tests/unit/features/canvas/Background.test.tsx`
   - Contents: Toggle button in toolbar; state in `viewportSlice.snapEnabled`; grid pattern changes from dots → lines when snap on.
   - Test: 100% — toggle flips state; pattern changes.
