@@ -59,7 +59,7 @@
   - Test: 100% — 3 kinds present; second call doesn't throw.
   - Effort: 1h
 
-- [ ] **Step 10**: Integration test — end-to-end round trip
+- [x] **Step 10**: Integration test — end-to-end round trip
   - File(s): `tests/integration/domain.round-trip.test.ts`
   - Contents: Build a 3-node graph via model API → serialize → deserialize → assert deep-equal and `validateGraph` returns ok.
   - Test: Passes in CI.

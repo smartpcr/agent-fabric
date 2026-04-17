@@ -1,5 +1,19 @@
 import { describe, it, expect } from "vitest";
+import { z } from "zod";
 import { createStore } from "@/store/createStore";
+import type { NodeSpec } from "@/domain/models/nodeSpec";
+import { makeOutputPort } from "@/domain/models/port";
+
+const dummySpec: NodeSpec = {
+  kind: "test",
+  category: "test",
+  label: "Test",
+  icon: "box",
+  ports: [makeOutputPort({ id: "out", label: "Out", dataType: "any" })],
+  propertySchema: z.object({}),
+  defaultData: {},
+  capabilities: [],
+};
 
 describe("createStore", () => {
   it("returns a store containing keys from all five slices", () => {
@@ -95,7 +109,7 @@ describe("createStore", () => {
     const store1 = createStore();
     const store2 = createStore();
 
-    store1.getState().addNode({ id: "n1" });
+    store1.getState().addNode(dummySpec);
 
     expect(store1.getState().nodes).toHaveLength(1);
     expect(store2.getState().nodes).toHaveLength(0);
@@ -105,10 +119,11 @@ describe("createStore", () => {
 describe("graphSlice actions", () => {
   it("removeNode removes by id", () => {
     const store = createStore();
-    store.getState().addNode({ id: "a" });
-    store.getState().addNode({ id: "b" });
-    store.getState().removeNode("a");
-    expect(store.getState().nodes).toEqual([{ id: "b" }]);
+    const nodeA = store.getState().addNode(dummySpec);
+    store.getState().addNode(dummySpec);
+    store.getState().removeNode(nodeA.id);
+    expect(store.getState().nodes).toHaveLength(1);
+    expect(store.getState().nodes[0].id).not.toBe(nodeA.id);
   });
 });
 
