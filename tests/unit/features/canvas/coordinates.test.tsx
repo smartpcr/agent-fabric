@@ -30,6 +30,7 @@ vi.mock("@xyflow/react", () => ({
     getViewport: () => MOCK_VIEWPORT,
     screenToFlowPosition: mockScreenToFlowPosition,
   }),
+  SelectionMode: { Partial: "partial", Full: "full" },
 }));
 
 vi.mock("@/features/canvas/Background", () => ({

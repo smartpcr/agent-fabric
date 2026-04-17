@@ -20,6 +20,7 @@ vi.mock("@xyflow/react", () => ({
     getViewport: () => ({ x: 0, y: 0, zoom: 1 }),
     screenToFlowPosition: ({ x, y }: { x: number; y: number }) => ({ x, y }),
   }),
+  SelectionMode: { Partial: "partial", Full: "full" },
 }));
 
 // Mock the Background component

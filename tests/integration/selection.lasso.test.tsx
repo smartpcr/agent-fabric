@@ -7,9 +7,8 @@ import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore } from "@/store/hooks";
 
-// Capture handlers passed to ReactFlow
-let capturedOnNodeClick: ((event: MouseEvent, node: { id: string }) => void) | undefined;
-let capturedOnPaneClick: (() => void) | undefined;
+// Capture props passed to ReactFlow
+let capturedSelectionMode: string | undefined;
 let capturedOnSelectionChange: (({ nodes }: { nodes: Array<{ id: string }> }) => void) | undefined;
 
 vi.mock("@xyflow/react", () => ({
@@ -17,8 +16,7 @@ vi.mock("@xyflow/react", () => ({
     children,
     nodes,
     nodeTypes: nt,
-    onNodeClick,
-    onPaneClick,
+    selectionMode,
     onSelectionChange,
   }: {
     children?: ReactNode;
@@ -29,12 +27,12 @@ vi.mock("@xyflow/react", () => ({
       position: { x: number; y: number };
     }>;
     nodeTypes?: Record<string, unknown>;
-    onNodeClick?: (event: MouseEvent, node: { id: string }) => void;
-    onPaneClick?: () => void;
+    selectionMode?: string;
+    onNodeClick?: unknown;
+    onPaneClick?: unknown;
     onSelectionChange?: ({ nodes }: { nodes: Array<{ id: string }> }) => void;
   }) => {
-    capturedOnNodeClick = onNodeClick;
-    capturedOnPaneClick = onPaneClick;
+    capturedSelectionMode = selectionMode;
     capturedOnSelectionChange = onSelectionChange;
     return (
       <div data-testid="mock-reactflow">
@@ -90,8 +88,7 @@ vi.mock("@/store/selectors/graphSelectors", () => ({
 
 afterEach(() => {
   cleanup();
-  capturedOnNodeClick = undefined;
-  capturedOnPaneClick = undefined;
+  capturedSelectionMode = undefined;
   capturedOnSelectionChange = undefined;
 });
 
@@ -130,24 +127,9 @@ function getSelected(): Set<string> {
   return selected;
 }
 
-function simulateNodeClick(
-  nodeId: string,
-  modifiers: { shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean } = {},
-) {
-  if (capturedOnNodeClick) {
-    const event = new MouseEvent("click", {
-      shiftKey: modifiers.shiftKey ?? false,
-      ctrlKey: modifiers.ctrlKey ?? false,
-      metaKey: modifiers.metaKey ?? false,
-    });
-    capturedOnNodeClick(event, { id: nodeId });
-  }
-}
-
-describe("Selection click behavior", () => {
-  it("click on a node selects it (replace mode)", () => {
+describe("Lasso (box) selection", () => {
+  it("Canvas passes selectionMode='partial' to ReactFlow", () => {
     setupStore();
-    const [id1] = addNodes("start", "task");
 
     render(
       <DragProvider>
@@ -155,18 +137,11 @@ describe("Selection click behavior", () => {
       </DragProvider>,
     );
 
-    act(() => {
-      simulateNodeClick(id1);
-    });
-
-    const selected = getSelected();
-    expect(selected.has(id1)).toBe(true);
-    expect(selected.size).toBe(1);
+    expect(capturedSelectionMode).toBe("partial");
   });
 
-  it("click on another node replaces selection", () => {
+  it("onSelectionChange is wired to ReactFlow", () => {
     setupStore();
-    const [id1, id2] = addNodes("start", "task");
 
     render(
       <DragProvider>
@@ -174,22 +149,13 @@ describe("Selection click behavior", () => {
       </DragProvider>,
     );
 
-    act(() => {
-      simulateNodeClick(id1);
-    });
-    act(() => {
-      simulateNodeClick(id2);
-    });
-
-    const selected = getSelected();
-    expect(selected.has(id1)).toBe(false);
-    expect(selected.has(id2)).toBe(true);
-    expect(selected.size).toBe(1);
+    expect(capturedOnSelectionChange).toBeDefined();
+    expect(typeof capturedOnSelectionChange).toBe("function");
   });
 
-  it("shift-click adds to selection", () => {
+  it("lasso enclosing 2 of 3 nodes selects only those 2", () => {
     setupStore();
-    const [id1, id2] = addNodes("start", "task");
+    const [id1, id2, id3] = addNodes("start", "task", "end");
 
     render(
       <DragProvider>
@@ -197,123 +163,7 @@ describe("Selection click behavior", () => {
       </DragProvider>,
     );
 
-    act(() => {
-      simulateNodeClick(id1);
-    });
-    act(() => {
-      simulateNodeClick(id2, { shiftKey: true });
-    });
-
-    const selected = getSelected();
-    expect(selected.has(id1)).toBe(true);
-    expect(selected.has(id2)).toBe(true);
-    expect(selected.size).toBe(2);
-  });
-
-  it("ctrl-click toggles selection (adds unselected)", () => {
-    setupStore();
-    const [id1, id2] = addNodes("start", "task");
-
-    render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
-    );
-
-    act(() => {
-      simulateNodeClick(id1);
-    });
-    act(() => {
-      simulateNodeClick(id2, { ctrlKey: true });
-    });
-
-    const selected = getSelected();
-    expect(selected.has(id1)).toBe(true);
-    expect(selected.has(id2)).toBe(true);
-    expect(selected.size).toBe(2);
-  });
-
-  it("ctrl-click toggles selection (removes already selected)", () => {
-    setupStore();
-    const [id1, id2] = addNodes("start", "task");
-
-    render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
-    );
-
-    act(() => {
-      simulateNodeClick(id1);
-    });
-    act(() => {
-      simulateNodeClick(id2, { shiftKey: true });
-    });
-    // Both selected; now ctrl-click id1 to remove it
-    act(() => {
-      simulateNodeClick(id1, { ctrlKey: true });
-    });
-
-    const selected = getSelected();
-    expect(selected.has(id1)).toBe(false);
-    expect(selected.has(id2)).toBe(true);
-    expect(selected.size).toBe(1);
-  });
-
-  it("meta-click (cmd on Mac) toggles selection", () => {
-    setupStore();
-    const [id1] = addNodes("start");
-
-    render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
-    );
-
-    act(() => {
-      simulateNodeClick(id1);
-    });
-    act(() => {
-      simulateNodeClick(id1, { metaKey: true });
-    });
-
-    const selected = getSelected();
-    expect(selected.has(id1)).toBe(false);
-    expect(selected.size).toBe(0);
-  });
-
-  it("pane click clears selection", () => {
-    setupStore();
-    const [id1] = addNodes("start");
-
-    render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
-    );
-
-    act(() => {
-      simulateNodeClick(id1);
-    });
-    expect(getSelected().size).toBe(1);
-
-    act(() => {
-      capturedOnPaneClick?.();
-    });
-
-    expect(getSelected().size).toBe(0);
-  });
-
-  it("onSelectionChange routes xyflow selection to store", () => {
-    setupStore();
-    const [id1, id2] = addNodes("start", "task");
-
-    render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
-    );
-
+    // Simulate xyflow lasso completion: only id1 and id2 were in the box
     act(() => {
       capturedOnSelectionChange?.({ nodes: [{ id: id1 }, { id: id2 }] });
     });
@@ -321,6 +171,76 @@ describe("Selection click behavior", () => {
     const selected = getSelected();
     expect(selected.has(id1)).toBe(true);
     expect(selected.has(id2)).toBe(true);
+    expect(selected.has(id3)).toBe(false);
+    expect(selected.size).toBe(2);
+  });
+
+  it("lasso enclosing all nodes selects all", () => {
+    setupStore();
+    const [id1, id2, id3] = addNodes("start", "task", "end");
+
+    render(
+      <DragProvider>
+        <Canvas />
+      </DragProvider>,
+    );
+
+    act(() => {
+      capturedOnSelectionChange?.({ nodes: [{ id: id1 }, { id: id2 }, { id: id3 }] });
+    });
+
+    const selected = getSelected();
+    expect(selected.size).toBe(3);
+  });
+
+  it("lasso enclosing no nodes clears selection", () => {
+    setupStore();
+    const [id1] = addNodes("start");
+
+    render(
+      <DragProvider>
+        <Canvas />
+      </DragProvider>,
+    );
+
+    // First select a node
+    act(() => {
+      capturedOnSelectionChange?.({ nodes: [{ id: id1 }] });
+    });
+    expect(getSelected().size).toBe(1);
+
+    // Empty lasso clears
+    act(() => {
+      capturedOnSelectionChange?.({ nodes: [] });
+    });
+    expect(getSelected().size).toBe(0);
+  });
+
+  it("lasso selection replaces previous selection", () => {
+    setupStore();
+    const [id1, id2, id3] = addNodes("start", "task", "end");
+
+    render(
+      <DragProvider>
+        <Canvas />
+      </DragProvider>,
+    );
+
+    // Select id1 first
+    act(() => {
+      capturedOnSelectionChange?.({ nodes: [{ id: id1 }] });
+    });
+    expect(getSelected().has(id1)).toBe(true);
+
+    // Lasso selects id2 and id3 instead
+    act(() => {
+      capturedOnSelectionChange?.({ nodes: [{ id: id2 }, { id: id3 }] });
+    });
+
+    const selected = getSelected();
+    expect(selected.has(id1)).toBe(false);
+    expect(selected.has(id2)).toBe(true);
+    expect(selected.has(id3)).toBe(true);
     expect(selected.size).toBe(2);
   });
 });

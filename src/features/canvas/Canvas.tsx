@@ -1,5 +1,11 @@
 import { useCallback, useMemo } from "react";
-import { ReactFlow, Controls, useReactFlow, type NodeMouseHandler } from "@xyflow/react";
+import {
+  ReactFlow,
+  Controls,
+  useReactFlow,
+  SelectionMode,
+  type NodeMouseHandler,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Grid3X3 } from "lucide-react";
 import { Background } from "@/features/canvas/Background";
@@ -79,6 +85,7 @@ export function Canvas() {
         nodes={rfNodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        selectionMode={SelectionMode.Partial}
         onNodeClick={handleNodeClick}
         onPaneClick={handlePaneClick}
         onSelectionChange={handleSelectionChange}

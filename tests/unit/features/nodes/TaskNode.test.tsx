@@ -13,6 +13,7 @@ vi.mock("@xyflow/react", () => ({
     />
   ),
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
+  SelectionMode: { Partial: "partial", Full: "full" },
 }));
 
 // Mock store hooks — return spec with icon for the "task" kind
