@@ -1,53 +1,82 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import postcss, { type Root, type Declaration } from "postcss";
 
-describe("tokens.css", () => {
+function collectCustomProperties(root: Root, selector: string): string[] {
+  const props: string[] = [];
+  root.walkRules(selector, (rule) => {
+    rule.walkDecls((decl: Declaration) => {
+      if (decl.prop.startsWith("--")) {
+        props.push(decl.prop);
+      }
+    });
+  });
+  return props;
+}
+
+describe("tokens.css parsed by PostCSS", () => {
   const tokensPath = resolve(__dirname, "../../src/styles/tokens.css");
-  const content = readFileSync(tokensPath, "utf-8");
+  const rawCss = readFileSync(tokensPath, "utf-8");
+  let root: Root;
 
-  it("defines color tokens", () => {
-    expect(content).toMatch(/--color-bg\s*:/);
-    expect(content).toMatch(/--color-fg\s*:/);
-    expect(content).toMatch(/--color-primary\s*:/);
-    expect(content).toMatch(/--color-secondary\s*:/);
-    expect(content).toMatch(/--color-muted\s*:/);
-    expect(content).toMatch(/--color-border\s*:/);
-    expect(content).toMatch(/--color-surface\s*:/);
-    expect(content).toMatch(/--color-danger\s*:/);
-    expect(content).toMatch(/--color-success\s*:/);
-    expect(content).toMatch(/--color-warning\s*:/);
+  beforeAll(async () => {
+    const result = await postcss([]).process(rawCss, { from: tokensPath });
+    root = result.root;
   });
 
-  it("defines spacing tokens", () => {
-    expect(content).toMatch(/--spacing-xs\s*:/);
-    expect(content).toMatch(/--spacing-sm\s*:/);
-    expect(content).toMatch(/--spacing-md\s*:/);
-    expect(content).toMatch(/--spacing-lg\s*:/);
-    expect(content).toMatch(/--spacing-xl\s*:/);
+  it("PostCSS parses tokens.css without errors", () => {
+    expect(root).toBeDefined();
+    expect(root.nodes?.length).toBeGreaterThan(0);
   });
 
-  it("defines radius tokens", () => {
-    expect(content).toMatch(/--radius-sm\s*:/);
-    expect(content).toMatch(/--radius-md\s*:/);
-    expect(content).toMatch(/--radius-lg\s*:/);
-    expect(content).toMatch(/--radius-full\s*:/);
+  it("defines color tokens in :root", () => {
+    const props = collectCustomProperties(root, ":root");
+    expect(props).toContain("--color-bg");
+    expect(props).toContain("--color-fg");
+    expect(props).toContain("--color-primary");
+    expect(props).toContain("--color-secondary");
+    expect(props).toContain("--color-muted");
+    expect(props).toContain("--color-border");
+    expect(props).toContain("--color-surface");
+    expect(props).toContain("--color-danger");
+    expect(props).toContain("--color-success");
+    expect(props).toContain("--color-warning");
   });
 
-  it("defines shadow tokens", () => {
-    expect(content).toMatch(/--shadow-sm\s*:/);
-    expect(content).toMatch(/--shadow-md\s*:/);
-    expect(content).toMatch(/--shadow-lg\s*:/);
+  it("defines spacing tokens in :root", () => {
+    const props = collectCustomProperties(root, ":root");
+    expect(props).toContain("--spacing-xs");
+    expect(props).toContain("--spacing-sm");
+    expect(props).toContain("--spacing-md");
+    expect(props).toContain("--spacing-lg");
+    expect(props).toContain("--spacing-xl");
+  });
+
+  it("defines radius tokens in :root", () => {
+    const props = collectCustomProperties(root, ":root");
+    expect(props).toContain("--radius-sm");
+    expect(props).toContain("--radius-md");
+    expect(props).toContain("--radius-lg");
+    expect(props).toContain("--radius-full");
+  });
+
+  it("defines shadow tokens in :root", () => {
+    const props = collectCustomProperties(root, ":root");
+    expect(props).toContain("--shadow-sm");
+    expect(props).toContain("--shadow-md");
+    expect(props).toContain("--shadow-lg");
   });
 
   it("defines dark-mode overrides via [data-theme='dark']", () => {
-    expect(content).toMatch(/\[data-theme="dark"\]/);
+    const darkProps = collectCustomProperties(root, '[data-theme="dark"]');
+    expect(darkProps.length).toBeGreaterThan(0);
   });
 
-  it("dark mode overrides the color tokens", () => {
-    const darkBlock = content.slice(content.indexOf('[data-theme="dark"]'));
-    expect(darkBlock).toMatch(/--color-bg\s*:/);
-    expect(darkBlock).toMatch(/--color-fg\s*:/);
-    expect(darkBlock).toMatch(/--color-primary\s*:/);
+  it("dark mode overrides color tokens", () => {
+    const darkProps = collectCustomProperties(root, '[data-theme="dark"]');
+    expect(darkProps).toContain("--color-bg");
+    expect(darkProps).toContain("--color-fg");
+    expect(darkProps).toContain("--color-primary");
   });
 });
