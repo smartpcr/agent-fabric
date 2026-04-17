@@ -1,4 +1,5 @@
 import { createContext, useCallback, useState, type ReactNode } from "react";
+import * as RadixToast from "@radix-ui/react-toast";
 
 export type ToastVariant = "default" | "success" | "error";
 
@@ -48,69 +49,64 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ToastContext.Provider value={{ toasts, show, dismiss }}>
-      {children}
-      <ToastViewport toasts={toasts} onDismiss={dismiss} />
-    </ToastContext.Provider>
-  );
-}
-
-function ToastViewport({
-  toasts,
-  onDismiss,
-}: {
-  toasts: ToastMessage[];
-  onDismiss: (id: string) => void;
-}) {
-  return (
-    <div
-      role="region"
-      aria-label="Notifications"
-      style={{
-        position: "fixed",
-        bottom: 16,
-        right: 16,
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        zIndex: 9999,
-      }}
-    >
-      {toasts.map((toast) => (
-        <div
-          key={toast.id}
-          role="status"
-          aria-live="polite"
-          data-variant={toast.variant}
-          style={{
-            padding: "12px 16px",
-            background: "var(--color-bg, #333)",
-            color: "var(--color-fg, #fff)",
-            borderRadius: 6,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-          }}
-        >
-          <strong>{toast.title}</strong>
-          {toast.description ? <p>{toast.description}</p> : null}
-          <button
-            type="button"
-            aria-label="Dismiss"
-            onClick={() => {
-              onDismiss(toast.id);
+    <RadixToast.Provider duration={AUTO_DISMISS_MS}>
+      <ToastContext.Provider value={{ toasts, show, dismiss }}>
+        {children}
+        {toasts.map((toast) => (
+          <RadixToast.Root
+            key={toast.id}
+            data-variant={toast.variant}
+            open
+            onOpenChange={(open) => {
+              if (!open) {
+                dismiss(toast.id);
+              }
             }}
             style={{
-              marginLeft: 8,
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              color: "inherit",
+              padding: "12px 16px",
+              background: "var(--color-bg, #333)",
+              color: "var(--color-fg, #fff)",
+              borderRadius: 6,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+              listStyle: "none",
             }}
           >
-            ✕
-          </button>
-        </div>
-      ))}
-    </div>
+            <RadixToast.Title>
+              <strong>{toast.title}</strong>
+            </RadixToast.Title>
+            {toast.description ? (
+              <RadixToast.Description>{toast.description}</RadixToast.Description>
+            ) : null}
+            <RadixToast.Close
+              aria-label="Dismiss"
+              style={{
+                marginLeft: 8,
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                color: "inherit",
+              }}
+            >
+              ✕
+            </RadixToast.Close>
+          </RadixToast.Root>
+        ))}
+        <RadixToast.Viewport
+          style={{
+            position: "fixed",
+            bottom: 16,
+            right: 16,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            zIndex: 9999,
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+          }}
+        />
+      </ToastContext.Provider>
+    </RadixToast.Provider>
   );
 }
 
