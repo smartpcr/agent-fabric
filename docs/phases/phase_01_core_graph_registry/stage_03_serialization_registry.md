@@ -1,10 +1,11 @@
 # Phase 1 — Stage 3: Serialization & Registry
+
 > Versioned JSON schema, (de)serialization, migration registry stub, NodeRegistry with Start/End/Task built-ins.
 > Status: `[ ]` not started · **Effort**: 20h
 
 ## Steps
 
-- [ ] **Step 1**: JSON schema v1 definition
+- [x] **Step 1**: JSON schema v1 definition
   - File(s): `src/domain/serialization/schema.v1.ts`, `tests/unit/domain/serialization/schema.v1.test.ts`
   - Contents: `GraphJsonV1` as a Zod schema mirroring `WorkflowGraph`; nodes/edges are discriminated on `kind`; `schemaVersion: z.literal(1)`.
   - Test: 100% — Zod accepts a valid payload; rejects missing fields; rejects wrong `schemaVersion`.
@@ -65,6 +66,7 @@
   - Effort: 1h
 
 ## Acceptance for Stage 3
+
 - All 10 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/domain/serialization/**` and `src/registry/**`.
 - Integration round-trip test green.
