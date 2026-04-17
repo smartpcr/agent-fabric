@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { ReactFlow, Controls, useReactFlow } from "@xyflow/react";
+import { ReactFlow, Controls, useReactFlow, type NodeMouseHandler } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Grid3X3 } from "lucide-react";
 import { Background } from "@/features/canvas/Background";
@@ -7,6 +7,7 @@ import { nodeTypes } from "@/features/canvas/nodeTypes";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { useDragContext } from "@/features/palette/DragContext";
 import { useWorkflowStore } from "@/store/hooks";
+import type { SelectMode } from "@/store/slices/selectionSlice";
 
 export function Canvas() {
   const { state: dragState, endDrag } = useDragContext();
@@ -17,6 +18,9 @@ export function Canvas() {
   const snapEnabled = useWorkflowStore((s) => s.snapEnabled);
   const snapGridSize = useWorkflowStore((s) => s.snapGridSize);
   const toggleSnap = useWorkflowStore((s) => s.toggleSnap);
+  const selectAction = useWorkflowStore((s) => s.select);
+  const selectMany = useWorkflowStore((s) => s.selectMany);
+  const clearSelection = useWorkflowStore((s) => s.clear);
   const { screenToFlowPosition } = useReactFlow();
 
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
@@ -40,6 +44,30 @@ export function Canvas() {
     [dragState, addNode, registry, endDrag, screenToFlowPosition, snapEnabled, snapGridSize],
   );
 
+  const handleNodeClick: NodeMouseHandler = useCallback(
+    (event, node) => {
+      let mode: SelectMode = "replace";
+      if (event.shiftKey) {
+        mode = "add";
+      } else if (event.ctrlKey || event.metaKey) {
+        mode = "toggle";
+      }
+      selectAction(node.id, mode);
+    },
+    [selectAction],
+  );
+
+  const handlePaneClick = useCallback(() => {
+    clearSelection();
+  }, [clearSelection]);
+
+  const handleSelectionChange = useCallback(
+    ({ nodes: selectedNodes }: { nodes: Array<{ id: string }> }) => {
+      selectMany(selectedNodes.map((n) => n.id));
+    },
+    [selectMany],
+  );
+
   return (
     <div
       role="application"
@@ -47,7 +75,14 @@ export function Canvas() {
       style={{ width: "100%", height: "100%" }}
       onPointerUp={handlePointerUp}
     >
-      <ReactFlow nodes={rfNodes} edges={edges} nodeTypes={nodeTypes}>
+      <ReactFlow
+        nodes={rfNodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        onNodeClick={handleNodeClick}
+        onPaneClick={handlePaneClick}
+        onSelectionChange={handleSelectionChange}
+      >
         <Background />
         <Controls>
           <button
