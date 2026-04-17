@@ -1,6 +1,12 @@
 import type { StoreApi } from "zustand";
 import type { WorkflowState } from "@/store/createStore";
 
+export interface ViewportState {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
 export interface ViewportSlice {
   zoom: number;
   panX: number;
@@ -15,6 +21,10 @@ export interface ViewportSlice {
   setSnapGridSize: (size: number) => void;
   openInspector: (nodeId: string) => void;
   toggleInteractive: () => void;
+  /** Serialize current viewport for persistence */
+  getViewportState: () => ViewportState;
+  /** Restore viewport from persisted state */
+  restoreViewport: (state: ViewportState) => void;
 }
 
 export function createViewportSlice(
@@ -46,6 +56,13 @@ export function createViewportSlice(
     },
     toggleInteractive: () => {
       set((prev) => ({ interactive: !prev.interactive }));
+    },
+    getViewportState: () => {
+      const { panX, panY, zoom } = _get();
+      return { x: panX, y: panY, zoom };
+    },
+    restoreViewport: (state: ViewportState) => {
+      set({ panX: state.x, panY: state.y, zoom: state.zoom });
     },
   };
 }
