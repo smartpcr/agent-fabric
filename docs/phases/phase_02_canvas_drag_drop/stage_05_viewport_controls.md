@@ -11,7 +11,7 @@
   - Test: 100% — synthetic wheel event adjusts `viewport.zoom`; pan via middle-drag.
   - Effort: 3h
 
-- [ ] **Step 2**: `MiniMap` with clickable navigation
+- [x] **Step 2**: `MiniMap` with clickable navigation
   - File(s): `src/features/canvas/MiniMap.tsx`, `tests/unit/features/canvas/MiniMap.test.tsx`
   - Contents: xyflow `<MiniMap/>` with custom node-color function (by kind); click on mini-map recenters viewport.
   - Test: 100% — renders; click dispatches `setViewport`.

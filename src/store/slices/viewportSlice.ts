@@ -8,11 +8,13 @@ export interface ViewportSlice {
   snapEnabled: boolean;
   snapGridSize: number;
   inspectorNodeId: string | null;
+  interactive: boolean;
   setZoom: (zoom: number) => void;
   setPan: (x: number, y: number) => void;
   toggleSnap: () => void;
   setSnapGridSize: (size: number) => void;
   openInspector: (nodeId: string) => void;
+  toggleInteractive: () => void;
 }
 
 export function createViewportSlice(
@@ -26,6 +28,7 @@ export function createViewportSlice(
     snapEnabled: false,
     snapGridSize: 16,
     inspectorNodeId: null,
+    interactive: true,
     setZoom: (zoom: number) => {
       set({ zoom });
     },
@@ -40,6 +43,9 @@ export function createViewportSlice(
     },
     openInspector: (nodeId: string) => {
       set({ inspectorNodeId: nodeId });
+    },
+    toggleInteractive: () => {
+      set((prev) => ({ interactive: !prev.interactive }));
     },
   };
 }
