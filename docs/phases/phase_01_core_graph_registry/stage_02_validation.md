@@ -1,10 +1,11 @@
 # Phase 1 — Stage 2: Validation
+
 > Connection rules, graph invariants, typed error hierarchy, and property-based fuzz tests.
 > Status: `[ ]` not started · **Effort**: 16h
 
 ## Steps
 
-- [ ] **Step 1**: DataType assignability table
+- [x] **Step 1**: DataType assignability table
   - File(s): `src/domain/validation/dataTypes.ts`, `tests/unit/domain/validation/dataTypes.test.ts`
   - Contents: `isAssignable(sourceType, targetType, whitelist?): boolean`; rules: `'any'` accepts all; `'any'` source assigns to all targets; else equality; optional whitelist map `{ 'json': ['string', 'number', ...] }` for controlled coercion.
   - Test: 100% — `any`↔anything; equality; whitelist; strict mismatch rejected.
@@ -41,6 +42,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 2
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/domain/validation/**`.
 - Error hierarchy usable across adapters without import cycles.
