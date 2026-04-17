@@ -11,7 +11,7 @@
   - Test: 100% — renders children; selected attribute reflects prop; keyboard focusable.
   - Effort: 3h
 
-- [ ] **Step 2**: `StartNode` / `EndNode` React components
+- [x] **Step 2**: `StartNode` / `EndNode` React components
   - File(s): `src/features/nodes/StartNode.tsx`, `src/features/nodes/EndNode.tsx`, `tests/unit/features/nodes/StartNode.test.tsx`, `tests/unit/features/nodes/EndNode.test.tsx`
   - Contents: Pill shape; single handle; labels "Start" / "End"; handle position bottom for StartNode, top for EndNode.
   - Test: 100% — renders single handle; ARIA name correct.
