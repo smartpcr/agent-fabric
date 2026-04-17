@@ -1,10 +1,11 @@
 # Phase 0 — Stage 3: CI & Docs
+
 > Wire GitHub Actions for lint / typecheck / unit / coverage / Playwright; add bundle-size budget; write README and CONTRIBUTING; Phase 0 acceptance run.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: GitHub Actions — lint, typecheck, unit + coverage
+- [x] **Step 1**: GitHub Actions — lint, typecheck, unit + coverage
   - File(s): `.github/workflows/ci.yml`
   - Contents: Matrix job on `ubuntu-latest`; steps: `setup-node@v4`, cache `~/.npm`, `npm ci`, `npm run lint`, `npm run typecheck`, `npm run test:coverage`; upload coverage report artifact; fail on any non-zero exit.
   - Test: Trigger a PR; CI green on a clean main.
@@ -41,6 +42,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 3
+
 - CI pipeline green on main.
 - README and CONTRIBUTING reviewed.
 - Bundle-size budget enforced.
