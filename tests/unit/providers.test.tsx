@@ -81,9 +81,10 @@ describe("useExecutionEventSource", () => {
 // ── useTelemetry ──────────────────────────────────────────────────
 
 describe("useTelemetry", () => {
-  it("returns NoopTelemetrySink by default (no provider required)", () => {
-    const { result } = renderHook(() => useTelemetry());
-    expect(result.current).toBeInstanceOf(NoopTelemetrySink);
+  it("throws when used outside of TelemetryProvider", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    expect(() => renderHook(() => useTelemetry())).toThrow("useTelemetry used outside of provider");
+    spy.mockRestore();
   });
 
   it("returns the injected sink inside TelemetryProvider", () => {

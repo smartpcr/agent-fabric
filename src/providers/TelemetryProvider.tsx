@@ -1,10 +1,7 @@
 import { createContext, type ReactNode } from "react";
 import type { ITelemetrySink } from "@/ports/ITelemetrySink";
-import { NoopTelemetrySink } from "@/adapters/NoopTelemetrySink";
 
-const defaultSink = new NoopTelemetrySink();
-
-export const TelemetryContext = createContext<ITelemetrySink>(defaultSink);
+export const TelemetryContext = createContext<ITelemetrySink | null>(null);
 
 export function TelemetryProvider({
   sink,
