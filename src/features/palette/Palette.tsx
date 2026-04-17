@@ -5,6 +5,7 @@ import { PaletteCategory } from "@/features/palette/PaletteCategory";
 import { PaletteItem } from "@/features/palette/PaletteItem";
 import { useDebounce } from "@/features/palette/useDebounce";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
+import type { Position } from "@/domain/models/node";
 
 function shallowArrayEqual(a: readonly NodeSpec[], b: readonly NodeSpec[]): boolean {
   if (a === b) return true;
@@ -53,8 +54,16 @@ function flattenGroups(groups: CategoryGroup[], collapsed: Set<string>): FlatRow
   return rows;
 }
 
-export function Palette() {
+export interface PaletteProps {
+  readonly getViewportCenter?: () => Position;
+}
+
+const DEFAULT_CENTER: Position = { x: 0, y: 0 };
+
+export function Palette({ getViewportCenter }: PaletteProps = {}) {
   const specs = useWorkflowStore((s) => s.registry.list(), shallowArrayEqual);
+  const addNode = useWorkflowStore((s) => s.addNode);
+  const registry = useWorkflowStore((s) => s.registry);
 
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);
@@ -100,26 +109,37 @@ export function Palette() {
     });
   }, []);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    const container = e.currentTarget;
-    const options = Array.from(container.querySelectorAll<HTMLElement>('[role="option"]'));
-    const currentIndex = options.indexOf(target);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const target = e.target as HTMLElement;
+      const container = e.currentTarget;
+      const options = Array.from(container.querySelectorAll<HTMLElement>('[role="option"]'));
+      const currentIndex = options.indexOf(target);
 
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      const nextEl = options[currentIndex + 1];
-      if (nextEl) {
-        nextEl.focus();
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const nextEl = options[currentIndex + 1];
+        if (nextEl) {
+          nextEl.focus();
+        }
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        const prevEl = options[currentIndex - 1];
+        if (prevEl) {
+          prevEl.focus();
+        }
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const kind = target.getAttribute("data-kind");
+        if (!kind) return;
+        const spec = registry.get(kind);
+        if (!spec) return;
+        const position = getViewportCenter ? getViewportCenter() : DEFAULT_CENTER;
+        addNode(spec, position);
       }
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      const prevEl = options[currentIndex - 1];
-      if (prevEl) {
-        prevEl.focus();
-      }
-    }
-  }, []);
+    },
+    [addNode, registry, getViewportCenter],
+  );
 
   return (
     <div
