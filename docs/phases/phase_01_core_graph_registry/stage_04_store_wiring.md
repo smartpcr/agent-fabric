@@ -41,7 +41,7 @@
   - Test: 100% — one test per kind; mixed batch applies correctly.
   - Effort: 3h
 
-- [ ] **Step 7**: `registrySlice`: holds `NodeRegistry` reference + selectors
+- [x] **Step 7**: `registrySlice`: holds `NodeRegistry` reference + selectors
   - File(s): `src/store/slices/registrySlice.ts` (extend), `src/store/selectors/graphSelectors.ts`, `tests/unit/store/slices/registrySlice.test.ts`
   - Contents: `registry: NodeRegistry`; `selectNodeSpec(kind)` memoized via `fast-equals`; action `setRegistry(r)` for tests.
   - Test: 100% — resolves spec; memoization keeps reference stable across unrelated state changes.
