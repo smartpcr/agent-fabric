@@ -23,7 +23,7 @@
   - Test: 100% — round-trip equality with `serialize`; unknown kind error; version mismatch triggers migration.
   - Effort: 3h
 
-- [ ] **Step 4**: `migrate(json): GraphJson` registry stub (no-op v1 → v1)
+- [x] **Step 4**: `migrate(json): GraphJson` registry stub (no-op v1 → v1)
   - File(s): `src/domain/serialization/migrate.ts`, `tests/unit/domain/serialization/migrate.test.ts`
   - Contents: `const migrations = new Map<number, (json) => json>()`; `migrate(json)` repeatedly applies until `schemaVersion === CURRENT`; errors on unknown source version.
   - Test: 100% — identity for v1; throws on unknown version; registry shape ready for Phase 7 to add entries.
