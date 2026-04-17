@@ -1,10 +1,11 @@
 # Phase 1 — Stage 1: Domain Models
+
 > Pure TypeScript models for ports, nodes, edges, graphs, node specs, and execution state — framework-free, 100% unit tested.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: `PortSpec`, `PortKind`, `PortCardinality` types + factory helpers
+- [x] **Step 1**: `PortSpec`, `PortKind`, `PortCardinality` types + factory helpers
   - File(s): `src/domain/models/port.ts`, `tests/unit/domain/models/port.test.ts`
   - Contents: Export `type PortKind = 'in' | 'out'`, `type PortCardinality = 'single' | 'multi'`, `interface PortSpec { id; kind; label; dataType; cardinality; required? }`; factories `makeInputPort({...})`, `makeOutputPort({...})` with sensible defaults (`cardinality = 'single'`, `dataType = 'any'`).
   - Test: 100% — non-empty id/label required (throws); defaults applied; frozen object.
@@ -41,6 +42,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 1
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/domain/models/**`.
 - Domain modules import nothing from `react`, `@xyflow/react`, or `zustand`.
