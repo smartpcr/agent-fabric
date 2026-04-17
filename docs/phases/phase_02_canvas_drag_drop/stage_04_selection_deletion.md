@@ -29,7 +29,7 @@
   - Test: Integration — 2 nodes selected + Delete → both removed; undo restores.
   - Effort: 2h
 
-- [ ] **Step 5**: Escape clears selection (scoped)
+- [x] **Step 5**: Escape clears selection (scoped)
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/unit/features/canvas/Canvas.escape.test.tsx`
   - Contents: Listener scoped to canvas element (not global `document`) to avoid interfering with modals/inputs.
   - Test: Unit — escape in canvas clears; escape while focus is in property grid does not.
