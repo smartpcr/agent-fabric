@@ -17,6 +17,8 @@ export type ConnectionErrorCode =
 export interface ConnectionInvalidError {
   readonly code: ConnectionErrorCode;
   readonly message: string;
+  /** ID of the existing edge that caused the conflict (e.g. for CARDINALITY_EXCEEDED) */
+  readonly conflictingEdgeId?: string;
 }
 
 export type Result<T, E> =
@@ -109,14 +111,18 @@ export function validateConnection(
 
   // Cardinality: single target port must have no existing inbound edge
   if (targetPort.cardinality === "single") {
-    const existingInbound = graph.edges.some(
+    const existingEdge = graph.edges.find(
       (e) => e.target === tgt.nodeId && e.targetPort === tgt.portId,
     );
-    if (existingInbound) {
-      return fail(
-        "CARDINALITY_EXCEEDED",
-        `Target port "${tgt.portId}" on node "${tgt.nodeId}" already has an inbound edge (cardinality: single)`,
-      );
+    if (existingEdge) {
+      return {
+        ok: false,
+        error: {
+          code: "CARDINALITY_EXCEEDED",
+          message: `Target port "${tgt.portId}" on node "${tgt.nodeId}" already has an inbound edge (cardinality: single)`,
+          conflictingEdgeId: existingEdge.id,
+        },
+      };
     }
   }
 

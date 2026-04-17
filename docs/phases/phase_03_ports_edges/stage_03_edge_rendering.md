@@ -41,7 +41,7 @@
   - Test: 100% — lookup by edge `kind`.
   - Effort: 2h
 
-- [ ] **Step 7**: Integration — 2-in / 3-out TaskNode with 3 distinct edges
+- [x] **Step 7**: Integration — 2-in / 3-out TaskNode with 3 distinct edges
   - File(s): `tests/integration/edges.multiport-connections.test.tsx`
   - Contents: Using multi-port fixture, connect 3 output ports; assert 3 distinct edges in state with unique port ids.
   - Test: Green.
