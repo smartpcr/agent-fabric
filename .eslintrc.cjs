@@ -1,4 +1,14 @@
-/** @type {import('eslint').Linter.Config} */
+/**
+ * ESLint configuration — strict TypeScript linting.
+ *
+ * The spec calls for "eslint-config-typescript-strict". That npm package
+ * (eslint-config-typescript-strict@1.x) is pinned to @typescript-eslint v4 and
+ * is incompatible with modern tooling.  We use the official equivalent:
+ * "plugin:@typescript-eslint/strict-type-checked", which is the canonical
+ * strict preset maintained by the typescript-eslint team.
+ *
+ * @type {import('eslint').Linter.Config}
+ */
 module.exports = {
   root: true,
   env: {
