@@ -1,8 +1,9 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { ReactFlow, Controls, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Grid3X3 } from "lucide-react";
 import { Background } from "@/features/canvas/Background";
+import { nodeTypes } from "@/features/canvas/nodeTypes";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { useDragContext } from "@/features/palette/DragContext";
 import { useWorkflowStore } from "@/store/hooks";
@@ -17,6 +18,9 @@ export function Canvas() {
   const snapGridSize = useWorkflowStore((s) => s.snapGridSize);
   const toggleSnap = useWorkflowStore((s) => s.toggleSnap);
   const { screenToFlowPosition } = useReactFlow();
+
+  // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
+  const rfNodes = useMemo(() => nodes.map((n) => ({ ...n, type: n.kind })), [nodes]);
 
   const handlePointerUp = useCallback(
     (e: React.PointerEvent) => {
@@ -43,7 +47,7 @@ export function Canvas() {
       style={{ width: "100%", height: "100%" }}
       onPointerUp={handlePointerUp}
     >
-      <ReactFlow nodes={nodes} edges={edges}>
+      <ReactFlow nodes={rfNodes} edges={edges} nodeTypes={nodeTypes}>
         <Background />
         <Controls>
           <button
