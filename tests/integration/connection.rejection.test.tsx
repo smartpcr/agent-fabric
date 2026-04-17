@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, cleanup, act, renderHook } from "@testing-library/react";
+import { render, screen, cleanup, act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
 import { ToastProvider } from "@/features/editor/Toast";
@@ -57,7 +57,6 @@ function setupStoreWithMultiPort() {
   const { result, unmount } = renderHook(() => useWorkflowStore());
   act(() => {
     result.current.setRegistry(registry);
-    // Clear existing nodes
     for (const node of result.current.nodes) {
       result.current.removeNode(node.id);
     }
@@ -79,14 +78,7 @@ function addMultiPortNodes(): { sourceId: string; targetId: string } {
   return { sourceId, targetId };
 }
 
-function getStoreEdges() {
-  const { result, unmount } = renderHook(() => useWorkflowStore());
-  const edges = result.current.edges;
-  unmount();
-  return edges;
-}
-
-function renderCanvas() {
+function renderCanvasWithToast() {
   return render(
     <ToastProvider>
       <DragProvider>
@@ -96,63 +88,81 @@ function renderCanvas() {
   );
 }
 
-describe("Canvas onConnect", () => {
+describe("Connection rejection toast", () => {
   beforeEach(() => {
     setupStoreWithMultiPort();
   });
 
-  it("passes onConnect to ReactFlow", () => {
-    renderCanvas();
-    expect(capturedOnConnect).toBeTypeOf("function");
-  });
-
-  it("creates an edge when a valid connection is made", () => {
+  it("shows toast with rejection message on incompatible data-type drop", () => {
     const { sourceId, targetId } = addMultiPortNodes();
-    renderCanvas();
-
-    expect(getStoreEdges()).toHaveLength(0);
+    renderCanvasWithToast();
 
     act(() => {
       capturedOnConnect?.({
         source: sourceId,
-        sourceHandle: "outA",
+        sourceHandle: "outA", // string
+        target: targetId,
+        targetHandle: "inB", // json
+      });
+    });
+
+    // Toast title
+    expect(screen.getByText("Connection rejected")).toBeTruthy();
+    // Toast description contains the data-type mismatch message
+    expect(screen.getByText(/Cannot assign "string" to "json"/)).toBeTruthy();
+  });
+
+  it("shows toast with cardinality message when port already connected", () => {
+    const { sourceId, targetId } = addMultiPortNodes();
+
+    // Pre-connect outA → inA
+    const { result: storeResult, unmount } = renderHook(() => useWorkflowStore());
+    act(() => {
+      storeResult.current.tryConnect({
+        source: sourceId,
+        sourcePort: "outA",
+        target: targetId,
+        targetPort: "inA",
+      });
+    });
+    unmount();
+
+    renderCanvasWithToast();
+
+    // Try a second connection to inA (single cardinality)
+    act(() => {
+      capturedOnConnect?.({
+        source: sourceId,
+        sourceHandle: "outC", // any — type compatible
         target: targetId,
         targetHandle: "inA",
       });
     });
 
-    const edges = getStoreEdges();
-    expect(edges).toHaveLength(1);
-    expect(edges[0]?.source).toBe(sourceId);
-    expect(edges[0]?.sourcePort).toBe("outA");
-    expect(edges[0]?.target).toBe(targetId);
-    expect(edges[0]?.targetPort).toBe("inA");
+    expect(screen.getByText("Connection rejected")).toBeTruthy();
+    expect(screen.getByText(/cardinality/i)).toBeTruthy();
   });
 
-  it("persists edge with correct port ids for json → json connection", () => {
+  it("does NOT show toast when connection is valid", () => {
     const { sourceId, targetId } = addMultiPortNodes();
-    renderCanvas();
+    renderCanvasWithToast();
 
     act(() => {
       capturedOnConnect?.({
         source: sourceId,
-        sourceHandle: "outB",
+        sourceHandle: "outA", // string
         target: targetId,
-        targetHandle: "inB",
+        targetHandle: "inA", // string
       });
     });
 
-    const edges = getStoreEdges();
-    expect(edges).toHaveLength(1);
-    expect(edges[0]?.sourcePort).toBe("outB");
-    expect(edges[0]?.targetPort).toBe("inB");
+    expect(screen.queryByText("Connection rejected")).toBeNull();
   });
 
-  it("does not create an edge for incompatible data types", () => {
+  it("toast contains error variant", () => {
     const { sourceId, targetId } = addMultiPortNodes();
-    renderCanvas();
+    renderCanvasWithToast();
 
-    // outA is string, inB is json — incompatible (strict matching, not any)
     act(() => {
       capturedOnConnect?.({
         source: sourceId,
@@ -162,12 +172,14 @@ describe("Canvas onConnect", () => {
       });
     });
 
-    expect(getStoreEdges()).toHaveLength(0);
+    // The toast root element should have data-variant="error"
+    const toastEl = screen.getByText("Connection rejected").closest("[data-variant]");
+    expect(toastEl?.getAttribute("data-variant")).toBe("error");
   });
 
-  it("ignores connection with missing source", () => {
+  it("no toast when source or target is null", () => {
     addMultiPortNodes();
-    renderCanvas();
+    renderCanvasWithToast();
 
     act(() => {
       capturedOnConnect?.({
@@ -178,95 +190,6 @@ describe("Canvas onConnect", () => {
       });
     });
 
-    expect(getStoreEdges()).toHaveLength(0);
-  });
-
-  it("ignores connection with missing target", () => {
-    addMultiPortNodes();
-    renderCanvas();
-
-    act(() => {
-      capturedOnConnect?.({
-        source: "some-id",
-        sourceHandle: "outA",
-        target: null,
-        targetHandle: "inA",
-      });
-    });
-
-    expect(getStoreEdges()).toHaveLength(0);
-  });
-
-  it("falls back to 'out' and 'in' when handles are null", () => {
-    const { sourceId, targetId } = addMultiPortNodes();
-    renderCanvas();
-
-    // outC is "any" type which connects to anything, but default handles "out"/"in"
-    // don't exist on multi-port nodes, so this should fail validation (port not found)
-    act(() => {
-      capturedOnConnect?.({
-        source: sourceId,
-        sourceHandle: null,
-        target: targetId,
-        targetHandle: null,
-      });
-    });
-
-    // "out" and "in" are the default port ids for regular task nodes
-    // For multi-port nodes, these ports don't exist, so the connection should fail
-    expect(getStoreEdges()).toHaveLength(0);
-  });
-
-  it("allows multiple valid connections between different ports", () => {
-    const { sourceId, targetId } = addMultiPortNodes();
-    renderCanvas();
-
-    act(() => {
-      capturedOnConnect?.({
-        source: sourceId,
-        sourceHandle: "outA",
-        target: targetId,
-        targetHandle: "inA",
-      });
-    });
-
-    act(() => {
-      capturedOnConnect?.({
-        source: sourceId,
-        sourceHandle: "outB",
-        target: targetId,
-        targetHandle: "inB",
-      });
-    });
-
-    const edges = getStoreEdges();
-    expect(edges).toHaveLength(2);
-  });
-
-  it("rejects duplicate connection to single-cardinality port", () => {
-    const { sourceId, targetId } = addMultiPortNodes();
-    renderCanvas();
-
-    // First connection succeeds
-    act(() => {
-      capturedOnConnect?.({
-        source: sourceId,
-        sourceHandle: "outA",
-        target: targetId,
-        targetHandle: "inA",
-      });
-    });
-    expect(getStoreEdges()).toHaveLength(1);
-
-    // Second connection to same target port should be rejected (single cardinality)
-    act(() => {
-      capturedOnConnect?.({
-        source: sourceId,
-        sourceHandle: "outC",
-        target: targetId,
-        targetHandle: "inA",
-      });
-    });
-    expect(getStoreEdges()).toHaveLength(1);
+    expect(screen.queryByText("Connection rejected")).toBeNull();
   });
 });

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, cleanup, act, renderHook, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
+import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider, useDragContext } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -72,15 +73,17 @@ function DragStatus() {
 
 function renderEditorLikeLayout(kind = "task") {
   return render(
-    <DragProvider>
-      {/* Palette area — outside canvas */}
-      <div data-testid="palette-area">
-        <DragStarter kind={kind} />
-      </div>
-      <DragStatus />
-      {/* Canvas area */}
-      <Canvas />
-    </DragProvider>,
+    <ToastProvider>
+      <DragProvider>
+        {/* Palette area — outside canvas */}
+        <div data-testid="palette-area">
+          <DragStarter kind={kind} />
+        </div>
+        <DragStatus />
+        {/* Canvas area */}
+        <Canvas />
+      </DragProvider>
+    </ToastProvider>,
   );
 }
 

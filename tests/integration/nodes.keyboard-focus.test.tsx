@@ -3,6 +3,7 @@ import { render, screen, cleanup, renderHook, act, fireEvent } from "@testing-li
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
+import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -113,9 +114,11 @@ describe("Accessible node focus (keyboard)", () => {
     const user = userEvent.setup();
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     const allNodes = screen.getAllByTestId("base-node");
@@ -138,9 +141,11 @@ describe("Accessible node focus (keyboard)", () => {
     const user = userEvent.setup();
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     const allNodes = screen.getAllByTestId("base-node");
@@ -160,9 +165,11 @@ describe("Accessible node focus (keyboard)", () => {
     addNodes("start");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     const node = screen.getByTestId("base-node");
@@ -179,9 +186,11 @@ describe("Accessible node focus (keyboard)", () => {
     const [id1] = addNodes("start");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     const node = screen.getByTestId("base-node");
@@ -205,9 +214,11 @@ describe("Accessible node focus (keyboard)", () => {
     const [, id2] = addNodes("start", "task");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     const allNodes = screen.getAllByTestId("base-node");
@@ -230,9 +241,11 @@ describe("Accessible node focus (keyboard)", () => {
     addNodes("start", "end");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     const allNodes = screen.getAllByTestId("base-node");

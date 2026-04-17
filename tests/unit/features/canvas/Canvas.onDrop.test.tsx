@@ -3,6 +3,7 @@ import { render, screen, cleanup, act, renderHook, fireEvent } from "@testing-li
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
 import { DragProvider, useDragContext } from "@/features/palette/DragContext";
+import { ToastProvider } from "@/features/editor/Toast";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore } from "@/store/hooks";
@@ -76,11 +77,13 @@ function DragStatus() {
 
 function renderCanvasWithDrag(kind = "task") {
   return render(
-    <DragProvider>
-      <DragStarter kind={kind} />
-      <DragStatus />
-      <Canvas />
-    </DragProvider>,
+    <ToastProvider>
+      <DragProvider>
+        <DragStarter kind={kind} />
+        <DragStatus />
+        <Canvas />
+      </DragProvider>
+    </ToastProvider>,
   );
 }
 

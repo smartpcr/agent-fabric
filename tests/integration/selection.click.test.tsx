@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, cleanup, renderHook, act } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
+import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -151,9 +152,11 @@ describe("Selection click behavior", () => {
     const [id1] = addNodes("start", "task");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     act(() => {
@@ -170,9 +173,11 @@ describe("Selection click behavior", () => {
     const [id1, id2] = addNodes("start", "task");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     act(() => {
@@ -193,9 +198,11 @@ describe("Selection click behavior", () => {
     const [id1, id2] = addNodes("start", "task");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     act(() => {
@@ -216,9 +223,11 @@ describe("Selection click behavior", () => {
     const [id1, id2] = addNodes("start", "task");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     act(() => {
@@ -239,9 +248,11 @@ describe("Selection click behavior", () => {
     const [id1, id2] = addNodes("start", "task");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     act(() => {
@@ -266,9 +277,11 @@ describe("Selection click behavior", () => {
     const [id1] = addNodes("start");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     act(() => {
@@ -288,9 +301,11 @@ describe("Selection click behavior", () => {
     const [id1] = addNodes("start");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     act(() => {
@@ -310,9 +325,11 @@ describe("Selection click behavior", () => {
     const [id1, id2] = addNodes("start", "task");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     act(() => {

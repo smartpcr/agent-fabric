@@ -3,6 +3,7 @@ import { render, screen, cleanup, renderHook, act, fireEvent } from "@testing-li
 import type { ReactNode } from "react";
 import { CanvasControls } from "@/features/canvas/Controls";
 import { Canvas } from "@/features/canvas/Canvas";
+import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
 import { useWorkflowStore } from "@/store/hooks";
 
@@ -73,9 +74,11 @@ function renderControls() {
 function renderCanvas() {
   setupStore();
   return render(
-    <DragProvider>
-      <Canvas />
-    </DragProvider>,
+    <ToastProvider>
+      <DragProvider>
+        <Canvas />
+      </DragProvider>
+    </ToastProvider>,
   );
 }
 

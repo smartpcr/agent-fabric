@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, cleanup, renderHook, act, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
+import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -94,9 +95,11 @@ describe("Escape clears selection (scoped to canvas)", () => {
     expect(getSelected().size).toBe(2);
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     const canvas = screen.getByRole("application");
@@ -110,9 +113,11 @@ describe("Escape clears selection (scoped to canvas)", () => {
     addNodes("start", "task");
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     const canvas = screen.getByRole("application");
@@ -129,9 +134,11 @@ describe("Escape clears selection (scoped to canvas)", () => {
 
     render(
       <div>
-        <DragProvider>
-          <Canvas />
-        </DragProvider>
+        <ToastProvider>
+          <DragProvider>
+            <Canvas />
+          </DragProvider>
+        </ToastProvider>
         <div data-testid="property-grid">
           <input data-testid="property-input" type="text" />
         </div>
@@ -155,9 +162,11 @@ describe("Escape clears selection (scoped to canvas)", () => {
 
     render(
       <div>
-        <DragProvider>
-          <Canvas />
-        </DragProvider>
+        <ToastProvider>
+          <DragProvider>
+            <Canvas />
+          </DragProvider>
+        </ToastProvider>
         <button data-testid="outside-panel" type="button">
           Outside
         </button>
@@ -178,9 +187,11 @@ describe("Escape clears selection (scoped to canvas)", () => {
     expect(getSelected().size).toBe(1);
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     // Fire Escape on a child element inside the canvas (e.g., the ReactFlow mock)
