@@ -18,6 +18,7 @@ export function DefaultEdge({
   targetPosition,
   style,
   markerEnd,
+  label,
   data,
 }: EdgeProps) {
   const [edgePath, labelX, labelY] = getBezierPath({
@@ -29,8 +30,9 @@ export function DefaultEdge({
     targetPosition,
   });
 
-  const label = data?.label;
-  const labelText = typeof label === "string" ? label : undefined;
+  // Use top-level label prop (from WorkflowEdge.label) as primary, fallback to data.label
+  const rawLabel = label ?? data?.label;
+  const labelText = typeof rawLabel === "string" ? rawLabel : undefined;
 
   return (
     <>

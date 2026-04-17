@@ -55,7 +55,41 @@ describe("DefaultEdge label rendering", () => {
     expect(label.textContent).toBe("my-label");
   });
 
-  it("does not render a label when data.label is absent", () => {
+  it("renders a label from the top-level label prop (WorkflowEdge.label)", () => {
+    render(
+      <svg>
+        <DefaultEdge {...makeEdgeProps({ label: "top-level-label" })} />
+      </svg>,
+    );
+
+    const label = screen.getByTestId("edge-label");
+    expect(label).toBeInTheDocument();
+    expect(label.textContent).toBe("top-level-label");
+  });
+
+  it("top-level label prop takes precedence over data.label", () => {
+    render(
+      <svg>
+        <DefaultEdge {...makeEdgeProps({ label: "primary", data: { label: "fallback" } })} />
+      </svg>,
+    );
+
+    const label = screen.getByTestId("edge-label");
+    expect(label.textContent).toBe("primary");
+  });
+
+  it("falls back to data.label when top-level label is absent", () => {
+    render(
+      <svg>
+        <DefaultEdge {...makeEdgeProps({ data: { label: "fallback-label" } })} />
+      </svg>,
+    );
+
+    const label = screen.getByTestId("edge-label");
+    expect(label.textContent).toBe("fallback-label");
+  });
+
+  it("does not render a label when neither label prop nor data.label exist", () => {
     render(
       <svg>
         <DefaultEdge {...makeEdgeProps({ data: {} })} />
@@ -79,7 +113,7 @@ describe("DefaultEdge label rendering", () => {
     const longLabel = "This is a very long edge label text";
     render(
       <svg>
-        <DefaultEdge {...makeEdgeProps({ data: { label: longLabel } })} />
+        <DefaultEdge {...makeEdgeProps({ label: longLabel })} />
       </svg>,
     );
 
@@ -88,11 +122,24 @@ describe("DefaultEdge label rendering", () => {
     expect(label.textContent?.length).toBeLessThanOrEqual(21); // 20 chars + ellipsis
   });
 
+  it("truncates top-level label prop the same as data.label", () => {
+    const longLabel = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    render(
+      <svg>
+        <DefaultEdge {...makeEdgeProps({ label: longLabel })} />
+      </svg>,
+    );
+
+    const label = screen.getByTestId("edge-label");
+    expect(label.textContent).toBe("ABCDEFGHIJKLMNOPQRST…");
+    expect(label.getAttribute("title")).toBe(longLabel);
+  });
+
   it("does not truncate labels with exactly 20 characters", () => {
     const exactLabel = "12345678901234567890"; // exactly 20
     render(
       <svg>
-        <DefaultEdge {...makeEdgeProps({ data: { label: exactLabel } })} />
+        <DefaultEdge {...makeEdgeProps({ label: exactLabel })} />
       </svg>,
     );
 
@@ -104,7 +151,7 @@ describe("DefaultEdge label rendering", () => {
     const shortLabel = "Short";
     render(
       <svg>
-        <DefaultEdge {...makeEdgeProps({ data: { label: shortLabel } })} />
+        <DefaultEdge {...makeEdgeProps({ label: shortLabel })} />
       </svg>,
     );
 
@@ -116,7 +163,7 @@ describe("DefaultEdge label rendering", () => {
     const longLabel = "This is a very long edge label text";
     render(
       <svg>
-        <DefaultEdge {...makeEdgeProps({ data: { label: longLabel } })} />
+        <DefaultEdge {...makeEdgeProps({ label: longLabel })} />
       </svg>,
     );
 
@@ -127,7 +174,7 @@ describe("DefaultEdge label rendering", () => {
   it("sets title attribute on short labels too", () => {
     render(
       <svg>
-        <DefaultEdge {...makeEdgeProps({ data: { label: "Short" } })} />
+        <DefaultEdge {...makeEdgeProps({ label: "Short" })} />
       </svg>,
     );
 
@@ -138,7 +185,7 @@ describe("DefaultEdge label rendering", () => {
   it("positions the label at the midpoint returned by getBezierPath", () => {
     render(
       <svg>
-        <DefaultEdge {...makeEdgeProps({ data: { label: "test" } })} />
+        <DefaultEdge {...makeEdgeProps({ label: "test" })} />
       </svg>,
     );
 
@@ -151,7 +198,7 @@ describe("DefaultEdge label rendering", () => {
   it("renders label inside EdgeLabelRenderer", () => {
     render(
       <svg>
-        <DefaultEdge {...makeEdgeProps({ data: { label: "test" } })} />
+        <DefaultEdge {...makeEdgeProps({ label: "test" })} />
       </svg>,
     );
 
