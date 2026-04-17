@@ -11,7 +11,7 @@
   - Test: Trigger a PR; CI green on a clean main.
   - Effort: 3h
 
-- [ ] **Step 2**: GitHub Actions — Playwright matrix
+- [x] **Step 2**: GitHub Actions — Playwright matrix
   - File(s): `.github/workflows/e2e.yml`
   - Contents: On PR: Chromium only (fast). On `schedule: cron '0 6 * * *'`: full matrix (chromium + firefox + webkit). Cache Playwright browsers (`ms-playwright` dir). Upload `test-results/` trace on failure.
   - Test: Smoke passes locally and in CI on Chromium.
