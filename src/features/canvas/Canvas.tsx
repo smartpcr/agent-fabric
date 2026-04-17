@@ -9,6 +9,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { Grid3X3 } from "lucide-react";
 import { Background } from "@/features/canvas/Background";
+import { CanvasControls } from "@/features/canvas/Controls";
 import { MiniMap } from "@/features/canvas/MiniMap";
 import { nodeTypes } from "@/features/canvas/nodeTypes";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
@@ -31,7 +32,9 @@ export function Canvas() {
   const deleteSelected = useWorkflowStore((s) => s.deleteSelected);
   const setZoom = useWorkflowStore((s) => s.setZoom);
   const setPan = useWorkflowStore((s) => s.setPan);
-  const { screenToFlowPosition, getViewport } = useReactFlow();
+  const interactive = useWorkflowStore((s) => s.interactive);
+  const toggleInteractive = useWorkflowStore((s) => s.toggleInteractive);
+  const { screenToFlowPosition, getViewport, zoomIn, zoomOut, fitView } = useReactFlow();
 
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
   const rfNodes = useMemo(() => nodes.map((n) => ({ ...n, type: n.kind })), [nodes]);
@@ -85,9 +88,17 @@ export function Canvas() {
         deleteSelected();
       } else if (e.key === "Escape") {
         clearSelection();
+      } else if (e.key === "+" || e.key === "=") {
+        void zoomIn();
+      } else if (e.key === "-") {
+        void zoomOut();
+      } else if (e.key === "f") {
+        void fitView();
+      } else if (e.key === "l") {
+        toggleInteractive();
       }
     },
-    [deleteSelected, clearSelection],
+    [deleteSelected, clearSelection, zoomIn, zoomOut, fitView, toggleInteractive],
   );
 
   const handleMoveEnd = useCallback(() => {
@@ -115,6 +126,9 @@ export function Canvas() {
         zoomOnPinch
         minZoom={0.1}
         maxZoom={4}
+        nodesDraggable={interactive}
+        nodesConnectable={interactive}
+        elementsSelectable={interactive}
         onNodeClick={handleNodeClick}
         onPaneClick={handlePaneClick}
         onSelectionChange={handleSelectionChange}
@@ -123,6 +137,7 @@ export function Canvas() {
         <Background />
         <MiniMap />
         <Controls>
+          <CanvasControls />
           <button
             type="button"
             data-testid="snap-toggle"
