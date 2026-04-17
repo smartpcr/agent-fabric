@@ -1,10 +1,11 @@
 # Phase 3 — Stage 1: Port Rendering
+
 > First-class typed ports rendered as xyflow handles, distributed evenly across node edges, colored by dataType.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: `InputHandle` / `OutputHandle` wrappers
+- [x] **Step 1**: `InputHandle` / `OutputHandle` wrappers
   - File(s): `src/features/nodes/ports/InputHandle.tsx`, `src/features/nodes/ports/OutputHandle.tsx`, `tests/unit/features/nodes/ports/Handle.test.tsx`
   - Contents: Wraps xyflow `<Handle>`; reads `PortSpec`; sets `id = portSpec.id`, `data-port-id`, `aria-label = portSpec.label`; type-based class name for styling.
   - Test: 100% — data attributes present; accessible name = port label; type class applied.
@@ -41,6 +42,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 1
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/features/nodes/ports/**`.
 - Multi-port fixture added to `tests/fixtures/`.
