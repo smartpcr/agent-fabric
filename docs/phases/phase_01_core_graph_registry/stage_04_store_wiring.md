@@ -29,7 +29,7 @@
   - Test: 100% — valid update persists; invalid returns errors; no mutation on failure.
   - Effort: 2h
 
-- [ ] **Step 5**: `graphSlice`: `updateNodePosition` (high-frequency, unvalidated)
+- [x] **Step 5**: `graphSlice`: `updateNodePosition` (high-frequency, unvalidated)
   - File(s): `src/store/slices/graphSlice.ts` (extend), `tests/unit/store/slices/graphSlice.updateNodePosition.test.ts`
   - Contents: Sets position; clamps non-finite to 0; used by drag.
   - Test: 100% — happy path; NaN/Infinity clamp.

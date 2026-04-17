@@ -11,6 +11,7 @@ export interface WorkflowEdge {
   readonly label?: string;
   readonly condition?: string;
   readonly kind: EdgeKind;
+  readonly selected?: boolean;
 }
 
 interface MakeEdgeOptions {

@@ -5,11 +5,19 @@ export interface Position {
   readonly y: number;
 }
 
+export interface Dimensions {
+  readonly width: number;
+  readonly height: number;
+}
+
 export interface WorkflowNode<TData = unknown> {
   readonly id: string;
   readonly kind: string;
   readonly position: Position;
   readonly data: TData;
+  readonly selected?: boolean;
+  readonly width?: number;
+  readonly height?: number;
 }
 
 interface MakeNodeOptions<TData = unknown> {
