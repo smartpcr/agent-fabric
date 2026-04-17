@@ -47,7 +47,7 @@
   - Test: 100% — resolves spec; memoization keeps reference stable across unrelated state changes.
   - Effort: 2h
 
-- [ ] **Step 8**: Store snapshot + restore test utilities
+- [x] **Step 8**: Store snapshot + restore test utilities
   - File(s): `src/store/testUtils.ts`, `tests/unit/store/testUtils.test.ts`
   - Contents: `snapshotGraph(store)` returns plain JSON (graph only); `restoreGraph(store, json)` re-hydrates; used by undo/redo tests later.
   - Test: 100% — snapshot → restore → deep-equal.
