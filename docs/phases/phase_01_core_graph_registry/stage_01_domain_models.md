@@ -29,7 +29,7 @@
   - Test: 100% — empty graph; add/remove; removing node cascades edges; immutability verified by structural equality + reference inequality.
   - Effort: 3h
 
-- [ ] **Step 5**: `NodeSpec<TData>` + ZodSchema binding
+- [x] **Step 5**: `NodeSpec<TData>` + ZodSchema binding
   - File(s): `src/domain/models/nodeSpec.ts`, `tests/unit/domain/models/nodeSpec.test.ts`
   - Contents: `interface NodeSpec<TData> { kind; category; label; icon; ports; propertySchema: z.ZodType<TData>; defaultData: TData; capabilities }`; helper `validateSpec(spec)` ensures port ids unique within the spec; `defaultData` conforms to `propertySchema`.
   - Test: 100% — valid spec accepted; duplicate port id rejected; `defaultData` not conforming to schema rejected.
