@@ -17,7 +17,7 @@
   - Test: 100% — given mocked viewport `{x: 100, y: 200, zoom: 2}`, drop at client `(300, 400)` maps to expected flow coords within 1px.
   - Effort: 2h
 
-- [ ] **Step 3**: Ghost preview during drag
+- [x] **Step 3**: Ghost preview during drag
   - File(s): `src/features/palette/DragGhost.tsx`, `tests/unit/features/palette/DragGhost.test.tsx`
   - Contents: Portal to `<body>`; position follows pointer via `pointermove`; hidden when not dragging; shows icon + label.
   - Test: 100% — mount/unmount with drag state; position updates.

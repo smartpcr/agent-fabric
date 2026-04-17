@@ -1,4 +1,12 @@
-import { createContext, useContext, useCallback, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 export interface DragPayload {
   readonly kind: string;
@@ -29,6 +37,22 @@ export function DragProvider({ children }: { readonly children: ReactNode }) {
   const endDrag = useCallback(() => {
     setState(IDLE_STATE);
   }, []);
+
+  // Global cleanup: any pointer release while dragging clears the drag state.
+  // Canvas's own onPointerUp adds a node before this fires; releases
+  // outside the canvas simply clear the drag without adding anything.
+  useEffect(() => {
+    if (!state.isDragging) return;
+
+    const onGlobalPointerUp = () => {
+      endDrag();
+    };
+
+    window.addEventListener("pointerup", onGlobalPointerUp);
+    return () => {
+      window.removeEventListener("pointerup", onGlobalPointerUp);
+    };
+  }, [state.isDragging, endDrag]);
 
   const value = useMemo(() => ({ state, startDrag, endDrag }), [state, startDrag, endDrag]);
 
