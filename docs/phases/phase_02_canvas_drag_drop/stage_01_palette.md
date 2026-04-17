@@ -11,7 +11,7 @@
   - Test: Component test asserts categories render; virtualization active (only visible items in DOM); keyboard navigation moves focus through options.
   - Effort: 3h
 
-- [ ] **Step 2**: `PaletteItem` with icon, label, description, drag handle
+- [x] **Step 2**: `PaletteItem` with icon, label, description, drag handle
   - File(s): `src/features/palette/PaletteItem.tsx`
   - Contents: Renders lucide icon (from `spec.icon`); tooltip (Radix) shows description on hover + focus; disabled state for gated specs.
   - Test: 100% — ARIA role `option`; accessible name = label; tooltip appears.
