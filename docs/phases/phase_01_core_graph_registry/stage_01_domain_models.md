@@ -23,7 +23,7 @@
   - Test: 100% — id unique; source/target required; kind defaults to `'default'`.
   - Effort: 2h
 
-- [ ] **Step 4**: `WorkflowGraph` aggregate + pure operations
+- [x] **Step 4**: `WorkflowGraph` aggregate + pure operations
   - File(s): `src/domain/models/graph.ts`, `tests/unit/domain/models/graph.test.ts`
   - Contents: `interface WorkflowGraph { schemaVersion; id; name; nodes; edges }`; `CURRENT_SCHEMA_VERSION = 1`; pure ops `addNodeToGraph(g, n)`, `removeNodeFromGraph(g, id)` (also removes incident edges), `addEdgeToGraph(g, e)`, `removeEdgeFromGraph(g, id)`. All return new graph (no mutation).
   - Test: 100% — empty graph; add/remove; removing node cascades edges; immutability verified by structural equality + reference inequality.
