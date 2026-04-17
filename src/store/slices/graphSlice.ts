@@ -1,10 +1,13 @@
 import type { StoreApi } from "zustand";
 import type { WorkflowState } from "@/store/createStore";
+import { makeNode, type WorkflowNode, type Position } from "@/domain/models/node";
+import type { WorkflowEdge } from "@/domain/models/edge";
+import type { NodeSpec } from "@/domain/models/nodeSpec";
 
 export interface GraphSlice {
-  nodes: unknown[];
-  edges: unknown[];
-  addNode: (node: unknown) => void;
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+  addNode: (spec: NodeSpec, position?: Position) => WorkflowNode;
   removeNode: (id: string) => void;
 }
 
@@ -15,12 +18,18 @@ export function createGraphSlice(
   return {
     nodes: [],
     edges: [],
-    addNode: (_node: unknown) => {
-      set((state) => ({ nodes: [...state.nodes, _node] }));
+    addNode: (spec: NodeSpec, position?: Position) => {
+      const node = makeNode({
+        kind: spec.kind,
+        data: spec.defaultData,
+        position,
+      });
+      set((state) => ({ nodes: [...state.nodes, node] }));
+      return node;
     },
-    removeNode: (_id: string) => {
+    removeNode: (id: string) => {
       set((state) => ({
-        nodes: state.nodes.filter((n) => (n as { id: string }).id !== _id),
+        nodes: state.nodes.filter((n) => n.id !== id),
       }));
     },
   };
