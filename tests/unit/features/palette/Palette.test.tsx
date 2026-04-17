@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, within, act, cleanup, renderHook } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { z } from "zod";
 import { Palette } from "@/features/palette/Palette";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -158,6 +159,59 @@ describe("Palette", () => {
 
     await user.keyboard("{ArrowDown}");
     expect(document.activeElement).toBe(last);
+  });
+
+  it("virtualization renders only visible items in DOM (not all)", () => {
+    // Create a registry with many specs across multiple categories
+    const registry = new NodeRegistry();
+    const totalItems = 50;
+    for (let i = 0; i < totalItems; i++) {
+      const cat = `category-${String(Math.floor(i / 10))}`;
+      registry.register({
+        kind: `node-${String(i)}`,
+        category: cat,
+        label: `Node ${String(i)}`,
+        icon: "box",
+        ports: [],
+        propertySchema: z.object({}),
+        defaultData: {},
+        capabilities: [],
+      });
+    }
+    const { result: r2, unmount: u2 } = renderHook(() => useWorkflowStore());
+    act(() => {
+      r2.current.setRegistry(registry);
+    });
+    u2();
+
+    // Use a small container height so only a few rows fit
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function () {
+      return {
+        width: 200,
+        height: 100,
+        top: 0,
+        left: 0,
+        bottom: 100,
+        right: 200,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      };
+    });
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      get() {
+        return 100;
+      },
+    });
+
+    renderPalette();
+
+    const renderedOptions = screen.getAllByRole("option");
+    // With 50 items + 5 category headers = 55 rows at 36px each,
+    // a 100px container should show far fewer than 50 options
+    expect(renderedOptions.length).toBeLessThan(totalItems);
+    expect(renderedOptions.length).toBeGreaterThan(0);
   });
 
   it("renders empty when registry has no specs", () => {

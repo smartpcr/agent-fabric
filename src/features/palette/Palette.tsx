@@ -4,6 +4,15 @@ import { useWorkflowStore } from "@/store/hooks";
 import { PaletteCategory } from "@/features/palette/PaletteCategory";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
 
+function shallowArrayEqual(a: readonly NodeSpec[], b: readonly NodeSpec[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 interface CategoryGroup {
   readonly category: string;
   readonly specs: NodeSpec[];
@@ -43,8 +52,7 @@ function flattenGroups(groups: CategoryGroup[], collapsed: Set<string>): FlatRow
 }
 
 export function Palette() {
-  const registry = useWorkflowStore((s) => s.registry);
-  const specs = useMemo(() => registry.list(), [registry]);
+  const specs = useWorkflowStore((s) => s.registry.list(), shallowArrayEqual);
   const groups = useMemo(() => groupByCategory(specs), [specs]);
 
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
