@@ -166,4 +166,20 @@ describe("GraphJsonV1 schema", () => {
     const result = GraphJsonV1.safeParse(payload);
     expect(result.success).toBe(false);
   });
+
+  // Discriminated union tests
+
+  it("rejects a node with unknown kind", () => {
+    const payload = validPayload();
+    payload.nodes[0] = { ...payload.nodes[0], kind: "unknown-node" as "start" };
+    const result = GraphJsonV1.safeParse(payload);
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an edge with unknown kind via discriminator", () => {
+    const payload = validPayload();
+    payload.edges[0] = { ...payload.edges[0], kind: "custom" as "default" };
+    const result = GraphJsonV1.safeParse(payload);
+    expect(result.success).toBe(false);
+  });
 });
