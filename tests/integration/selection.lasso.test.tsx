@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, cleanup, renderHook, act, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
+import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -198,9 +199,11 @@ describe("Lasso (box) selection", () => {
     setupStore();
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     expect(capturedSelectionMode).toBe("partial");
@@ -210,9 +213,11 @@ describe("Lasso (box) selection", () => {
     setupStore();
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     expect(capturedOnSelectionChange).toBeDefined();
@@ -229,9 +234,11 @@ describe("Lasso (box) selection", () => {
     );
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     // Drag a lasso box from (0,0) to (100,100) — encloses node1 (10,10) and node2 (50,50)
@@ -255,9 +262,11 @@ describe("Lasso (box) selection", () => {
     );
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     act(() => {
@@ -276,9 +285,11 @@ describe("Lasso (box) selection", () => {
     const [id1] = addNodesAt({ kind: "start", x: 100, y: 100 });
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     // First select the node via a lasso that encloses it
@@ -305,9 +316,11 @@ describe("Lasso (box) selection", () => {
     );
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
 
     // First lasso selects id1

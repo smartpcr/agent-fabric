@@ -3,6 +3,7 @@ import { render, screen, cleanup, act, renderHook, fireEvent } from "@testing-li
 import type { ReactNode } from "react";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { Canvas } from "@/features/canvas/Canvas";
+import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider, useDragContext } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -118,10 +119,12 @@ function DragStarter({ kind }: { readonly kind: string }) {
 
 function renderCanvasWithDrag(kind = "task") {
   return render(
-    <DragProvider>
-      <DragStarter kind={kind} />
-      <Canvas />
-    </DragProvider>,
+    <ToastProvider>
+      <DragProvider>
+        <DragStarter kind={kind} />
+        <Canvas />
+      </DragProvider>
+    </ToastProvider>,
   );
 }
 

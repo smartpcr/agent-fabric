@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, cleanup, renderHook, act } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
+import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -117,9 +118,11 @@ describe("Canvas with nodeTypes", () => {
   it("passes nodeTypes to ReactFlow", () => {
     setupStore();
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
     expect(capturedNodeTypes).toBeDefined();
     expect(capturedNodeTypes).toHaveProperty("start");
@@ -137,9 +140,11 @@ describe("Canvas with nodeTypes", () => {
     unmount();
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
     expect(capturedNodes).toBeDefined();
     expect(capturedNodes).toHaveLength(2);
@@ -161,9 +166,11 @@ describe("Canvas with nodeTypes", () => {
     unmount();
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
     expect(screen.getByRole("group", { name: "Start" })).toBeInTheDocument();
     expect(screen.getByTestId("start-handle-bottom")).toBeInTheDocument();
@@ -179,9 +186,11 @@ describe("Canvas with nodeTypes", () => {
     unmount();
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
     expect(screen.getByRole("group", { name: "End" })).toBeInTheDocument();
     expect(screen.getByTestId("end-handle-top")).toBeInTheDocument();
@@ -197,9 +206,11 @@ describe("Canvas with nodeTypes", () => {
     unmount();
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
     expect(screen.getByRole("group", { name: "Task" })).toBeInTheDocument();
     expect(screen.getByTestId("task-handle-top")).toBeInTheDocument();
@@ -217,9 +228,11 @@ describe("Canvas with nodeTypes", () => {
     unmount();
 
     render(
-      <DragProvider>
-        <Canvas />
-      </DragProvider>,
+      <ToastProvider>
+        <DragProvider>
+          <Canvas />
+        </DragProvider>
+      </ToastProvider>,
     );
     expect(screen.getByRole("group", { name: "Start" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Task" })).toBeInTheDocument();

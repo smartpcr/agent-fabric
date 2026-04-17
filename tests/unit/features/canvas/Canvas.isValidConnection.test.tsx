@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, cleanup, act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
+import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -79,9 +80,11 @@ function addMultiPortNodes(): { sourceId: string; targetId: string } {
 
 function renderCanvas() {
   return render(
-    <DragProvider>
-      <Canvas />
-    </DragProvider>,
+    <ToastProvider>
+      <DragProvider>
+        <Canvas />
+      </DragProvider>
+    </ToastProvider>,
   );
 }
 

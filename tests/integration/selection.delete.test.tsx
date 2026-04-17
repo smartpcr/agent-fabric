@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, cleanup, renderHook, act, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
+import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -117,9 +118,11 @@ function connectNodes(sourceId: string, targetId: string) {
 
 function renderCanvas() {
   return render(
-    <DragProvider>
-      <Canvas />
-    </DragProvider>,
+    <ToastProvider>
+      <DragProvider>
+        <Canvas />
+      </DragProvider>
+    </ToastProvider>,
   );
 }
 

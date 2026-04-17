@@ -18,12 +18,14 @@ import { useViewportPersistence } from "@/features/canvas/useViewportPersistence
 import { validateConnection } from "@/domain/validation/connectionRules";
 import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
 import { useDragContext } from "@/features/palette/DragContext";
+import { useToast } from "@/hooks/useToast";
 import { useWorkflowStore } from "@/store/hooks";
 import type { SelectMode } from "@/store/slices/selectionSlice";
 
 export function Canvas() {
   useViewportPersistence();
   const { state: dragState, endDrag } = useDragContext();
+  const { show: showToast } = useToast();
   const addNode = useWorkflowStore((s) => s.addNode);
   const registry = useWorkflowStore((s) => s.registry);
   const nodes = useWorkflowStore((s) => s.nodes);
@@ -131,14 +133,21 @@ export function Canvas() {
   const handleConnect = useCallback(
     (connection: Connection) => {
       if (!connection.source || !connection.target) return;
-      tryConnect({
+      const result = tryConnect({
         source: connection.source,
         sourcePort: connection.sourceHandle ?? "out",
         target: connection.target,
         targetPort: connection.targetHandle ?? "in",
       });
+      if (!result.ok) {
+        showToast({
+          title: "Connection rejected",
+          description: result.error.message,
+          variant: "error",
+        });
+      }
     },
-    [tryConnect],
+    [tryConnect, showToast],
   );
 
   const isValidConnection = useCallback(

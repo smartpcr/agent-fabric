@@ -11,7 +11,7 @@
   - Test: 100% — valid connection persisted with correct port ids.
   - Effort: 2h
 
-- [ ] **Step 2**: Live validation during drag (`isValidConnection`)
+- [x] **Step 2**: Live validation during drag (`isValidConnection`)
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/unit/features/canvas/Canvas.isValidConnection.test.tsx`
   - Contents: xyflow's `isValidConnection` callback runs `validateConnection` against current store; returns bool; xyflow colors preview line.
   - Test: 100% — valid pair returns true; incompatible returns false.
