@@ -22,7 +22,7 @@
   - Test: `npm run lint` + `npm run typecheck` exit 0 on an empty `App.tsx`; CI job (from Stage 3) re-runs both.
   - Effort: 2h
 
-- [ ] **Step 4**: Vitest + coverage + jsdom
+- [x] **Step 4**: Vitest + coverage + jsdom
   - File(s): `vitest.config.ts`, `tests/setup.ts`, `package.json` (scripts: `test`, `test:coverage`, `test:ui`)
   - Contents: `@vitest/coverage-v8`; `coverage.include = ['src/**/*.{ts,tsx}']`; `coverage.exclude = ['src/**/*.d.ts', 'src/**/index.ts', 'src/main.tsx']`; `coverage.thresholds = { 100: true }` on lines/branches/functions/statements.
   - Test: `npm run test` runs and reports green with one trivial test; `npm run test:coverage` prints an HTML report into `coverage/` and fails if thresholds aren't met.
