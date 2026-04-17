@@ -1,0 +1,16 @@
+{
+  "chunks": [
+    {
+      "name": "assets/index-main.js",
+      "size": 1200000,
+      "gzipSize": 500000,
+      "isEntry": true
+    },
+    {
+      "name": "assets/vendor-big.js",
+      "size": 1100000,
+      "gzipSize": 300000,
+      "isEntry": false
+    }
+  ]
+}
