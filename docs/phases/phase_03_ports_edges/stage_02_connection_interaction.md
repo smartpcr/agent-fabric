@@ -23,7 +23,7 @@
   - Test: Integration — invalid drop → toast with specific message.
   - Effort: 2h
 
-- [ ] **Step 4**: Snap to nearest compatible handle within 20px
+- [x] **Step 4**: Snap to nearest compatible handle within 20px
   - File(s): `src/features/canvas/snapToHandle.ts`, `tests/unit/features/canvas/snapToHandle.test.ts`, `src/features/canvas/Canvas.tsx` (wire)
   - Contents: On pointer move during connect-drag, query handle positions; pick closest compatible within 20px radius; override drop target.
   - Test: 100% — snap math; nearest compatible chosen; > 20px means no snap.

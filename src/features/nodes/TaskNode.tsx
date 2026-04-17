@@ -1,5 +1,6 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { BaseNode } from "@/features/nodes/BaseNode";
+import { OutputHandle } from "@/features/nodes/ports/OutputHandle";
 import { useWorkflowStore } from "@/store/hooks";
 import { selectNodeSpec } from "@/store/selectors/graphSelectors";
 import type { PortSpec } from "@/domain/models/port";
@@ -10,10 +11,6 @@ interface TaskData {
 
 function portPosition(port: PortSpec): Position {
   return port.kind === "in" ? Position.Top : Position.Bottom;
-}
-
-function portHandleType(port: PortSpec): "target" | "source" {
-  return port.kind === "in" ? "target" : "source";
 }
 
 export function TaskNode({ id, data, type, selected }: NodeProps) {
@@ -40,17 +37,27 @@ export function TaskNode({ id, data, type, selected }: NodeProps) {
       onDelete={deleteSelected}
     >
       {ports && ports.length > 0 ? (
-        ports.map((port) => (
-          <Handle
-            key={port.id}
-            id={port.id}
-            type={portHandleType(port)}
-            position={portPosition(port)}
-            data-testid={`task-handle-${port.id}`}
-            data-port-id={port.id}
-            aria-label={port.label}
-          />
-        ))
+        ports.map((port) =>
+          port.kind === "out" ? (
+            <OutputHandle
+              key={port.id}
+              portSpec={port}
+              position={portPosition(port)}
+              nodeId={id}
+              data-testid={`task-handle-${port.id}`}
+            />
+          ) : (
+            <Handle
+              key={port.id}
+              id={port.id}
+              type="target"
+              position={portPosition(port)}
+              data-testid={`task-handle-${port.id}`}
+              data-port-id={port.id}
+              aria-label={port.label}
+            />
+          ),
+        )
       ) : (
         <>
           <Handle type="target" position={Position.Top} data-testid="task-handle-top" />
