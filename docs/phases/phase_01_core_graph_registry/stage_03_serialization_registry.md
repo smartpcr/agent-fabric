@@ -29,7 +29,7 @@
   - Test: 100% — identity for v1; throws on unknown version; registry shape ready for Phase 7 to add entries.
   - Effort: 2h
 
-- [ ] **Step 5**: `NodeRegistry` class
+- [x] **Step 5**: `NodeRegistry` class
   - File(s): `src/registry/NodeRegistry.ts`, `tests/unit/registry/NodeRegistry.test.ts`
   - Contents: `register(spec)`, `resolve(kind)`, `list()`, `freeze()`; duplicate `kind` throws; `freeze()` prevents further registration; `resolve` throws `UnknownNodeKindError` if not registered.
   - Test: 100% — register/resolve/list; duplicate error; frozen registry rejects register with clear error.
