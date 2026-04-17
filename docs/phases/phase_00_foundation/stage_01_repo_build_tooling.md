@@ -34,7 +34,7 @@
   - Test: `tests/e2e/smoke.spec.ts` asserts page title contains "Workflow Editor"; `npm run e2e` exits 0 locally.
   - Effort: 2h
 
-- [ ] **Step 6**: Husky + lint-staged commit gate
+- [x] **Step 6**: Husky + lint-staged commit gate
   - File(s): `.husky/pre-commit`, `package.json` (lint-staged config), `package.json` (`prepare` script)
   - Contents: On staged `*.{ts,tsx}`: run `eslint --fix`, `prettier --write`, `vitest related --run`. On staged `*.md`: run `prettier --write`.
   - Test: Unit — `tests/unit/lint-staged.config.test.ts` imports the lint-staged config object and asserts the expected file globs and commands are wired; manual check: intentionally broken staged file is rejected.

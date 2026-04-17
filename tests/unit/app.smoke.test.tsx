@@ -5,6 +5,6 @@ import { App } from "@/App";
 describe("App", () => {
   it("renders without crash", () => {
     render(<App />);
-    expect(screen.getByText("Workflow Editor")).toBeDefined();
+    expect(screen.getByRole("application", { name: /workflow canvas/i })).toBeInTheDocument();
   });
 });
