@@ -136,4 +136,17 @@ describe("NodeRegistry", () => {
       }).toThrow("frozen");
     });
   });
+
+  describe("has", () => {
+    it("returns true for a registered kind", () => {
+      const registry = new NodeRegistry();
+      registry.register(makeSpec("task"));
+      expect(registry.has("task")).toBe(true);
+    });
+
+    it("returns false for an unregistered kind", () => {
+      const registry = new NodeRegistry();
+      expect(registry.has("missing")).toBe(false);
+    });
+  });
 });

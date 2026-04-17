@@ -26,6 +26,10 @@ export class NodeRegistry {
     return spec;
   }
 
+  has(kind: string): boolean {
+    return this.specs.has(kind);
+  }
+
   list(): readonly NodeSpec[] {
     return [...this.specs.values()];
   }

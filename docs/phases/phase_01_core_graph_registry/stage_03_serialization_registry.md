@@ -47,7 +47,7 @@
   - Test: 100%.
   - Effort: 1h
 
-- [ ] **Step 8**: Built-in `TaskNode` spec
+- [x] **Step 8**: Built-in `TaskNode` spec
   - File(s): `src/registry/builtins/TaskNode.spec.ts`, `tests/unit/registry/builtins/TaskNode.test.ts`
   - Contents: kind `'task'`, 1 input / 1 output; `propertySchema = z.object({ name: z.string().min(1), params: z.record(z.unknown()).default({}) })`; `defaultData = { name: 'Task', params: {} }`.
   - Test: 100% — schema accepts/rejects; default conforms.
