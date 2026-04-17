@@ -24,6 +24,8 @@ export interface BaseNodeProps {
   readonly selected?: boolean;
   /** Body content rendered below the header */
   readonly children?: ReactNode;
+  /** Override border-radius (e.g. "9999px" for pill shape) */
+  readonly borderRadius?: string;
 }
 
 const OUTER_STYLE: React.CSSProperties = {
@@ -53,7 +55,7 @@ const BODY_STYLE: React.CSSProperties = {
   padding: "8px 10px",
 };
 
-export function BaseNode({ title, icon, selected = false, children }: BaseNodeProps) {
+export function BaseNode({ title, icon, selected = false, children, borderRadius }: BaseNodeProps) {
   /* eslint-disable jsx-a11y/role-supports-aria-props, jsx-a11y/no-noninteractive-tabindex */
   return (
     <div
@@ -66,6 +68,7 @@ export function BaseNode({ title, icon, selected = false, children }: BaseNodePr
       style={{
         ...OUTER_STYLE,
         border: selected ? SELECTED_BORDER : OUTER_STYLE.border,
+        ...(borderRadius === undefined ? {} : { borderRadius }),
       }}
       onFocus={(e) => {
         e.currentTarget.style.boxShadow = FOCUS_RING;

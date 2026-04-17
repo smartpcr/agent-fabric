@@ -41,10 +41,10 @@ function renderEndNode(overrides: Partial<NodeProps> = {}) {
 }
 
 describe("EndNode", () => {
-  it("renders with pill shape wrapper", () => {
+  it("renders with pill shape on base-node", () => {
     renderEndNode();
-    const wrapper = screen.getByTestId("end-node");
-    expect(wrapper.style.borderRadius).toBe("9999px");
+    const baseNode = screen.getByTestId("base-node");
+    expect(baseNode.style.borderRadius).toBe("9999px");
   });
 
   it("has ARIA label 'End'", () => {

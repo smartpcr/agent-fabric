@@ -41,10 +41,10 @@ function renderStartNode(overrides: Partial<NodeProps> = {}) {
 }
 
 describe("StartNode", () => {
-  it("renders with pill shape wrapper", () => {
+  it("renders with pill shape on base-node", () => {
     renderStartNode();
-    const wrapper = screen.getByTestId("start-node");
-    expect(wrapper.style.borderRadius).toBe("9999px");
+    const baseNode = screen.getByTestId("base-node");
+    expect(baseNode.style.borderRadius).toBe("9999px");
   });
 
   it("has ARIA label 'Start'", () => {
