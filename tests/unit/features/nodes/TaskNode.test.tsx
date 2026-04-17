@@ -10,6 +10,8 @@ vi.mock("@xyflow/react", () => ({
       data-testid={props["data-testid"] as string}
       data-handle-type={props.type as string}
       data-handle-position={props.position as string}
+      data-handle-id={props.id as string}
+      data-port-id={props["data-port-id"] as string}
     />
   ),
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
