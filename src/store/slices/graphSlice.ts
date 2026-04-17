@@ -1,6 +1,6 @@
 import type { StoreApi } from "zustand";
 import type { WorkflowState } from "@/store/createStore";
-import { makeNode, type WorkflowNode, type Position } from "@/domain/models/node";
+import { makeNode, type WorkflowNode, type Position, type Dimensions } from "@/domain/models/node";
 import { makeEdge, type WorkflowEdge } from "@/domain/models/edge";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
 import {
@@ -19,6 +19,24 @@ export interface ConnectPortsParams {
   readonly registry: NodeSpecRegistry;
 }
 
+// xyflow-compatible node change shapes
+export type NodeChange =
+  | { readonly type: "add"; readonly item: WorkflowNode }
+  | { readonly type: "remove"; readonly id: string }
+  | { readonly type: "position"; readonly id: string; readonly position?: Position }
+  | { readonly type: "select"; readonly id: string; readonly selected: boolean }
+  | {
+      readonly type: "dimensions";
+      readonly id: string;
+      readonly dimensions?: Dimensions;
+    };
+
+// xyflow-compatible edge change shapes
+export type EdgeChange =
+  | { readonly type: "add"; readonly item: WorkflowEdge }
+  | { readonly type: "remove"; readonly id: string }
+  | { readonly type: "select"; readonly id: string; readonly selected: boolean };
+
 export interface GraphSlice {
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];
@@ -27,6 +45,8 @@ export interface GraphSlice {
   connectPorts: (params: ConnectPortsParams) => Result<WorkflowEdge, ConnectionInvalidError>;
   updateNodeData: (id: string, newData: unknown) => Result<void, ValidationError[]>;
   updateNodePosition: (id: string, position: Position) => void;
+  applyNodeChanges: (changes: NodeChange[]) => void;
+  applyEdgeChanges: (changes: EdgeChange[]) => void;
 }
 
 export function createGraphSlice(
@@ -105,6 +125,71 @@ export function createGraphSlice(
       set((s) => ({
         nodes: s.nodes.map((n) => (n.id === id ? { ...n, position: { x, y } } : n)),
       }));
+    },
+    applyNodeChanges: (changes: NodeChange[]) => {
+      set((state) => {
+        let nodes = state.nodes;
+        let edges = state.edges;
+
+        for (const change of changes) {
+          switch (change.type) {
+            case "add":
+              nodes = [...nodes, change.item];
+              break;
+            case "remove":
+              nodes = nodes.filter((n) => n.id !== change.id);
+              edges = edges.filter((e) => e.source !== change.id && e.target !== change.id);
+              break;
+            case "position":
+              if (change.position) {
+                const x = Number.isFinite(change.position.x) ? change.position.x : 0;
+                const y = Number.isFinite(change.position.y) ? change.position.y : 0;
+                nodes = nodes.map((n) => (n.id === change.id ? { ...n, position: { x, y } } : n));
+              }
+              break;
+            case "select":
+              nodes = nodes.map((n) =>
+                n.id === change.id ? { ...n, selected: change.selected } : n,
+              );
+              break;
+            case "dimensions":
+              if (change.dimensions) {
+                const { width, height } = change.dimensions;
+                nodes = nodes.map((n) => (n.id === change.id ? { ...n, width, height } : n));
+              }
+              break;
+            default:
+              break;
+          }
+        }
+
+        return { nodes, edges };
+      });
+    },
+    applyEdgeChanges: (changes: EdgeChange[]) => {
+      set((state) => {
+        let edges = state.edges;
+
+        for (const change of changes) {
+          switch (change.type) {
+            case "add":
+              edges = [...edges, change.item];
+              break;
+            case "remove":
+              edges = edges.filter((e) => e.id !== change.id);
+              break;
+            case "select":
+              edges = edges.map((e) =>
+                e.id === change.id ? { ...e, selected: change.selected } : e,
+              );
+              break;
+            default:
+              break;
+          }
+        }
+
+        return { edges };
+      });
     },
   };
 }
