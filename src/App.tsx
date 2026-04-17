@@ -1,3 +1,5 @@
+import { EditorPage } from "@/features/editor/EditorPage";
+
 export function App() {
-  return <div>Workflow Editor</div>;
+  return <EditorPage />;
 }
