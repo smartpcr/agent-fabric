@@ -53,7 +53,7 @@
   - Test: 100% — snapshot → restore → deep-equal.
   - Effort: 2h
 
-- [ ] **Step 9**: Integration — store + registry + validation end-to-end
+- [x] **Step 9**: Integration — store + registry + validation end-to-end
   - File(s): `tests/integration/store.graph-mutations.test.ts`
   - Contents: Register builtins → add nodes via store actions → connect valid + reject invalid → final snapshot matches fixture.
   - Test: Green in CI.

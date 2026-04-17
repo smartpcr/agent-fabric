@@ -24,7 +24,9 @@
   },
   "dependencies": {
     "@radix-ui/react-toast": "^1.2.15",
+    "@tanstack/react-virtual": "^3.13.24",
     "@testing-library/dom": "^10.4.1",
+    "@testing-library/user-event": "^14.6.1",
     "@xyflow/react": "^12.10.2",
     "fast-equals": "^6.0.0",
     "nanoid": "^5.1.9",
