@@ -17,7 +17,7 @@
   - Test: Component test asserts three panels exist; pressing `Ctrl+\` collapses/expands the palette; focus ring visible on splitter handle.
   - Effort: 3h
 
-- [ ] **Step 3**: Port interfaces & DI providers
+- [x] **Step 3**: Port interfaces & DI providers
   - File(s): `src/ports/IWorkflowRepository.ts`, `src/ports/IExecutionEventSource.ts`, `src/ports/IExecutionCommandSink.ts`, `src/ports/ITelemetrySink.ts`, `src/providers/RepositoryProvider.tsx`, `src/providers/ExecutionProvider.tsx`, `src/providers/TelemetryProvider.tsx`, `src/providers/WorkflowProviders.tsx`, `src/hooks/useWorkflowRepo.ts`, `src/hooks/useExecutionEventSource.ts`, `src/hooks/useTelemetry.ts`, `src/adapters/NoopTelemetrySink.ts`
   - Contents: Each provider exposes a context; each hook throws `"<X> used outside of provider"` if context is null. `NoopTelemetrySink` is registered by default so tests don't need to wire telemetry.
   - Test: Unit: `useWorkflowRepo()` throws outside provider; returns injected impl inside; `NoopTelemetrySink.track()` is a no-op (can be spied but does nothing).
