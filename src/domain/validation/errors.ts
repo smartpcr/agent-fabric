@@ -49,3 +49,10 @@ export class MigrationError extends DomainError {
     this.name = "MigrationError";
   }
 }
+
+export class UnknownNodeKindError extends DomainError {
+  constructor(kind: string) {
+    super("UNKNOWN_NODE_KIND", `Unknown node kind: "${kind}"`, { kind });
+    this.name = "UnknownNodeKindError";
+  }
+}
