@@ -35,7 +35,7 @@
   - Test: Integration — selected edge + Delete → removed; undo restores.
   - Effort: 2h
 
-- [ ] **Step 6**: `edgeTypes` map + `ConditionalEdge` placeholder
+- [x] **Step 6**: `edgeTypes` map + `ConditionalEdge` placeholder
   - File(s): `src/features/canvas/edgeTypes.tsx`, `src/features/edges/ConditionalEdge.tsx`, `tests/unit/features/canvas/edgeTypes.test.tsx`
   - Contents: Map `{ default: DefaultEdge, 'loop-back': DefaultEdge, conditional: ConditionalEdge }`; `ConditionalEdge` is a stub rendering `DefaultEdge` with a label chip (filled out in Phase 4).
   - Test: 100% — lookup by edge `kind`.
