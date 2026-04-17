@@ -53,7 +53,7 @@
   - Test: 100% — schema accepts/rejects; default conforms.
   - Effort: 2h
 
-- [ ] **Step 9**: `registerBuiltins(registry)` helper
+- [x] **Step 9**: `registerBuiltins(registry)` helper
   - File(s): `src/registry/registerBuiltins.ts`, `tests/unit/registry/registerBuiltins.test.ts`
   - Contents: Idempotent: a second call is a no-op; registers Start / End / Task.
   - Test: 100% — 3 kinds present; second call doesn't throw.
