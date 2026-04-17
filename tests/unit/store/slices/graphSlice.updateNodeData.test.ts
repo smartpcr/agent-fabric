@@ -3,7 +3,6 @@ import { z } from "zod";
 import { createStore } from "@/store/createStore";
 import { makeInputPort, makeOutputPort } from "@/domain/models/port";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
-import type { NodeSpecRegistry } from "@/domain/validation/connectionRules";
 
 const taskSchema = z.object({
   name: z.string().min(1),
@@ -37,40 +36,31 @@ const startSpec: NodeSpec = {
   capabilities: ["isEntry"],
 };
 
-function makeRegistry(): NodeSpecRegistry {
-  const map = new Map<string, NodeSpec>([
-    ["task", taskSpec],
-    ["start", startSpec],
-  ]);
-  return { get: (kind: string) => map.get(kind) };
+function setupStoreWithSpecs() {
+  const store = createStore();
+  store.getState().registerNodeSpec(taskSpec);
+  store.getState().registerNodeSpec(startSpec);
+  return store;
 }
 
 describe("graphSlice.updateNodeData", () => {
   it("updates node data on valid input", () => {
-    const store = createStore();
-    const registry = makeRegistry();
+    const store = setupStoreWithSpecs();
     const node = store.getState().addNode(taskSpec);
 
-    const result = store.getState().updateNodeData({
-      id: node.id,
-      data: { name: "Updated", params: { key: "value" } },
-      registry,
-    });
+    const result = store
+      .getState()
+      .updateNodeData(node.id, { name: "Updated", params: { key: "value" } });
 
     expect(result.ok).toBe(true);
     expect(store.getState().nodes[0].data).toEqual({ name: "Updated", params: { key: "value" } });
   });
 
   it("returns ok with void value on success", () => {
-    const store = createStore();
-    const registry = makeRegistry();
+    const store = setupStoreWithSpecs();
     const node = store.getState().addNode(taskSpec);
 
-    const result = store.getState().updateNodeData({
-      id: node.id,
-      data: { name: "New Name", params: {} },
-      registry,
-    });
+    const result = store.getState().updateNodeData(node.id, { name: "New Name", params: {} });
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -79,15 +69,10 @@ describe("graphSlice.updateNodeData", () => {
   });
 
   it("returns validation errors for invalid data", () => {
-    const store = createStore();
-    const registry = makeRegistry();
+    const store = setupStoreWithSpecs();
     const node = store.getState().addNode(taskSpec);
 
-    const result = store.getState().updateNodeData({
-      id: node.id,
-      data: { name: "", params: {} },
-      registry,
-    });
+    const result = store.getState().updateNodeData(node.id, { name: "", params: {} });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -96,29 +81,19 @@ describe("graphSlice.updateNodeData", () => {
   });
 
   it("does not mutate state on validation failure", () => {
-    const store = createStore();
-    const registry = makeRegistry();
+    const store = setupStoreWithSpecs();
     const node = store.getState().addNode(taskSpec);
     const dataBefore = store.getState().nodes[0].data;
 
-    store.getState().updateNodeData({
-      id: node.id,
-      data: { name: "", params: {} },
-      registry,
-    });
+    store.getState().updateNodeData(node.id, { name: "", params: {} });
 
     expect(store.getState().nodes[0].data).toBe(dataBefore);
   });
 
   it("returns error when node id does not exist", () => {
-    const store = createStore();
-    const registry = makeRegistry();
+    const store = setupStoreWithSpecs();
 
-    const result = store.getState().updateNodeData({
-      id: "nonexistent",
-      data: { name: "X" },
-      registry,
-    });
+    const result = store.getState().updateNodeData("nonexistent", { name: "X" });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -126,16 +101,11 @@ describe("graphSlice.updateNodeData", () => {
     }
   });
 
-  it("returns error when spec is not in registry", () => {
+  it("returns error when spec is not registered in store", () => {
     const store = createStore();
-    const emptyRegistry: NodeSpecRegistry = { get: () => undefined };
     const node = store.getState().addNode(taskSpec);
 
-    const result = store.getState().updateNodeData({
-      id: node.id,
-      data: { name: "X" },
-      registry: emptyRegistry,
-    });
+    const result = store.getState().updateNodeData(node.id, { name: "X" });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -144,45 +114,30 @@ describe("graphSlice.updateNodeData", () => {
   });
 
   it("preserves other nodes when updating one", () => {
-    const store = createStore();
-    const registry = makeRegistry();
+    const store = setupStoreWithSpecs();
     const node1 = store.getState().addNode(taskSpec);
     const node2 = store.getState().addNode(startSpec);
 
-    store.getState().updateNodeData({
-      id: node1.id,
-      data: { name: "Changed", params: {} },
-      registry,
-    });
+    store.getState().updateNodeData(node1.id, { name: "Changed", params: {} });
 
     expect(store.getState().nodes[1]).toBe(node2);
   });
 
   it("does not affect edges when updating node data", () => {
-    const store = createStore();
-    const registry = makeRegistry();
+    const store = setupStoreWithSpecs();
     const node = store.getState().addNode(taskSpec);
     const edgesBefore = store.getState().edges;
 
-    store.getState().updateNodeData({
-      id: node.id,
-      data: { name: "Changed", params: {} },
-      registry,
-    });
+    store.getState().updateNodeData(node.id, { name: "Changed", params: {} });
 
     expect(store.getState().edges).toBe(edgesBefore);
   });
 
   it("returns validation error with path info for missing required field", () => {
-    const store = createStore();
-    const registry = makeRegistry();
+    const store = setupStoreWithSpecs();
     const node = store.getState().addNode(taskSpec);
 
-    const result = store.getState().updateNodeData({
-      id: node.id,
-      data: { params: {} },
-      registry,
-    });
+    const result = store.getState().updateNodeData(node.id, { params: {} });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {

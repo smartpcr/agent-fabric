@@ -19,19 +19,13 @@ export interface ConnectPortsParams {
   readonly registry: NodeSpecRegistry;
 }
 
-export interface UpdateNodeDataParams {
-  readonly id: string;
-  readonly data: unknown;
-  readonly registry: NodeSpecRegistry;
-}
-
 export interface GraphSlice {
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];
   addNode: (spec: NodeSpec, position?: Position) => WorkflowNode;
   removeNode: (id: string) => void;
   connectPorts: (params: ConnectPortsParams) => Result<WorkflowEdge, ConnectionInvalidError>;
-  updateNodeData: (params: UpdateNodeDataParams) => Result<void, ValidationError[]>;
+  updateNodeData: (id: string, newData: unknown) => Result<void, ValidationError[]>;
 }
 
 export function createGraphSlice(
@@ -81,26 +75,26 @@ export function createGraphSlice(
       set((s) => ({ edges: [...s.edges, edge] }));
       return { ok: true, value: edge };
     },
-    updateNodeData: (params: UpdateNodeDataParams) => {
+    updateNodeData: (id: string, newData: unknown) => {
       const state = get();
-      const node = state.nodes.find((n) => n.id === params.id);
+      const node = state.nodes.find((n) => n.id === id);
       if (!node) {
-        return { ok: false, error: [{ path: "", message: `Node "${params.id}" not found` }] };
+        return { ok: false, error: [{ path: "", message: `Node "${id}" not found` }] };
       }
 
-      const spec = params.registry.get(node.kind);
+      const spec = state.nodeSpecs[node.kind];
       if (!spec) {
         return { ok: false, error: [{ path: "", message: `No spec for kind "${node.kind}"` }] };
       }
 
-      const candidate = { ...node, data: params.data };
+      const candidate = { ...node, data: newData };
       const errors = validateNodeData(candidate, spec);
       if (errors.length > 0) {
         return { ok: false, error: errors };
       }
 
       set((s) => ({
-        nodes: s.nodes.map((n) => (n.id === params.id ? { ...n, data: params.data } : n)),
+        nodes: s.nodes.map((n) => (n.id === id ? { ...n, data: newData } : n)),
       }));
       return { ok: true, value: undefined };
     },

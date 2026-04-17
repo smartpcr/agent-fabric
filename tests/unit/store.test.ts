@@ -36,7 +36,9 @@ describe("createStore", () => {
 
     // registrySlice keys
     expect(state).toHaveProperty("nodeTypes");
+    expect(state).toHaveProperty("nodeSpecs");
     expect(state).toHaveProperty("registerNodeType");
+    expect(state).toHaveProperty("registerNodeSpec");
 
     // executionSlice keys
     expect(state).toHaveProperty("executionStatus");
@@ -63,6 +65,7 @@ describe("createStore", () => {
       selectedNodeIds: state.selectedNodeIds,
       selectedEdgeIds: state.selectedEdgeIds,
       nodeTypes: state.nodeTypes,
+      nodeSpecs: state.nodeSpecs,
       executionStatus: state.executionStatus,
       executionLog: state.executionLog,
       zoom: state.zoom,
@@ -75,6 +78,7 @@ describe("createStore", () => {
         "edges": [],
         "executionLog": [],
         "executionStatus": "idle",
+        "nodeSpecs": {},
         "nodeTypes": {},
         "nodes": [],
         "panX": 0,
