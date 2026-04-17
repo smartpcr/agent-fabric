@@ -41,7 +41,7 @@
   - Test: 100% — spec shape; registers cleanly; capabilities.
   - Effort: 2h
 
-- [ ] **Step 7**: Built-in `EndNode` spec
+- [x] **Step 7**: Built-in `EndNode` spec
   - File(s): `src/registry/builtins/EndNode.spec.ts`, `tests/unit/registry/builtins/EndNode.test.ts`
   - Contents: kind `'end'`, 1 input port `in`, `capabilities.isTerminal = true`.
   - Test: 100%.
