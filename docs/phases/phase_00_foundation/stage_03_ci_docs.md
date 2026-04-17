@@ -23,7 +23,7 @@
   - Test: N/A (manual review).
   - Effort: 2h
 
-- [ ] **Step 4**: CONTRIBUTING + PR template
+- [x] **Step 4**: CONTRIBUTING + PR template
   - File(s): `CONTRIBUTING.md`, `.github/pull_request_template.md`
   - Contents: Commit conventions, branch naming, checklist (tests, coverage, accessibility, screenshots, linked phase/stage/step).
   - Test: N/A (manual review).
