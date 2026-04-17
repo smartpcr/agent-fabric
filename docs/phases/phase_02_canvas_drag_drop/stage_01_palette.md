@@ -23,7 +23,7 @@
   - Test: 100% — full pointer capture lifecycle; threshold enforced; Escape cancels.
   - Effort: 4h
 
-- [ ] **Step 4**: Search / filter palette items (debounced)
+- [x] **Step 4**: Search / filter palette items (debounced)
   - File(s): `src/features/palette/Palette.tsx` (extend), `src/features/palette/useDebounce.ts`, `tests/unit/features/palette/Palette.search.test.tsx`
   - Contents: Text input above list; 150ms debounce; case-insensitive match against `spec.label` and `spec.category`; empty-state message.
   - Test: 100% — filters narrow list; typing resets count; empty query shows all.

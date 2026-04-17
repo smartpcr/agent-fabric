@@ -224,4 +224,36 @@ describe("Palette", () => {
     renderPalette();
     expect(screen.queryAllByRole("option")).toHaveLength(0);
   });
+
+  it("Enter on focused option dispatches addNode with correct kind and position", async () => {
+    const user = userEvent.setup();
+    const viewportCenter = { x: 250, y: 175 };
+    const getViewportCenter = vi.fn(() => viewportCenter);
+
+    // Clear existing nodes
+    const { result: storeResult, unmount: storeUnmount } = renderHook(() => useWorkflowStore());
+    act(() => {
+      for (const node of storeResult.current.nodes) {
+        storeResult.current.removeNode(node.id);
+      }
+    });
+    storeUnmount();
+
+    render(<Palette getViewportCenter={getViewportCenter} />);
+
+    const options = screen.getAllByRole("option");
+    const firstOption = options[0];
+    firstOption.focus();
+
+    await user.keyboard("{Enter}");
+
+    expect(getViewportCenter).toHaveBeenCalled();
+
+    const { result: afterResult, unmount: afterUnmount } = renderHook(() => useWorkflowStore());
+    const nodes = afterResult.current.nodes;
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0].kind).toBe(firstOption.getAttribute("data-kind"));
+    expect(nodes[0].position).toEqual(viewportCenter);
+    afterUnmount();
+  });
 });
