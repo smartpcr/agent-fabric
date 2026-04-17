@@ -7,6 +7,7 @@ export interface OutputHandleProps {
   readonly position?: Position;
   readonly nodeId?: string;
   readonly onStartConnect?: (nodeId: string, portId: string) => void;
+  readonly "data-testid"?: string;
 }
 
 export function OutputHandle({
@@ -14,6 +15,7 @@ export function OutputHandle({
   position = Position.Bottom,
   nodeId,
   onStartConnect,
+  "data-testid": testId,
 }: OutputHandleProps) {
   const contextStartConnect = useStartKeyboardConnect();
   const startConnect = onStartConnect ?? contextStartConnect;
@@ -23,6 +25,7 @@ export function OutputHandle({
       type="source"
       position={position}
       id={portSpec.id}
+      data-testid={testId}
       data-port-id={portSpec.id}
       aria-label={portSpec.label}
       className={`port-handle port-type-${portSpec.dataType}`}

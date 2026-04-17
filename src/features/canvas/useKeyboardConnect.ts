@@ -135,27 +135,27 @@ export function useKeyboardConnect(
     });
   }, []);
 
+  // Read state from closure (not inside setState updater) to avoid side effects during render
   const confirm = useCallback(() => {
-    setState((s) => {
-      if (!s.active || s.currentIndex < 0 || s.currentIndex >= s.targets.length) return s;
-      const target = s.targets[s.currentIndex];
-      if (!target) return s;
+    if (!state.active || state.currentIndex < 0 || state.currentIndex >= state.targets.length)
+      return;
+    const target = state.targets[state.currentIndex];
+    if (!target) return;
 
-      const result = tryConnect({
-        source: s.sourceNodeId,
-        sourcePort: s.sourcePortId,
-        target: target.nodeId,
-        targetPort: target.portId,
-      });
-
-      return {
-        ...INITIAL_STATE,
-        announcement: result.ok
-          ? `Connected to ${target.label}`
-          : `Connection to ${target.label} rejected`,
-      };
+    const result = tryConnect({
+      source: state.sourceNodeId,
+      sourcePort: state.sourcePortId,
+      target: target.nodeId,
+      targetPort: target.portId,
     });
-  }, [tryConnect]);
+
+    setState({
+      ...INITIAL_STATE,
+      announcement: result.ok
+        ? `Connected to ${target.label}`
+        : `Connection to ${target.label} rejected`,
+    });
+  }, [state, tryConnect]);
 
   return {
     connectState: state,

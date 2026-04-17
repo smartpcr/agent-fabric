@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ReactFlow,
   Controls,
@@ -65,6 +65,16 @@ export function Canvas() {
     movePrev,
     confirm: confirmConnect,
   } = useKeyboardConnect(nodes, edges, registry, tryConnect);
+
+  // Focus the target handle element when keyboard-connect navigation changes
+  useEffect(() => {
+    if (!connectState.active || connectState.currentIndex < 0) return;
+    const target = connectState.targets[connectState.currentIndex];
+    if (!target) return;
+    const nodeEl = canvasRef.current?.querySelector<HTMLElement>(`[data-id="${target.nodeId}"]`);
+    const handleEl = nodeEl?.querySelector<HTMLElement>(`[data-handleid="${target.portId}"]`);
+    handleEl?.focus();
+  }, [connectState.active, connectState.currentIndex, connectState.targets]);
 
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
   const rfNodes = useMemo(() => nodes.map((n) => ({ ...n, type: n.kind })), [nodes]);

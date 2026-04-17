@@ -9,8 +9,6 @@ import { registerBuiltins } from "@/registry/registerBuiltins";
 import { MultiPortTaskNodeSpec } from "@/registry/builtins/MultiPortTaskNode.spec";
 import { useWorkflowStore } from "@/store/hooks";
 
-// Track ReactFlow props — not captured for assertions, just for completeness
-
 vi.mock("@xyflow/react", () => ({
   ReactFlow: (props: Record<string, unknown> & { children?: ReactNode }) => {
     return <div data-testid="mock-reactflow">{props.children}</div>;
@@ -100,22 +98,46 @@ function renderCanvas() {
   );
 }
 
+/** Create a source handle element inside the canvas DOM with proper node wrapper */
+function createSourceHandle(canvas: HTMLElement, nodeId: string, portId = "outA"): HTMLElement {
+  const handleEl = document.createElement("div");
+  handleEl.className = "react-flow__handle";
+  handleEl.dataset.handletype = "source";
+  handleEl.dataset.handleid = portId;
+  handleEl.tabIndex = 0;
+  const nodeWrapper = document.createElement("div");
+  nodeWrapper.setAttribute("data-id", nodeId);
+  nodeWrapper.appendChild(handleEl);
+  canvas.appendChild(nodeWrapper);
+  return handleEl;
+}
+
+/** Create target handle elements for a node so focus logic can find them */
+function createTargetHandles(
+  canvas: HTMLElement,
+  nodeId: string,
+  portIds: string[],
+): HTMLElement[] {
+  const nodeWrapper = document.createElement("div");
+  nodeWrapper.setAttribute("data-id", nodeId);
+  const handles: HTMLElement[] = [];
+  for (const portId of portIds) {
+    const handleEl = document.createElement("div");
+    handleEl.className = "react-flow__handle";
+    handleEl.dataset.handletype = "target";
+    handleEl.dataset.handleid = portId;
+    handleEl.tabIndex = 0;
+    nodeWrapper.appendChild(handleEl);
+    handles.push(handleEl);
+  }
+  canvas.appendChild(nodeWrapper);
+  return handles;
+}
+
 describe("Keyboard connection flow", () => {
   beforeEach(() => {
     setupStoreWithMultiPort();
   });
-
-  function createSourceHandle(canvas: HTMLElement, sourceId: string, portId = "outA"): HTMLElement {
-    const handleEl = document.createElement("div");
-    handleEl.className = "react-flow__handle";
-    handleEl.dataset.handletype = "source";
-    handleEl.dataset.handleid = portId;
-    const nodeWrapper = document.createElement("div");
-    nodeWrapper.setAttribute("data-id", sourceId);
-    nodeWrapper.appendChild(handleEl);
-    canvas.appendChild(nodeWrapper);
-    return handleEl;
-  }
 
   it("Enter on a source handle enters connect mode and announces targets", () => {
     const { sourceId } = addMultiPortNodes();
@@ -124,7 +146,6 @@ describe("Keyboard connection flow", () => {
     const canvas = screen.getByRole("application");
     const handleEl = createSourceHandle(canvas, sourceId);
 
-    // Fire Enter on the handle itself — it bubbles to canvas
     act(() => {
       fireEvent.keyDown(handleEl, { key: "Enter", bubbles: true });
     });
@@ -142,7 +163,6 @@ describe("Keyboard connection flow", () => {
     // outC is type "any" — compatible with both inA (string) and inB (json)
     const handleEl = createSourceHandle(canvas, sourceId, "outC");
 
-    // Enter connect mode
     act(() => {
       fireEvent.keyDown(handleEl, { key: "Enter", bubbles: true });
     });
@@ -150,14 +170,12 @@ describe("Keyboard connection flow", () => {
     const announcement = screen.getByTestId("connect-announcement");
     expect(announcement.textContent).toContain("1 of");
 
-    // ArrowDown moves to next target
     act(() => {
       fireEvent.keyDown(canvas, { key: "ArrowDown" });
     });
 
     expect(announcement.textContent).toContain("2 of");
 
-    // ArrowUp moves back
     act(() => {
       fireEvent.keyDown(canvas, { key: "ArrowUp" });
     });
@@ -174,12 +192,10 @@ describe("Keyboard connection flow", () => {
 
     expect(getStoreEdges()).toHaveLength(0);
 
-    // Enter connect mode
     act(() => {
       fireEvent.keyDown(handleEl, { key: "Enter", bubbles: true });
     });
 
-    // Confirm connection
     act(() => {
       fireEvent.keyDown(canvas, { key: "Enter" });
     });
@@ -199,14 +215,12 @@ describe("Keyboard connection flow", () => {
     const canvas = screen.getByRole("application");
     const handleEl = createSourceHandle(canvas, sourceId);
 
-    // Enter connect mode
     act(() => {
       fireEvent.keyDown(handleEl, { key: "Enter", bubbles: true });
     });
 
     expect(screen.getByTestId("connect-announcement").textContent).toContain("Connect mode");
 
-    // Cancel
     act(() => {
       fireEvent.keyDown(canvas, { key: "Escape" });
     });
@@ -253,23 +267,51 @@ describe("Keyboard connection flow", () => {
 
     expect(getStoreEdges()).toHaveLength(0);
 
-    // Enter connect mode
     act(() => {
       fireEvent.keyDown(handleEl, { key: "Enter", bubbles: true });
     });
     expect(screen.getByTestId("connect-announcement").textContent).toContain("Connect mode");
 
-    // ArrowDown to move to next target
     act(() => {
       fireEvent.keyDown(canvas, { key: "ArrowDown" });
     });
 
-    // Enter confirms the connection
     act(() => {
       fireEvent.keyDown(canvas, { key: "Enter" });
     });
 
     expect(getStoreEdges()).toHaveLength(1);
     expect(screen.getByTestId("connect-announcement").textContent).toContain("Connected to");
+  });
+
+  it("arrow navigation moves DOM focus to the target handle element", () => {
+    const { sourceId, targetId } = addMultiPortNodes();
+    renderCanvas();
+
+    const canvas = screen.getByRole("application");
+    // outC is "any"-typed, compatible with both inA and inB on the target node
+    const handleEl = createSourceHandle(canvas, sourceId, "outC");
+    const targetHandles = createTargetHandles(canvas, targetId, ["inA", "inB"]);
+
+    act(() => {
+      fireEvent.keyDown(handleEl, { key: "Enter", bubbles: true });
+    });
+
+    // After entering connect mode, first target should be focused
+    expect(document.activeElement).toBe(targetHandles[0]);
+
+    // ArrowDown moves focus to next target
+    act(() => {
+      fireEvent.keyDown(canvas, { key: "ArrowDown" });
+    });
+
+    expect(document.activeElement).toBe(targetHandles[1]);
+
+    // ArrowUp moves focus back
+    act(() => {
+      fireEvent.keyDown(canvas, { key: "ArrowUp" });
+    });
+
+    expect(document.activeElement).toBe(targetHandles[0]);
   });
 });
