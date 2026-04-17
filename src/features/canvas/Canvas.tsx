@@ -80,9 +80,11 @@ export function Canvas() {
       if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
         deleteSelected();
+      } else if (e.key === "Escape") {
+        clearSelection();
       }
     },
-    [deleteSelected],
+    [deleteSelected, clearSelection],
   );
 
   return (

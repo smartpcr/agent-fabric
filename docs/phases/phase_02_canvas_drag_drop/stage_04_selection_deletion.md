@@ -23,7 +23,7 @@
   - Test: Integration — box encloses 2 of 3 nodes; those 2 become selected.
   - Effort: 3h
 
-- [ ] **Step 4**: Delete / Backspace removes selected nodes + edges; undoable
+- [x] **Step 4**: Delete / Backspace removes selected nodes + edges; undoable
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `src/store/slices/graphSlice.ts` (extend), `tests/integration/selection.delete.test.tsx`
   - Contents: Listener on canvas; batches `removeNode` for each selected; single undo step restores all.
   - Test: Integration — 2 nodes selected + Delete → both removed; undo restores.
