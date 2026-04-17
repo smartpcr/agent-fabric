@@ -23,7 +23,7 @@
   - Test: 100% — known types map; unknown falls back.
   - Effort: 2h
 
-- [ ] **Step 4**: Handle tooltip (label + dataType + cardinality)
+- [x] **Step 4**: Handle tooltip (label + dataType + cardinality)
   - File(s): `src/features/nodes/ports/HandleTooltip.tsx`, `tests/unit/features/nodes/ports/HandleTooltip.test.tsx`
   - Contents: Radix tooltip on hover + focus; content `<label> · <dataType> · <cardinality>`.
   - Test: 100% — tooltip appears; content correct; keyboard focus triggers.
