@@ -1,10 +1,11 @@
 # Phase 2 — Stage 2: Drop Target & Node Creation
+
 > Accept palette drops on the canvas, convert coordinates, preview a ghost, snap to grid, and wire undo.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: Canvas accepts pointer drops and reads drag payload
+- [x] **Step 1**: Canvas accepts pointer drops and reads drag payload
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/unit/features/canvas/Canvas.onDrop.test.tsx`
   - Contents: `onPointerUp` on the wrapper checks `DragContext`; if a payload is present, calls `addNode(kind, position)`; clears the payload.
   - Test: 100% — drop fires `addNode` with the payload kind.
@@ -47,6 +48,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 2
+
 - All 7 steps `[x]` with score ≥ 90.
 - 100% unit coverage on touched files.
 - Drop works on Chromium, Firefox, WebKit in Playwright.
