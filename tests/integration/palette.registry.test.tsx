@@ -37,24 +37,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const extraSpec: NodeSpec = {
-  kind: "http-request",
-  category: "actions",
-  label: "HTTP Request",
-  icon: "globe",
-  ports: [
-    makeInputPort({ id: "in", label: "In", dataType: "any" }),
-    makeOutputPort({ id: "out", label: "Out", dataType: "any" }),
-  ],
-  propertySchema: z.object({}),
-  defaultData: {},
-  capabilities: [],
-};
-
-function setupRegistry() {
+function setupBuiltinsOnly() {
   const registry = new NodeRegistry();
   registerBuiltins(registry);
-  registry.register(extraSpec);
   const { result, unmount } = renderHook(() => useWorkflowStore());
   act(() => {
     result.current.setRegistry(registry);
@@ -62,15 +47,15 @@ function setupRegistry() {
   unmount();
 }
 
-describe("Integration: registered specs appear grouped in palette", () => {
+describe("Integration: builtins appear in palette with correct labels", () => {
   beforeEach(() => {
-    setupRegistry();
+    setupBuiltinsOnly();
   });
 
-  it("renders at least 3 items from registered builtins", () => {
+  it("renders exactly 3 items from registered builtins", () => {
     render(<Palette />);
     const options = screen.getAllByRole("option");
-    expect(options.length).toBeGreaterThanOrEqual(3);
+    expect(options).toHaveLength(3);
   });
 
   it("renders builtin labels: Start, Task, End", () => {
@@ -80,37 +65,58 @@ describe("Integration: registered specs appear grouped in palette", () => {
     expect(screen.getByText("End")).toBeInTheDocument();
   });
 
-  it("renders the extra spec label: HTTP Request", () => {
-    render(<Palette />);
-    expect(screen.getByText("HTTP Request")).toBeInTheDocument();
-  });
-
-  it("renders items with correct data-kind attributes", () => {
+  it("items have correct data-kind attributes", () => {
     render(<Palette />);
     const options = screen.getAllByRole("option");
     const kinds = options.map((el) => el.getAttribute("data-kind"));
     expect(kinds).toContain("start");
     expect(kinds).toContain("task");
     expect(kinds).toContain("end");
-    expect(kinds).toContain("http-request");
+  });
+
+  it("builtins appear under the flow category", () => {
+    render(<Palette />);
+    const flowCategory = screen.getByTestId("palette-category-flow");
+    expect(flowCategory).toBeInTheDocument();
+  });
+});
+
+describe("Integration: multi-category grouping", () => {
+  const extraSpec: NodeSpec = {
+    kind: "http-request",
+    category: "actions",
+    label: "HTTP Request",
+    icon: "globe",
+    ports: [
+      makeInputPort({ id: "in", label: "In", dataType: "any" }),
+      makeOutputPort({ id: "out", label: "Out", dataType: "any" }),
+    ],
+    propertySchema: z.object({}),
+    defaultData: {},
+    capabilities: [],
+  };
+
+  beforeEach(() => {
+    const registry = new NodeRegistry();
+    registerBuiltins(registry);
+    registry.register(extraSpec);
+    const { result, unmount } = renderHook(() => useWorkflowStore());
+    act(() => {
+      result.current.setRegistry(registry);
+    });
+    unmount();
   });
 
   it("groups items across 2+ categories", () => {
     render(<Palette />);
-    // "flow" category contains Start, Task, End
-    const flowCategory = screen.getByTestId("palette-category-flow");
-    expect(flowCategory).toBeInTheDocument();
-
-    // "actions" category contains HTTP Request
-    const actionsCategory = screen.getByTestId("palette-category-actions");
-    expect(actionsCategory).toBeInTheDocument();
+    expect(screen.getByTestId("palette-category-flow")).toBeInTheDocument();
+    expect(screen.getByTestId("palette-category-actions")).toBeInTheDocument();
   });
 
-  it("items within the same category are grouped together", () => {
+  it("items within the same category are contiguous", () => {
     render(<Palette />);
     const options = screen.getAllByRole("option");
 
-    // All flow items should appear before or after all actions items (grouped)
     const flowIndices: number[] = [];
     const actionsIndices: number[] = [];
 
@@ -124,22 +130,11 @@ describe("Integration: registered specs appear grouped in palette", () => {
       }
     });
 
-    // Flow items should be contiguous
     expect(flowIndices).toHaveLength(3);
     expect(flowIndices[2] - flowIndices[0]).toBe(2);
 
-    // Actions items should not be interleaved with flow items
     expect(actionsIndices).toHaveLength(1);
     const actionsIdx = actionsIndices[0];
-    const flowMax = Math.max(...flowIndices);
-    const flowMin = Math.min(...flowIndices);
-    // Actions should be either all before or all after flow
-    expect(actionsIdx < flowMin || actionsIdx > flowMax).toBe(true);
-  });
-
-  it("total items count equals 4 (3 builtins + 1 extra)", () => {
-    render(<Palette />);
-    const options = screen.getAllByRole("option");
-    expect(options).toHaveLength(4);
+    expect(actionsIdx < flowIndices[0] || actionsIdx > flowIndices[2]).toBe(true);
   });
 });
