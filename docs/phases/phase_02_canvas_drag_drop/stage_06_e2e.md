@@ -1,7 +1,7 @@
 # Phase 2 — Stage 6: Phase 2 E2E
 
 > Playwright scenarios exercising palette + canvas + selection + viewport + a11y.
-> Status: `[ ]` not started · **Effort**: 12h
+> Status: `[x]` complete · **Effort**: 12h
 
 ## Steps
 
@@ -23,13 +23,13 @@
   - Test: Green.
   - Effort: 3h
 
-- [ ] **Step 4**: E2E — a11y audit (axe-core) on editor page
+- [x] **Step 4**: E2E — a11y audit (axe-core) on editor page
   - File(s): `tests/e2e/accessibility.spec.ts`
   - Contents: `@axe-core/playwright` scan of `/editor`; fail on any violations.
   - Test: 0 violations.
   - Effort: 2h
 
-- [ ] **Step 5**: Phase 2 acceptance checklist + score review
+- [x] **Step 5**: Phase 2 acceptance checklist + score review
   - File(s): — (manual)
   - Contents: Walk all Phase 2 exit criteria; score each step; update phase progress.
   - Effort: 2h

@@ -10,6 +10,7 @@
 ## Table of Contents
 
 **Design (this document)**
+
 1. [Executive Summary](#1-executive-summary)
 2. [Functional Requirements](#2-functional-requirements)
 3. [Technology Stack](#3-technology-stack)
@@ -23,20 +24,21 @@
 
 **Phase Documents (detailed step-by-step specs with checkboxes & test coverage)**
 
-| Phase | Document | Description | Stages | Steps | Effort (h) | Status |
-|-------|----------|-------------|-------:|------:|-----------:|--------|
-| 0 | [phases/phase_00_foundation/](phases/phase_00_foundation/) — [overview](phases/phase_00_foundation.md) | Vite/React/TS scaffolding, DI providers, CI | 3 | 17 | 40 | `[ ]` 0% |
-| 1 | [phases/phase_01_core_graph_registry/](phases/phase_01_core_graph_registry/) — [overview](phases/phase_01_core_graph_registry.md) | Domain models, validation, registry, store | 4 | 30 | 70 | `[ ]` 0% |
-| 2 | [phases/phase_02_canvas_drag_drop/](phases/phase_02_canvas_drag_drop/) — [overview](phases/phase_02_canvas_drag_drop.md) | Canvas, palette, drag-drop, selection | 6 | 29 | 80 | `[ ]` 0% |
-| 3 | [phases/phase_03_ports_edges/](phases/phase_03_ports_edges/) — [overview](phases/phase_03_ports_edges.md) | Ports, edges, connection validation | 5 | 23 | 60 | `[ ]` 0% |
-| 4 | [phases/phase_04_control_flow/](phases/phase_04_control_flow/) — [overview](phases/phase_04_control_flow.md) | Decision nodes, loops, ELK layout | 3 | 23 | 80 | `[ ]` 0% |
-| 5 | [phases/phase_05_property_grid/](phases/phase_05_property_grid/) — [overview](phases/phase_05_property_grid.md) | Schema-driven property grid | 4 | 25 | 70 | `[ ]` 0% |
-| 6 | [phases/phase_06_execution_visualization/](phases/phase_06_execution_visualization/) — [overview](phases/phase_06_execution_visualization.md) | Live badges, edge animation, inspector | 6 | 32 | 80 | `[ ]` 0% |
-| 7 | [phases/phase_07_persistence_undo/](phases/phase_07_persistence_undo/) — [overview](phases/phase_07_persistence_undo.md) | Persistence, versioning, undo/redo | 5 | 20 | 50 | `[ ]` 0% |
-| 8 | [phases/phase_08_polish_release/](phases/phase_08_polish_release/) — [overview](phases/phase_08_polish_release.md) | A11y, theming, i18n, perf, release | 4 | 17 | 50 | `[ ]` 0% |
-| **Total** | | | **40** | **216** | **580** | **0%** |
+| Phase     | Document                                                                                                                                      | Description                                 | Stages |   Steps | Effort (h) | Status     |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | -----: | ------: | ---------: | ---------- |
+| 0         | [phases/phase_00_foundation/](phases/phase_00_foundation/) — [overview](phases/phase_00_foundation.md)                                        | Vite/React/TS scaffolding, DI providers, CI |      3 |      17 |         40 | `[ ]` 0%   |
+| 1         | [phases/phase_01_core_graph_registry/](phases/phase_01_core_graph_registry/) — [overview](phases/phase_01_core_graph_registry.md)             | Domain models, validation, registry, store  |      4 |      30 |         70 | `[ ]` 0%   |
+| 2         | [phases/phase_02_canvas_drag_drop/](phases/phase_02_canvas_drag_drop/) — [overview](phases/phase_02_canvas_drag_drop.md)                      | Canvas, palette, drag-drop, selection       |      6 |      34 |         80 | `[x]` 100% |
+| 3         | [phases/phase_03_ports_edges/](phases/phase_03_ports_edges/) — [overview](phases/phase_03_ports_edges.md)                                     | Ports, edges, connection validation         |      5 |      23 |         60 | `[ ]` 0%   |
+| 4         | [phases/phase_04_control_flow/](phases/phase_04_control_flow/) — [overview](phases/phase_04_control_flow.md)                                  | Decision nodes, loops, ELK layout           |      3 |      23 |         80 | `[ ]` 0%   |
+| 5         | [phases/phase_05_property_grid/](phases/phase_05_property_grid/) — [overview](phases/phase_05_property_grid.md)                               | Schema-driven property grid                 |      4 |      25 |         70 | `[ ]` 0%   |
+| 6         | [phases/phase_06_execution_visualization/](phases/phase_06_execution_visualization/) — [overview](phases/phase_06_execution_visualization.md) | Live badges, edge animation, inspector      |      6 |      32 |         80 | `[ ]` 0%   |
+| 7         | [phases/phase_07_persistence_undo/](phases/phase_07_persistence_undo/) — [overview](phases/phase_07_persistence_undo.md)                      | Persistence, versioning, undo/redo          |      5 |      20 |         50 | `[ ]` 0%   |
+| 8         | [phases/phase_08_polish_release/](phases/phase_08_polish_release/) — [overview](phases/phase_08_polish_release.md)                            | A11y, theming, i18n, perf, release          |      4 |      17 |         50 | `[ ]` 0%   |
+| **Total** |                                                                                                                                               |                                             | **40** | **216** |    **580** | **0%**     |
 
 **Appendices (this document)**
+
 - [Appendix A — Effort Rollup](#appendix-a--effort-rollup)
 - [Appendix B — Node Type Inventory](#appendix-b--node-type-inventory)
 - [Appendix C — Glossary](#appendix-c--glossary)
@@ -58,26 +60,26 @@ An interactive **workflow designer** embedded in the `agent-fabric` frontend tha
 
 ### Why xyflow / React Flow v12
 
-| Capability | Evidence it's sound |
-|-----------|---------------------|
+| Capability                              | Evidence it's sound                                                  |
+| --------------------------------------- | -------------------------------------------------------------------- |
 | Mature, MIT-licensed, ~25k GitHub stars | Used in production by n8n, LangGraph Studio, Zapier, Supabase Studio |
-| First-class TypeScript | Types are authoritative, not retrofitted |
-| Built on Zustand internally | Store is inspectable; no hidden magic |
-| Customizable nodes / edges / handles | Full render ownership — we bring our own components |
-| Virtualized rendering | Scales to ~1,000 nodes before needing extra work |
-| Active maintenance | v12 released 2024-09; weekly releases |
+| First-class TypeScript                  | Types are authoritative, not retrofitted                             |
+| Built on Zustand internally             | Store is inspectable; no hidden magic                                |
+| Customizable nodes / edges / handles    | Full render ownership — we bring our own components                  |
+| Virtualized rendering                   | Scales to ~1,000 nodes before needing extra work                     |
+| Active maintenance                      | v12 released 2024-09; weekly releases                                |
 
 ### Scope & Scale Estimate
 
-| Metric | Estimate |
-|--------|----------|
-| Source files (`src/`) | ~180–240 |
-| Test files | ~140–180 (unit + integration + e2e) |
-| Unit test coverage target | **100% of new code** |
-| LOC (excl. tests) | ~12,000–16,000 |
-| NPM deps (runtime) | ~18–22 |
-| Total effort (this plan) | **~580 hours** across 9 phases |
-| Calendar time (2 eng) | ~14–16 weeks |
+| Metric                    | Estimate                            |
+| ------------------------- | ----------------------------------- |
+| Source files (`src/`)     | ~180–240                            |
+| Test files                | ~140–180 (unit + integration + e2e) |
+| Unit test coverage target | **100% of new code**                |
+| LOC (excl. tests)         | ~12,000–16,000                      |
+| NPM deps (runtime)        | ~18–22                              |
+| Total effort (this plan)  | **~580 hours** across 9 phases      |
+| Calendar time (2 eng)     | ~14–16 weeks                        |
 
 ---
 
@@ -109,35 +111,35 @@ An interactive **workflow designer** embedded in the `agent-fabric` frontend tha
 
 ### Runtime
 
-| Concern | Choice | Rationale |
-|---------|--------|-----------|
-| Language | TypeScript 5.5+ | Strict mode; exhaustive checks |
-| Framework | React 18 | Concurrent features, `useSyncExternalStore` |
-| Build | Vite 5 | Fast HMR; first-class TS |
-| Graph library | `@xyflow/react` v12 | Production-proven (n8n, LangGraph Studio) |
-| State | `zustand` v4 + `immer` | Same store xyflow uses internally |
-| Undo/redo | `zundo` (temporal middleware) | 1.5k⭐ battle-tested |
-| Schema | `zod` v3 | Runtime + compile-time types |
-| Forms | `react-hook-form` + `zod` resolver | Decoupled from UI kit |
-| UI primitives | `@radix-ui/react-*` | Unstyled, a11y-verified |
-| Styling | Tailwind CSS 3 + CSS variables | Utility-first |
-| Icons | `lucide-react` | Tree-shakable |
-| Auto-layout | `elkjs` (WASM) | Handles loops, hierarchical graphs |
-| Live events | `eventsource-parser`, `reconnecting-websocket` | Abstract behind port |
-| Equality | `fast-equals` | Selector memoization |
+| Concern       | Choice                                         | Rationale                                   |
+| ------------- | ---------------------------------------------- | ------------------------------------------- |
+| Language      | TypeScript 5.5+                                | Strict mode; exhaustive checks              |
+| Framework     | React 18                                       | Concurrent features, `useSyncExternalStore` |
+| Build         | Vite 5                                         | Fast HMR; first-class TS                    |
+| Graph library | `@xyflow/react` v12                            | Production-proven (n8n, LangGraph Studio)   |
+| State         | `zustand` v4 + `immer`                         | Same store xyflow uses internally           |
+| Undo/redo     | `zundo` (temporal middleware)                  | 1.5k⭐ battle-tested                        |
+| Schema        | `zod` v3                                       | Runtime + compile-time types                |
+| Forms         | `react-hook-form` + `zod` resolver             | Decoupled from UI kit                       |
+| UI primitives | `@radix-ui/react-*`                            | Unstyled, a11y-verified                     |
+| Styling       | Tailwind CSS 3 + CSS variables                 | Utility-first                               |
+| Icons         | `lucide-react`                                 | Tree-shakable                               |
+| Auto-layout   | `elkjs` (WASM)                                 | Handles loops, hierarchical graphs          |
+| Live events   | `eventsource-parser`, `reconnecting-websocket` | Abstract behind port                        |
+| Equality      | `fast-equals`                                  | Selector memoization                        |
 
 ### Dev / Test
 
-| Concern | Choice |
-|---------|--------|
-| Unit | **Vitest** + `@vitest/coverage-v8` (100% thresholds on `src/`) |
-| Component | `@testing-library/react` + `user-event` |
-| DOM | `jsdom` (default), `happy-dom` for hot paths |
-| E2E | **Playwright** (Chromium + Firefox + WebKit) |
-| Mocks | `msw` v2 for HTTP & WS contract mocking |
-| Visual regression | Playwright screenshot diffing |
-| Lint / format | `eslint-config-typescript-strict` + `prettier` |
-| Commit gates | `husky` + `lint-staged` |
+| Concern           | Choice                                                         |
+| ----------------- | -------------------------------------------------------------- |
+| Unit              | **Vitest** + `@vitest/coverage-v8` (100% thresholds on `src/`) |
+| Component         | `@testing-library/react` + `user-event`                        |
+| DOM               | `jsdom` (default), `happy-dom` for hot paths                   |
+| E2E               | **Playwright** (Chromium + Firefox + WebKit)                   |
+| Mocks             | `msw` v2 for HTTP & WS contract mocking                        |
+| Visual regression | Playwright screenshot diffing                                  |
+| Lint / format     | `eslint-config-typescript-strict` + `prettier`                 |
+| Commit gates      | `husky` + `lint-staged`                                        |
 
 Every library ships TS types, has >500k weekly npm downloads, or is a first-party Eclipse / W3C / Radix project.
 
@@ -171,17 +173,17 @@ Every library ships TS types, has >500k weekly npm downloads, or is a first-part
 
 ### Key Architectural Decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| **Domain-first; UI is a thin projection** | `models/`, `validation/` are framework-free, 100% unit-tested without React |
-| **Zustand slices** | One store, multiple slices (graph/selection/execution/registry). Avoids Context re-render storms |
-| **Controlled xyflow** | We own `nodes`/`edges` arrays; commit changes through store actions so zundo records them |
-| **Node Type Registry** | Pluggable: third-party nodes register `{ kind, spec, component }` tuples |
-| **Execution state out-of-band** | Runtime state lives in `executionStore` keyed by `nodeId` — authoring graph stays clean |
-| **Ports are first-class** | `{ id, kind, dataType, cardinality, label }` not just a handle position |
-| **Commands for undo** | Every mutation is a named store action; `zundo` snapshots linearly |
-| **DI via Context at shell** | App wires implementations; features consume via hooks; tests inject fakes |
-| **Feature flags via env** | `VITE_FEATURE_LOOPS=1` for incremental rollout |
+| Decision                                  | Rationale                                                                                        |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Domain-first; UI is a thin projection** | `models/`, `validation/` are framework-free, 100% unit-tested without React                      |
+| **Zustand slices**                        | One store, multiple slices (graph/selection/execution/registry). Avoids Context re-render storms |
+| **Controlled xyflow**                     | We own `nodes`/`edges` arrays; commit changes through store actions so zundo records them        |
+| **Node Type Registry**                    | Pluggable: third-party nodes register `{ kind, spec, component }` tuples                         |
+| **Execution state out-of-band**           | Runtime state lives in `executionStore` keyed by `nodeId` — authoring graph stays clean          |
+| **Ports are first-class**                 | `{ id, kind, dataType, cardinality, label }` not just a handle position                          |
+| **Commands for undo**                     | Every mutation is a named store action; `zundo` snapshots linearly                               |
+| **DI via Context at shell**               | App wires implementations; features consume via hooks; tests inject fakes                        |
+| **Feature flags via env**                 | `VITE_FEATURE_LOOPS=1` for incremental rollout                                                   |
 
 ### Data Flow (User drags a node)
 
@@ -212,16 +214,16 @@ All types live in `src/domain/models/` as discriminated unions. Excerpt:
 
 ```ts
 export interface PortSpec {
-  id: string;                            // unique within node
-  kind: 'in' | 'out';
+  id: string; // unique within node
+  kind: "in" | "out";
   label: string;
-  dataType: string;                      // 'any' | 'json' | 'string' | ...
-  cardinality: 'single' | 'multi';
+  dataType: string; // 'any' | 'json' | 'string' | ...
+  cardinality: "single" | "multi";
   required?: boolean;
 }
 
 export interface NodeSpec<TData = unknown> {
-  kind: string;                          // 'task' | 'decision' | ...
+  kind: string; // 'task' | 'decision' | ...
   category: string;
   label: string;
   icon: string;
@@ -250,7 +252,7 @@ export interface WorkflowEdge {
   targetPort: string;
   label?: string;
   condition?: string;
-  kind: 'default' | 'loop-back';
+  kind: "default" | "loop-back";
 }
 
 export interface WorkflowGraph {
@@ -262,11 +264,11 @@ export interface WorkflowGraph {
 }
 
 export type NodeExecutionState =
-  | { status: 'pending' }
-  | { status: 'running'; startedAt: number; iteration?: number }
-  | { status: 'success'; finishedAt: number; result?: unknown }
-  | { status: 'error'; finishedAt: number; error: string }
-  | { status: 'skipped' };
+  | { status: "pending" }
+  | { status: "running"; startedAt: number; iteration?: number }
+  | { status: "success"; finishedAt: number; result?: unknown }
+  | { status: "error"; finishedAt: number; error: string }
+  | { status: "skipped" };
 ```
 
 ### Connection Rules (enforced by `validateConnection`)
@@ -347,8 +349,8 @@ export const useWorkflowStore = create<WorkflowState>()(
       ...createRegistrySlice(set, get),
       ...createExecutionSlice(set, get),
     })),
-    { limit: 50, partialize: (s) => pick(s, ['nodes', 'edges']) }
-  )
+    { limit: 50, partialize: (s) => pick(s, ["nodes", "edges"]) },
+  ),
 );
 ```
 
@@ -356,14 +358,14 @@ export const useWorkflowStore = create<WorkflowState>()(
 
 ```tsx
 <ReactFlow
-  nodes={useStore(s => s.nodes)}
-  edges={useStore(s => s.edges)}
-  onNodesChange={c => store.applyNodeChanges(c)}
-  onEdgesChange={c => store.applyEdgeChanges(c)}
-  onConnect={c => store.tryConnect(c)}
+  nodes={useStore((s) => s.nodes)}
+  edges={useStore((s) => s.edges)}
+  onNodesChange={(c) => store.applyNodeChanges(c)}
+  onEdgesChange={(c) => store.applyEdgeChanges(c)}
+  onConnect={(c) => store.tryConnect(c)}
   nodeTypes={nodeTypes}
   edgeTypes={edgeTypes}
-  isValidConnection={conn => validateConnection(store.getState(), conn)}
+  isValidConnection={(conn) => validateConnection(store.getState(), conn)}
 />
 ```
 
@@ -383,12 +385,12 @@ Providers at app root inject implementations; tests substitute `InMemoryWorkflow
 
 ### 8.1 Performance Budgets
 
-| Metric | Target |
-|--------|--------|
-| First meaningful paint (cached) | < 1500 ms |
-| Interaction to next paint on drag | < 50 ms p95 |
-| 500-node canvas pan | 60 fps |
-| Execution event handling | < 16 ms per event at 20 ev/sec |
+| Metric                            | Target                         |
+| --------------------------------- | ------------------------------ |
+| First meaningful paint (cached)   | < 1500 ms                      |
+| Interaction to next paint on drag | < 50 ms p95                    |
+| 500-node canvas pan               | 60 fps                         |
+| Execution event handling          | < 16 ms per event at 20 ev/sec |
 
 Mitigations: `fast-equals` memoization; `useSyncExternalStore`; virtualized palette; CSS containment; RAF coalescing for events.
 
@@ -426,15 +428,15 @@ All user-visible strings route through `t(key)` via `react-i18next`. ESLint rule
 
 **Scoring rubric (per step)**
 
-| Axis | Weight |
-|------|-------:|
-| Functional correctness | 40 |
-| Unit test coverage (100% = 25, linear below) | 25 |
-| Accessibility checks passing | 10 |
-| Lint / typecheck clean | 10 |
-| Integration/E2E where mandated | 10 |
-| Docs / non-obvious code comments | 5 |
-| **Total** | **100** |
+| Axis                                         |  Weight |
+| -------------------------------------------- | ------: |
+| Functional correctness                       |      40 |
+| Unit test coverage (100% = 25, linear below) |      25 |
+| Accessibility checks passing                 |      10 |
+| Lint / typecheck clean                       |      10 |
+| Integration/E2E where mandated               |      10 |
+| Docs / non-obvious code comments             |       5 |
+| **Total**                                    | **100** |
 
 A step is `[x]` only when score ≥ 90.
 
@@ -444,44 +446,44 @@ A step is `[x]` only when score ≥ 90.
 
 ### High
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| xyflow internal API shifts between minors | Breaking canvas | Pin minor; wrap every xyflow import behind our own module |
-| Loops + orthogonal routing look jumbled | UX regression | Invest in ELK early (Phase 4 Stage 3); fall back to manual bends |
-| Animation frame cost at high event rates | Dropped frames | RAF-coalesce events; CSS-based edge animations |
-| 100% coverage inflates trivial tests | Slower velocity | Exempt `*.d.ts`, `index.ts` re-exports via coverage `exclude` |
+| Risk                                      | Impact          | Mitigation                                                       |
+| ----------------------------------------- | --------------- | ---------------------------------------------------------------- |
+| xyflow internal API shifts between minors | Breaking canvas | Pin minor; wrap every xyflow import behind our own module        |
+| Loops + orthogonal routing look jumbled   | UX regression   | Invest in ELK early (Phase 4 Stage 3); fall back to manual bends |
+| Animation frame cost at high event rates  | Dropped frames  | RAF-coalesce events; CSS-based edge animations                   |
+| 100% coverage inflates trivial tests      | Slower velocity | Exempt `*.d.ts`, `index.ts` re-exports via coverage `exclude`    |
 
 ### Medium
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Nested array/object property editing | Scope creep | Scope field registry to 8 primitives in Phase 5; defer custom renderers |
-| Schema migration drift | Old workflows fail | Versioned schema from day 1; migration tests per version bump |
-| Cross-browser drag-drop quirks | Flaky drops on Firefox | Pointer events, not HTML5 DnD; xyflow agrees |
+| Risk                                 | Impact                 | Mitigation                                                              |
+| ------------------------------------ | ---------------------- | ----------------------------------------------------------------------- |
+| Nested array/object property editing | Scope creep            | Scope field registry to 8 primitives in Phase 5; defer custom renderers |
+| Schema migration drift               | Old workflows fail     | Versioned schema from day 1; migration tests per version bump           |
+| Cross-browser drag-drop quirks       | Flaky drops on Firefox | Pointer events, not HTML5 DnD; xyflow agrees                            |
 
 ### Low
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Radix + Tailwind class collision | Visual bugs | CSS layers; Tailwind `tw-` prefix option |
-| Large bundle (Monaco) | Slow first load | Code-split CodeField |
+| Risk                             | Impact          | Mitigation                               |
+| -------------------------------- | --------------- | ---------------------------------------- |
+| Radix + Tailwind class collision | Visual bugs     | CSS layers; Tailwind `tw-` prefix option |
+| Large bundle (Monaco)            | Slow first load | Code-split CodeField                     |
 
 ---
 
 ## Appendix A — Effort Rollup
 
-| Phase | Stages | Steps | Effort (h) | Status |
-|-------|-------:|------:|-----------:|--------|
-| 0 — Foundation | 3 | 17 | 40 | `[ ]` 0% |
-| 1 — Core Graph & Registry | 4 | 30 | 70 | `[ ]` 0% |
-| 2 — Canvas & Drag-Drop | 6 | 29 | 80 | `[ ]` 0% |
-| 3 — Ports, Edges & Validation | 5 | 23 | 60 | `[ ]` 0% |
-| 4 — Control Flow Nodes | 3 | 23 | 80 | `[ ]` 0% |
-| 5 — Property Grid | 4 | 25 | 70 | `[ ]` 0% |
-| 6 — Execution Visualization | 6 | 32 | 80 | `[ ]` 0% |
-| 7 — Persistence & Undo | 5 | 20 | 50 | `[ ]` 0% |
-| 8 — Polish & Release | 4 | 17 | 50 | `[ ]` 0% |
-| **Total** | **40** | **216** | **580** | **0%** |
+| Phase                         | Stages |   Steps | Effort (h) | Status   |
+| ----------------------------- | -----: | ------: | ---------: | -------- |
+| 0 — Foundation                |      3 |      17 |         40 | `[ ]` 0% |
+| 1 — Core Graph & Registry     |      4 |      30 |         70 | `[ ]` 0% |
+| 2 — Canvas & Drag-Drop        |      6 |      29 |         80 | `[ ]` 0% |
+| 3 — Ports, Edges & Validation |      5 |      23 |         60 | `[ ]` 0% |
+| 4 — Control Flow Nodes        |      3 |      23 |         80 | `[ ]` 0% |
+| 5 — Property Grid             |      4 |      25 |         70 | `[ ]` 0% |
+| 6 — Execution Visualization   |      6 |      32 |         80 | `[ ]` 0% |
+| 7 — Persistence & Undo        |      5 |      20 |         50 | `[ ]` 0% |
+| 8 — Polish & Release          |      4 |      17 |         50 | `[ ]` 0% |
+| **Total**                     | **40** | **216** |    **580** | **0%**   |
 
 **Tracking rule**: a phase's **% complete** = Σ(completed step effort) / Σ(all step effort within the phase). A phase is `[x]` only when all stages are `[x]` AND every step scored ≥ 90.
 
@@ -489,18 +491,18 @@ A step is `[x]` only when score ≥ 90.
 
 ## Appendix B — Node Type Inventory
 
-| Kind | Phase introduced | Ports | Capabilities |
-|------|------------------|-------|--------------|
-| `start` | 1 | 1 out | `isEntry` |
-| `end` | 1 | 1 in | `isTerminal` |
-| `task` | 1 | 1 in, 1 out | — |
-| `multi-port-task` | 3 (fixture) | N in, M out | — |
-| `decision` (if/else) | 4 | 1 in, 2 out (`true`, `false`) | — |
-| `decision` (switch) | 4 | 1 in, ≥2 out + `default` | — |
-| `loop` (while) | 4 | in, body-out, body-in, done | `canHaveBackEdge` |
-| `loop` (for-each) | 4 | in, body-out, body-in, done, break | `canHaveBackEdge` |
-| `parallel` | 4 (deferred) | 1 in, N out, 1 join | — |
-| `sub-workflow` | v2 (out of scope) | 1 in, 1 out | — |
+| Kind                 | Phase introduced  | Ports                              | Capabilities      |
+| -------------------- | ----------------- | ---------------------------------- | ----------------- |
+| `start`              | 1                 | 1 out                              | `isEntry`         |
+| `end`                | 1                 | 1 in                               | `isTerminal`      |
+| `task`               | 1                 | 1 in, 1 out                        | —                 |
+| `multi-port-task`    | 3 (fixture)       | N in, M out                        | —                 |
+| `decision` (if/else) | 4                 | 1 in, 2 out (`true`, `false`)      | —                 |
+| `decision` (switch)  | 4                 | 1 in, ≥2 out + `default`           | —                 |
+| `loop` (while)       | 4                 | in, body-out, body-in, done        | `canHaveBackEdge` |
+| `loop` (for-each)    | 4                 | in, body-out, body-in, done, break | `canHaveBackEdge` |
+| `parallel`           | 4 (deferred)      | 1 in, N out, 1 join                | —                 |
+| `sub-workflow`       | v2 (out of scope) | 1 in, 1 out                        | —                 |
 
 ---
 
@@ -517,4 +519,4 @@ A step is `[x]` only when score ≥ 90.
 - **Run** — one execution of a workflow; has a unique `runId` and a stream of `ExecutionEvent`s.
 - **Schema Version** — integer on persisted `WorkflowGraph` JSON; migrations upgrade older versions.
 
-*End of plan. Maintain as the source of truth: check off steps as they land; update phase status rows above; add discoveries under the appropriate stage.*
+_End of plan. Maintain as the source of truth: check off steps as they land; update phase status rows above; add discoveries under the appropriate stage._

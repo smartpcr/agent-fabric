@@ -1,7 +1,7 @@
 # Phase 2 — Stage 4: Selection & Deletion
 
 > Single and multi-select (shift, lasso) + keyboard deletion wired to undo.
-> Status: `[ ]` not started · **Effort**: 12h
+> Status: `[x]` complete · **Effort**: 12h
 
 ## Steps
 

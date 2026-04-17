@@ -1,7 +1,7 @@
 # Phase 2 — Stage 2: Drop Target & Node Creation
 
 > Accept palette drops on the canvas, convert coordinates, preview a ghost, snap to grid, and wire undo.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` complete · **Effort**: 14h
 
 ## Steps
 

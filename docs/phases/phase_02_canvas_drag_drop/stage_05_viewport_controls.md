@@ -1,7 +1,7 @@
 # Phase 2 — Stage 5: Viewport & Controls
 
 > Pan, zoom, fit-view, mini-map, grid background, snap toggle, and per-workflow viewport persistence.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` complete · **Effort**: 14h
 
 ## Steps
 
