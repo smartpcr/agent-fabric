@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { ReactFlow, Controls, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Background } from "@/features/canvas/Background";
+import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { useDragContext } from "@/features/palette/DragContext";
 import { useWorkflowStore } from "@/store/hooks";
 
@@ -9,6 +10,8 @@ export function Canvas() {
   const { state: dragState, endDrag } = useDragContext();
   const addNode = useWorkflowStore((s) => s.addNode);
   const registry = useWorkflowStore((s) => s.registry);
+  const snapEnabled = useWorkflowStore((s) => s.snapEnabled);
+  const snapGridSize = useWorkflowStore((s) => s.snapGridSize);
   const { screenToFlowPosition } = useReactFlow();
 
   const handlePointerUp = useCallback(
@@ -18,12 +21,15 @@ export function Canvas() {
       const kind = dragState.payload.kind;
       const spec = registry.get(kind);
       if (spec) {
-        const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        let position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        if (snapEnabled) {
+          position = snapToGrid(position, snapGridSize);
+        }
         addNode(spec, position);
       }
       endDrag();
     },
-    [dragState, addNode, registry, endDrag, screenToFlowPosition],
+    [dragState, addNode, registry, endDrag, screenToFlowPosition, snapEnabled, snapGridSize],
   );
 
   return (
