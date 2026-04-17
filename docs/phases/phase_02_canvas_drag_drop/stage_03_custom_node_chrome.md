@@ -29,7 +29,7 @@
   - Test: 100% — xyflow renders the correct component given a node of each kind.
   - Effort: 2h
 
-- [ ] **Step 5**: Accessible node focus (Tab traversal, Enter opens inspector stub)
+- [x] **Step 5**: Accessible node focus (Tab traversal, Enter opens inspector stub)
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/integration/nodes.keyboard-focus.test.tsx`
   - Contents: Tab moves between nodes in DOM order; focus ring visible; Enter dispatches `openInspector(nodeId)` (stub for later phase).
   - Test: Integration — Tab twice focuses second node; Enter calls stub.
