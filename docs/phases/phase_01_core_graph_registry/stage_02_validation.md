@@ -23,7 +23,7 @@
   - Test: 100% — each rule fails with descriptive message; complex valid graph passes.
   - Effort: 4h
 
-- [ ] **Step 4**: `validateNodeData(node, spec)` — Zod wrapper
+- [x] **Step 4**: `validateNodeData(node, spec)` — Zod wrapper
   - File(s): `src/domain/validation/validators.ts`, `tests/unit/domain/validation/validators.test.ts`
   - Contents: Runs `spec.propertySchema.safeParse(node.data)`; converts zod error to our `ValidationError[]` shape (flat list with path + message).
   - Test: 100% — valid passes; multiple errors aggregate; deeply nested paths formatted as `a.b[0].c`.
