@@ -17,7 +17,7 @@
   - Test: Smoke passes locally and in CI on Chromium.
   - Effort: 3h
 
-- [ ] **Step 3**: README with dev-loop instructions
+- [x] **Step 3**: README with dev-loop instructions
   - File(s): `README.md`
   - Contents: Project overview, setup commands, architecture diagram (ASCII, same as plan), links to `docs/workflow-ui-plan.md` and phase docs, how to run tests, contribution link.
   - Test: N/A (manual review).
