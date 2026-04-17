@@ -7,9 +7,24 @@ export function EditorPage() {
   return (
     <ReactFlowProvider>
       <DragProvider>
-        <div style={{ width: "100vw", height: "100vh" }}>
+        <main style={{ width: "100vw", height: "100vh" }}>
+          <h1
+            style={{
+              position: "absolute",
+              width: "1px",
+              height: "1px",
+              padding: 0,
+              margin: "-1px",
+              overflow: "hidden",
+              clip: "rect(0, 0, 0, 0)",
+              whiteSpace: "nowrap",
+              border: 0,
+            }}
+          >
+            Workflow Editor
+          </h1>
           <EditorLayout />
-        </div>
+        </main>
         <DragGhost />
       </DragProvider>
     </ReactFlowProvider>
