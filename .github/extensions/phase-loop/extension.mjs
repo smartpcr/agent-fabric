@@ -104,7 +104,7 @@ const session = await joinSession({
                 sessionCwds.set(invocation.sessionId, input.cwd)
 
             await session.log(
-                "phase-loop loaded. Use /phase-loop to run all phases, or /phase-loop phase=N to run a specific phase.",
+                "phase-loop loaded. Use /phase-loop to run all phases, /phase-loop phase=N for one phase, or /phase-loop phase=3-6 for a range.",
                 { ephemeral: true }
             )
         },
@@ -602,11 +602,12 @@ async function resolveRunConfig(context) {
     const cwd = sessionCwds.get(context.sessionId) || process.cwd()
     const repoRoot = await findRepoRoot(cwd)
     const isAllPhases = isAllPhasesValue(parsed.phase)
-    const defaultPlanPath = isAllPhases ? "" : await getDefaultPlanPath(cwd, parsed.phase)
+    const isMultiPhase = !isAllPhases && isMultiPhaseValue(parsed.phase)
+    const defaultPlanPath = (isAllPhases || isMultiPhase) ? "" : await getDefaultPlanPath(cwd, parsed.phase)
 
     let values = {
         planPath: parsed.planPath || defaultPlanPath || "",
-        phase: isAllPhases ? "" : normalizePhaseValue(parsed.phase),
+        phase: isAllPhases ? "" : isMultiPhase ? String(parsed.phase || "").trim() : normalizePhaseValue(parsed.phase),
         stage: normalizeStageValue(parsed.stage),
         step: String(parsed.step || "").trim(),
         includeChecked: parsed.includeChecked ?? false,
@@ -616,17 +617,18 @@ async function resolveRunConfig(context) {
         maxIterations: parsed.maxIterations || DEFAULT_MAX_ITERATIONS,
         targetScore: normalizeTargetScore(parsed.targetScore),
         allPhases: isAllPhases || (!parsed.phase && !parsed.planPath),
+        multiPhase: isMultiPhase,
     }
 
     const needsElicitation = parsed.invalidTokens.length > 0
-        || (!values.allPhases && !values.planPath)
-        || (!values.allPhases && !values.phase)
+        || (!values.allPhases && !values.multiPhase && !values.planPath)
+        || (!values.allPhases && !values.multiPhase && !values.phase)
     let userConfirmedViaElicitation = false
 
     if (needsElicitation) {
         if (!session.capabilities.ui?.elicitation) {
-            if (values.allPhases)
-                {} // No elicitation needed for all-phases
+            if (values.allPhases || values.multiPhase)
+                {} // No elicitation needed for all-phases or multi-phase
             else
                 throw new Error(getUsage())
         } else {
@@ -634,6 +636,7 @@ async function resolveRunConfig(context) {
                 message: [
                     "Provide the phase-loop scope.",
                     "Leave phase blank (or set to 'all') to run every phase found under docs/phases/.",
+                    "Use a range like '3-6' or a list like '3,4,5,7' to run multiple phases.",
                     "Leave stage blank (or set to 'all') to run every discovered stage in the phase.",
                     "Steps within each stage are discovered automatically.",
                 ].join(" "),
@@ -649,7 +652,7 @@ async function resolveRunConfig(context) {
                         phase: {
                             type: "string",
                             title: "Phase",
-                            description: "Phase identifier (e.g. '3') or 'all' for every phase. Leave blank for all phases.",
+                            description: "Phase identifier (e.g. '3'), range ('3-6'), list ('3,4,5,7'), or 'all'. Leave blank for all phases.",
                             default: values.phase,
                         },
                         stage: {
@@ -716,10 +719,11 @@ async function resolveRunConfig(context) {
             userConfirmedViaElicitation = true
             const elicitedPhase = String(result.content?.phase || "").trim()
             const elicitedAllPhases = !elicitedPhase || isAllPhasesValue(elicitedPhase)
+            const elicitedMultiPhase = !elicitedAllPhases && isMultiPhaseValue(elicitedPhase)
 
             values = {
                 planPath: String(result.content?.planPath || "").trim(),
-                phase: elicitedAllPhases ? "" : normalizePhaseValue(elicitedPhase),
+                phase: elicitedAllPhases ? "" : elicitedMultiPhase ? elicitedPhase : normalizePhaseValue(elicitedPhase),
                 stage: normalizeStageValue(result.content?.stage),
                 step: String(result.content?.step || "").trim(),
                 includeChecked: result.content?.includeChecked ?? false,
@@ -729,6 +733,7 @@ async function resolveRunConfig(context) {
                 evaluatorModel: String(result.content?.evaluatorModel || DEFAULT_EVALUATOR_MODEL).trim(),
                 maxIterations: normalizeIterationCount(result.content?.maxIterations),
                 allPhases: elicitedAllPhases,
+                multiPhase: elicitedMultiPhase,
             }
         }
     }
@@ -742,6 +747,12 @@ async function resolveRunConfig(context) {
 
     if (values.allPhases && values.step)
         throw new Error("Cannot specify a step when running all phases.")
+
+    if (values.multiPhase && values.stage)
+        throw new Error("Cannot specify a stage when running multiple phases. Set a single phase to target a specific stage.")
+
+    if (values.multiPhase && values.step)
+        throw new Error("Cannot specify a step when running multiple phases.")
 
     // Resolve targets based on scope
     let targets
@@ -768,6 +779,49 @@ async function resolveRunConfig(context) {
         }
 
         scopeMode = "all-phases"
+    } else if (values.multiPhase) {
+        // Multi-phase selection: parse the phase value into a list of phase numbers
+        if (!repoRoot)
+            throw new Error("Could not find a git repository root to discover phase plans.")
+
+        const requestedPhases = parsePhaseSelection(values.phase)
+        if (requestedPhases.length === 0)
+            throw new Error(`Could not parse phase selection '${values.phase}'. Use formats like '3-6', '3,4,5', or '3-5,7'.`)
+
+        const allPhaseEntries = await discoverAllPhases(repoRoot)
+        if (allPhaseEntries.length === 0)
+            throw new Error("No phase plan files found under docs/phases/.")
+
+        // Filter to only the requested phases
+        const phaseEntries = allPhaseEntries.filter((entry) =>
+            requestedPhases.includes(entry.phaseNumber)
+        )
+
+        const foundPhaseNumbers = new Set(phaseEntries.map((e) => e.phaseNumber))
+        const missingPhases = requestedPhases.filter((p) => !foundPhaseNumbers.has(p))
+        if (missingPhases.length > 0) {
+            await session.log(
+                `phase-loop: no plan files found for phase(s) ${missingPhases.join(", ")}. Skipping them.`,
+                { level: "warning" }
+            )
+        }
+
+        if (phaseEntries.length === 0)
+            throw new Error(`None of the requested phases (${requestedPhases.join(", ")}) have plan files under docs/phases/.`)
+
+        targets = []
+        for (const phaseEntry of phaseEntries) {
+            const phaseTargets = await resolveRunTargets({
+                phasePlanPath: phaseEntry.path,
+                phase: phaseEntry.phase,
+                stage: "",
+                step: "",
+                includeChecked: values.includeChecked,
+            })
+            targets.push(...phaseTargets)
+        }
+
+        scopeMode = "multi-phase"
     } else {
         if (!values.phase)
             throw new Error(getUsage())
@@ -894,9 +948,11 @@ function buildGeneratorPrompt(target, lastEvaluation, iteration, runConfig, targ
         branchInstructions,
         runConfig.scopeMode === "all-phases"
             ? `This is target ${targetIndex + 1} of ${runConfig.targets.length} across all phases. Finish this target before moving on.`
-            : runConfig.scopeMode === "phase"
-                ? `This is stage target ${targetIndex + 1} of ${runConfig.targets.length} for phase ${runConfig.phase}. Finish this stage before moving on to later stages.`
-                : `This is target ${targetIndex + 1} of ${runConfig.targets.length}.`,
+            : runConfig.scopeMode === "multi-phase"
+                ? `This is target ${targetIndex + 1} of ${runConfig.targets.length} across phases ${runConfig.phase}. Finish this target before moving on.`
+                : runConfig.scopeMode === "phase"
+                    ? `This is stage target ${targetIndex + 1} of ${runConfig.targets.length} for phase ${runConfig.phase}. Finish this stage before moving on to later stages.`
+                    : `This is target ${targetIndex + 1} of ${runConfig.targets.length}.`,
         buildSourceOfTruthText(target),
         stepContext,
         target.step
@@ -925,9 +981,11 @@ function buildEvaluatorPrompt(target, iteration, runConfig, targetIndex) {
         `Evaluate ${formatScope(target)} against the attached spec file(s).`,
         runConfig.scopeMode === "all-phases"
             ? `This is target ${targetIndex + 1} of ${runConfig.targets.length} across all phases.`
-            : runConfig.scopeMode === "phase"
-                ? `This is stage target ${targetIndex + 1} of ${runConfig.targets.length} for phase ${runConfig.phase}.`
-                : `This is target ${targetIndex + 1} of ${runConfig.targets.length}.`,
+            : runConfig.scopeMode === "multi-phase"
+                ? `This is target ${targetIndex + 1} of ${runConfig.targets.length} across phases ${runConfig.phase}.`
+                : runConfig.scopeMode === "phase"
+                    ? `This is stage target ${targetIndex + 1} of ${runConfig.targets.length} for phase ${runConfig.phase}.`
+                    : `This is target ${targetIndex + 1} of ${runConfig.targets.length}.`,
         buildSourceOfTruthText(target),
         stepContext,
         `This is evaluator iteration ${iteration}.`,
@@ -1161,6 +1219,9 @@ function formatRunScope(config) {
     if (config.scopeMode === "all-phases")
         return `all phases (${config.targets.length} targets)`
 
+    if (config.scopeMode === "multi-phase")
+        return `phases ${config.phase} (${config.targets.length} targets)`
+
     if (config.scopeMode === "phase") {
         const hasStages = config.targets.some((t) => t.stage)
         return hasStages
@@ -1195,7 +1256,7 @@ function formatCompletedTargetSummary(completedTargets) {
 }
 
 function getUsage() {
-    return "Usage: /phase-loop [plan=<path>] [phase=<value>|phase=all] [stage=<value>|stage=all] [step=<value>] [includeChecked=true] [createPR=true|false] [targetScore=<n>] [generatorModel=<id>] [evaluatorModel=<id>] [maxIterations=<n>]. Omit phase to run all phases from docs/phases/."
+    return "Usage: /phase-loop [plan=<path>] [phase=<value>|phase=all] [stage=<value>|stage=all] [step=<value>] [includeChecked=true] [createPR=true|false] [targetScore=<n>] [generatorModel=<id>] [evaluatorModel=<id>] [maxIterations=<n>]. Phase supports ranges and lists: phase=3-6, phase=3,4,5, phase=3-5,7. Omit phase to run all phases from docs/phases/."
 }
 
 async function assertFileExists(filePath) {
@@ -1502,6 +1563,75 @@ async function discoverAllPhases(repoRoot) {
 function isAllPhasesValue(value) {
     const trimmed = String(value || "").trim().toLowerCase()
     return ALL_PHASE_VALUES.has(trimmed)
+}
+
+/**
+ * Detect whether a phase value is a multi-phase selection (range/list).
+ * Returns true for patterns like "3-6", "3,4,5", "3-5,7", "3,5-8".
+ * Returns false for single numbers, "all", empty, etc.
+ */
+function isMultiPhaseValue(value) {
+    const trimmed = String(value || "").trim()
+    if (!trimmed || isAllPhasesValue(trimmed))
+        return false
+
+    // Contains comma or dash-separated range (but not a single number)
+    if (/,/.test(trimmed))
+        return true
+
+    // Dash between two numbers (range like "3-6"), not a negative number
+    if (/^\d+\s*-\s*\d+/.test(trimmed))
+        return true
+
+    // Contains "and", "&", or "+" between numbers
+    if (/\d\s*(?:and|&|\+)\s*\d/i.test(trimmed))
+        return true
+
+    return false
+}
+
+/**
+ * Parse a multi-phase selection string into a sorted, deduplicated array of phase numbers.
+ * Supports:
+ *   "3"       → [3]
+ *   "3-6"     → [3, 4, 5, 6]
+ *   "3,4,5,7" → [3, 4, 5, 7]
+ *   "3-5,7"   → [3, 4, 5, 7]
+ *   "3,5-8"   → [3, 5, 6, 7, 8]
+ *   "3-5,7-9" → [3, 4, 5, 7, 8, 9]
+ *   "3 and 5" → [3, 5]
+ */
+function parsePhaseSelection(value) {
+    const trimmed = String(value || "").trim()
+    if (!trimmed)
+        return []
+
+    // Normalize "and" / "&" / "+" to commas
+    const normalized = trimmed
+        .replace(/\band\b/gi, ",")
+        .replace(/[&+]/g, ",")
+        .replace(/\s+/g, "")
+
+    const segments = normalized.split(",").filter(Boolean)
+    const phases = new Set()
+
+    for (const segment of segments) {
+        const rangeMatch = segment.match(/^(\d+)\s*-\s*(\d+)$/)
+        if (rangeMatch) {
+            const start = Number.parseInt(rangeMatch[1], 10)
+            const end = Number.parseInt(rangeMatch[2], 10)
+            const lo = Math.min(start, end)
+            const hi = Math.max(start, end)
+            for (let i = lo; i <= hi; i++)
+                phases.add(i)
+        } else {
+            const num = Number.parseInt(segment, 10)
+            if (Number.isFinite(num) && num > 0)
+                phases.add(num)
+        }
+    }
+
+    return [...phases].sort((a, b) => a - b)
 }
 
 function buildAttachments(target) {
