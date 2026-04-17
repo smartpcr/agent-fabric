@@ -17,7 +17,7 @@
   - Test: 100% — stable output byte-for-byte across runs; rejects invalid graph; preserves all fields.
   - Effort: 2h
 
-- [ ] **Step 3**: `deserialize(json, registry): Graph`
+- [x] **Step 3**: `deserialize(json, registry): Graph`
   - File(s): `src/domain/serialization/deserialize.ts`, `tests/unit/domain/serialization/deserialize.test.ts`
   - Contents: Parses via Zod → constructs `WorkflowGraph`; unknown `kind` throws `SerializationError` (`kind not registered`); schema-version mismatch delegates to `migrate()`.
   - Test: 100% — round-trip equality with `serialize`; unknown kind error; version mismatch triggers migration.
