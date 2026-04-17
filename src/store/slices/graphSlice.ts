@@ -10,6 +10,7 @@ import {
   type NodeSpecRegistry,
   type Result,
 } from "@/domain/validation/connectionRules";
+import { validateNodeData, type ValidationError } from "@/domain/validation/validators";
 import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
 
 export interface ConnectPortsParams {
@@ -24,6 +25,7 @@ export interface GraphSlice {
   addNode: (spec: NodeSpec, position?: Position) => WorkflowNode;
   removeNode: (id: string) => void;
   connectPorts: (params: ConnectPortsParams) => Result<WorkflowEdge, ConnectionInvalidError>;
+  updateNodeData: (id: string, newData: unknown) => Result<void, ValidationError[]>;
 }
 
 export function createGraphSlice(
@@ -72,6 +74,29 @@ export function createGraphSlice(
 
       set((s) => ({ edges: [...s.edges, edge] }));
       return { ok: true, value: edge };
+    },
+    updateNodeData: (id: string, newData: unknown) => {
+      const state = get();
+      const node = state.nodes.find((n) => n.id === id);
+      if (!node) {
+        return { ok: false, error: [{ path: "", message: `Node "${id}" not found` }] };
+      }
+
+      const spec = state.nodeSpecs[node.kind];
+      if (!spec) {
+        return { ok: false, error: [{ path: "", message: `No spec for kind "${node.kind}"` }] };
+      }
+
+      const candidate = { ...node, data: newData };
+      const errors = validateNodeData(candidate, spec);
+      if (errors.length > 0) {
+        return { ok: false, error: errors };
+      }
+
+      set((s) => ({
+        nodes: s.nodes.map((n) => (n.id === id ? { ...n, data: newData } : n)),
+      }));
+      return { ok: true, value: undefined };
     },
   };
 }
