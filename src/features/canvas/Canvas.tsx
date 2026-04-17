@@ -13,11 +13,13 @@ import { CanvasControls } from "@/features/canvas/Controls";
 import { MiniMap } from "@/features/canvas/MiniMap";
 import { nodeTypes } from "@/features/canvas/nodeTypes";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
+import { useViewportPersistence } from "@/features/canvas/useViewportPersistence";
 import { useDragContext } from "@/features/palette/DragContext";
 import { useWorkflowStore } from "@/store/hooks";
 import type { SelectMode } from "@/store/slices/selectionSlice";
 
 export function Canvas() {
+  useViewportPersistence();
   const { state: dragState, endDrag } = useDragContext();
   const addNode = useWorkflowStore((s) => s.addNode);
   const registry = useWorkflowStore((s) => s.registry);
