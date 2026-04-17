@@ -28,7 +28,9 @@ export function Canvas() {
   const selectMany = useWorkflowStore((s) => s.selectMany);
   const clearSelection = useWorkflowStore((s) => s.clear);
   const deleteSelected = useWorkflowStore((s) => s.deleteSelected);
-  const { screenToFlowPosition } = useReactFlow();
+  const setZoom = useWorkflowStore((s) => s.setZoom);
+  const setPan = useWorkflowStore((s) => s.setPan);
+  const { screenToFlowPosition, getViewport } = useReactFlow();
 
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
   const rfNodes = useMemo(() => nodes.map((n) => ({ ...n, type: n.kind })), [nodes]);
@@ -87,6 +89,12 @@ export function Canvas() {
     [deleteSelected, clearSelection],
   );
 
+  const handleMoveEnd = useCallback(() => {
+    const vp = getViewport();
+    setZoom(vp.zoom);
+    setPan(vp.x, vp.y);
+  }, [getViewport, setZoom, setPan]);
+
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- role="application" is interactive per WAI-ARIA
     <div
@@ -109,6 +117,7 @@ export function Canvas() {
         onNodeClick={handleNodeClick}
         onPaneClick={handlePaneClick}
         onSelectionChange={handleSelectionChange}
+        onMoveEnd={handleMoveEnd}
       >
         <Background />
         <Controls>
