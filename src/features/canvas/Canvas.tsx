@@ -9,6 +9,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { Grid3X3 } from "lucide-react";
 import { Background } from "@/features/canvas/Background";
+import { MiniMap } from "@/features/canvas/MiniMap";
 import { nodeTypes } from "@/features/canvas/nodeTypes";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { useDragContext } from "@/features/palette/DragContext";
@@ -120,6 +121,7 @@ export function Canvas() {
         onMoveEnd={handleMoveEnd}
       >
         <Background />
+        <MiniMap />
         <Controls>
           <button
             type="button"

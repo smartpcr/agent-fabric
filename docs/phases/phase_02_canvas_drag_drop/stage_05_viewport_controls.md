@@ -1,10 +1,11 @@
 # Phase 2 — Stage 5: Viewport & Controls
+
 > Pan, zoom, fit-view, mini-map, grid background, snap toggle, and per-workflow viewport persistence.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: Pan / zoom (wheel + middle-drag; pinch on touch)
+- [x] **Step 1**: Pan / zoom (wheel + middle-drag; pinch on touch)
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/unit/features/canvas/Canvas.panzoom.test.tsx`
   - Contents: xyflow handles wheel + pinch natively; configure `panOnScroll`, `zoomOnPinch`, `minZoom`, `maxZoom`.
   - Test: 100% — synthetic wheel event adjusts `viewport.zoom`; pan via middle-drag.
@@ -41,6 +42,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 5
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on touched files.
 - Keyboard shortcuts for zoom/fit/lock work.

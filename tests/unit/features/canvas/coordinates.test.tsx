@@ -31,6 +31,7 @@ vi.mock("@xyflow/react", () => ({
     screenToFlowPosition: mockScreenToFlowPosition,
   }),
   SelectionMode: { Partial: "partial", Full: "full" },
+  MiniMap: () => null,
 }));
 
 vi.mock("@/features/canvas/Background", () => ({
