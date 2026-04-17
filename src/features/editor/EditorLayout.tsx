@@ -7,7 +7,7 @@ import {
   type PanelImperativeHandle,
 } from "react-resizable-panels";
 import { Canvas } from "@/features/canvas/Canvas";
-import { Palette } from "@/features/palette/Palette";
+import { ConnectedPalette } from "@/features/palette/ConnectedPalette";
 import { PropertyGrid } from "@/features/property-grid/PropertyGrid";
 
 /**
@@ -77,7 +77,7 @@ export function EditorLayout() {
           collapsible
           data-collapsed={sidePanelsCollapsed}
         >
-          <Palette />
+          <ConnectedPalette />
         </Panel>
 
         <Separator

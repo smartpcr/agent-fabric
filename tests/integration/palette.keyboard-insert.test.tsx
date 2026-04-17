@@ -6,6 +6,12 @@ import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore } from "@/store/hooks";
 
+// Mock @xyflow/react for ConnectedPalette viewport tests
+const mockGetViewport = vi.fn(() => ({ x: 0, y: 0, zoom: 1 }));
+vi.mock("@xyflow/react", () => ({
+  useReactFlow: () => ({ getViewport: mockGetViewport }),
+}));
+
 const CONTAINER_HEIGHT = 500;
 
 beforeEach(() => {
@@ -161,5 +167,62 @@ describe("Integration: Palette keyboard insertion", () => {
     expect(nodes).toHaveLength(1);
     expect(nodes[0].kind).toBe(options[1].getAttribute("data-kind"));
     expect(nodes[0].position).toEqual(viewportCenter);
+  });
+});
+
+describe("Integration: ConnectedPalette uses useReactFlow viewport", () => {
+  beforeEach(() => {
+    setupStore();
+    mockGetViewport.mockReset();
+  });
+
+  it("ConnectedPalette computes position from useReactFlow().getViewport()", async () => {
+    // Dynamic import to get ConnectedPalette after mock is in place
+    const { ConnectedPalette } = await import("@/features/palette/ConnectedPalette");
+
+    // Simulate a viewport panned to (100, 50) at zoom 2
+    mockGetViewport.mockReturnValue({ x: -100, y: -50, zoom: 2 });
+
+    const user = userEvent.setup();
+
+    render(<ConnectedPalette />);
+
+    const options = screen.getAllByRole("option");
+    expect(options.length).toBeGreaterThanOrEqual(1);
+
+    options[0].focus();
+    await user.keyboard("{Enter}");
+
+    expect(mockGetViewport).toHaveBeenCalled();
+
+    const nodes = getStoreNodes();
+    expect(nodes).toHaveLength(1);
+    // Viewport center = (-x + width/2) / zoom, (-y + height/2) / zoom
+    // With FALLBACK_WIDTH=800, FALLBACK_HEIGHT=600 (no .react-flow DOM in jsdom):
+    // centerX = (100 + 400) / 2 = 250
+    // centerY = (50 + 300) / 2 = 175
+    expect(nodes[0].position.x).toBeCloseTo(250);
+    expect(nodes[0].position.y).toBeCloseTo(175);
+  });
+
+  it("ConnectedPalette uses default viewport when not panned", async () => {
+    const { ConnectedPalette } = await import("@/features/palette/ConnectedPalette");
+
+    // Default viewport: no pan, zoom 1
+    mockGetViewport.mockReturnValue({ x: 0, y: 0, zoom: 1 });
+
+    const user = userEvent.setup();
+
+    render(<ConnectedPalette />);
+
+    const options = screen.getAllByRole("option");
+    options[0].focus();
+    await user.keyboard("{Enter}");
+
+    const nodes = getStoreNodes();
+    expect(nodes).toHaveLength(1);
+    // centerX = (0 + 400) / 1 = 400, centerY = (0 + 300) / 1 = 300
+    expect(nodes[0].position.x).toBeCloseTo(400);
+    expect(nodes[0].position.y).toBeCloseTo(300);
   });
 });
