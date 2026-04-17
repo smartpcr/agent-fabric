@@ -1,7 +1,9 @@
 import { useCallback } from "react";
 import { ReactFlow, Controls, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { Grid3X3 } from "lucide-react";
 import { Background } from "@/features/canvas/Background";
+import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { useDragContext } from "@/features/palette/DragContext";
 import { useWorkflowStore } from "@/store/hooks";
 
@@ -9,6 +11,9 @@ export function Canvas() {
   const { state: dragState, endDrag } = useDragContext();
   const addNode = useWorkflowStore((s) => s.addNode);
   const registry = useWorkflowStore((s) => s.registry);
+  const snapEnabled = useWorkflowStore((s) => s.snapEnabled);
+  const snapGridSize = useWorkflowStore((s) => s.snapGridSize);
+  const toggleSnap = useWorkflowStore((s) => s.toggleSnap);
   const { screenToFlowPosition } = useReactFlow();
 
   const handlePointerUp = useCallback(
@@ -18,12 +23,15 @@ export function Canvas() {
       const kind = dragState.payload.kind;
       const spec = registry.get(kind);
       if (spec) {
-        const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        let position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        if (snapEnabled) {
+          position = snapToGrid(position, snapGridSize);
+        }
         addNode(spec, position);
       }
       endDrag();
     },
-    [dragState, addNode, registry, endDrag, screenToFlowPosition],
+    [dragState, addNode, registry, endDrag, screenToFlowPosition, snapEnabled, snapGridSize],
   );
 
   return (
@@ -35,7 +43,27 @@ export function Canvas() {
     >
       <ReactFlow nodes={[]} edges={[]}>
         <Background />
-        <Controls />
+        <Controls>
+          <button
+            type="button"
+            data-testid="snap-toggle"
+            aria-label={snapEnabled ? "Disable snap to grid" : "Enable snap to grid"}
+            aria-pressed={snapEnabled}
+            onClick={toggleSnap}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              padding: "4px",
+              background: snapEnabled ? "rgba(59, 130, 246, 0.15)" : "transparent",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            <Grid3X3 size={14} aria-hidden="true" />
+          </button>
+        </Controls>
       </ReactFlow>
     </div>
   );

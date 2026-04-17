@@ -23,7 +23,7 @@
   - Test: 100% — mount/unmount with drag state; position updates.
   - Effort: 3h
 
-- [ ] **Step 4**: Reject drops outside canvas bounds
+- [x] **Step 4**: Reject drops outside canvas bounds
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/unit/features/canvas/Canvas.dropOutside.test.tsx`
   - Contents: Drop target is the canvas wrapper; releases elsewhere do nothing; DragContext is still cleared.
   - Test: 100% — drop on palette is a no-op; no `addNode` dispatch.
