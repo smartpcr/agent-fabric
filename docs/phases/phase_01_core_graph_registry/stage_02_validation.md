@@ -35,7 +35,7 @@
   - Test: 100% — `instanceof` chains; JSON round-trip preserves code + details; message formatting.
   - Effort: 2h
 
-- [ ] **Step 6**: Property-based fuzz tests with `fast-check`
+- [x] **Step 6**: Property-based fuzz tests with `fast-check`
   - File(s): `tests/unit/domain/validation/graphRules.fuzz.test.ts`
   - Contents: `fc.assert(fc.property(arbitraryGraph(30), g => { if valid, adding any valid edge keeps it valid }))`; bounded by `maxNodes=30`, `numRuns=100`; time-boxed via test timeout.
   - Test: Runs < 2s in CI; zero regressions.
