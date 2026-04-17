@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, screen, act, cleanup, renderHook } from "@testing-library/react";
+import { render, screen, act, cleanup, renderHook, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { z } from "zod";
 import { Palette } from "@/features/palette/Palette";
@@ -215,6 +215,33 @@ describe("Palette search / filter", () => {
     await vi.waitFor(() => {
       expect(screen.getAllByRole("option")).toHaveLength(1);
       expect(screen.getByRole("option")).toHaveAttribute("data-kind", "task");
+    });
+  });
+
+  it("search expands collapsed categories to show matching items", async () => {
+    const user = userEvent.setup();
+    render(<Palette />);
+
+    // Collapse the "flow" category
+    const categoryDiv = screen.getByTestId("palette-category-flow");
+    const button = within(categoryDiv).getByRole("button");
+    await user.click(button);
+
+    // Verify flow items are hidden after collapse
+    const afterCollapse = screen.getAllByRole("option");
+    const flowKinds = afterCollapse
+      .map((el) => el.getAttribute("data-kind"))
+      .filter((k) => k === "start" || k === "end");
+    expect(flowKinds).toHaveLength(0);
+
+    // Search for "Start" which is in the collapsed "flow" category
+    const input = screen.getByRole("searchbox");
+    await user.type(input, "start");
+
+    await vi.waitFor(() => {
+      const options = screen.getAllByRole("option");
+      expect(options).toHaveLength(1);
+      expect(options[0]).toHaveAttribute("data-kind", "start");
     });
   });
 });

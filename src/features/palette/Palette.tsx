@@ -71,7 +71,12 @@ export function Palette() {
 
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
 
-  const rows = useMemo(() => flattenGroups(groups, collapsed), [groups, collapsed]);
+  const isSearchActive = debouncedQuery.trim() !== "";
+
+  const rows = useMemo(
+    () => flattenGroups(groups, isSearchActive ? new Set<string>() : collapsed),
+    [groups, collapsed, isSearchActive],
+  );
 
   const parentRef = useRef<HTMLDivElement>(null);
 
