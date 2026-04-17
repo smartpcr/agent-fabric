@@ -48,6 +48,7 @@ export function TaskNode({ id, data, type, selected }: NodeProps) {
             position={portPosition(port)}
             data-testid={`task-handle-${port.id}`}
             data-port-id={port.id}
+            aria-label={port.label}
           />
         ))
       ) : (
