@@ -35,7 +35,7 @@
   - Test: 100% — valid spec accepted; duplicate port id rejected; `defaultData` not conforming to schema rejected.
   - Effort: 3h
 
-- [ ] **Step 6**: `NodeExecutionState` and `EdgeExecutionState` discriminated unions
+- [x] **Step 6**: `NodeExecutionState` and `EdgeExecutionState` discriminated unions
   - File(s): `src/domain/models/executionState.ts`, `src/utils/assertNever.ts`, `tests/unit/domain/models/executionState.test.ts`
   - Contents: `type NodeExecutionState = {status:'pending'} | {status:'running'; startedAt; iteration?} | {status:'success'; finishedAt; result?} | {status:'error'; finishedAt; error} | {status:'skipped'}`; similar for `EdgeExecutionState`; `assertNever(x): never` for exhaustive matching.
   - Test: 100% — construction of each variant; `assertNever` throws on unexpected.
