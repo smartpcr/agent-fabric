@@ -133,7 +133,7 @@ describe("store testUtils", () => {
 
     it("does not affect non-graph state (selection, registry)", () => {
       const store = createStore();
-      store.getState().select(["node-1"], ["edge-1"]);
+      store.getState().selectBulk(["node-1"], ["edge-1"]);
 
       restoreGraph(store, { nodes: [], edges: [] });
 

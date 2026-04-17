@@ -10,18 +10,18 @@ export interface SelectionSlice {
   selectedEdgeIds: string[];
   /** Set of selected node IDs */
   selected: Set<string>;
-  /** Legacy bulk selection */
-  select: (nodeIds: string[], edgeIds: string[]) => void;
-  /** Legacy clear */
-  clearSelection: () => void;
   /** Select a single node with mode: replace (exclusive), add, or toggle */
-  selectNode: (id: string, mode: SelectMode) => void;
+  select: (id: string, mode: SelectMode) => void;
   /** Select multiple nodes (replaces current selection) */
   selectMany: (ids: string[]) => void;
   /** Clear node selection */
-  clearNodeSelection: () => void;
+  clear: () => void;
   /** Check if a node is selected */
   isSelected: (id: string) => boolean;
+  /** Legacy bulk selection (both nodes and edges) */
+  selectBulk: (nodeIds: string[], edgeIds: string[]) => void;
+  /** Legacy clear (both nodes and edges) */
+  clearSelection: () => void;
 }
 
 function setToArray(s: Set<string>): string[] {
@@ -36,14 +36,7 @@ export function createSelectionSlice(
     selectedNodeIds: [],
     selectedEdgeIds: [],
     selected: new Set<string>(),
-    select: (nodeIds: string[], edgeIds: string[]) => {
-      const selected = new Set(nodeIds);
-      set({ selectedNodeIds: nodeIds, selectedEdgeIds: edgeIds, selected });
-    },
-    clearSelection: () => {
-      set({ selectedNodeIds: [], selectedEdgeIds: [], selected: new Set<string>() });
-    },
-    selectNode: (id: string, mode: SelectMode) => {
+    select: (id: string, mode: SelectMode) => {
       const prev = get().selected;
       let next: Set<string>;
       if (mode === "replace") {
@@ -66,11 +59,18 @@ export function createSelectionSlice(
       const next = new Set(ids);
       set({ selected: next, selectedNodeIds: setToArray(next) });
     },
-    clearNodeSelection: () => {
+    clear: () => {
       set({ selected: new Set<string>(), selectedNodeIds: [] });
     },
     isSelected: (id: string) => {
       return get().selected.has(id);
+    },
+    selectBulk: (nodeIds: string[], edgeIds: string[]) => {
+      const selected = new Set(nodeIds);
+      set({ selectedNodeIds: nodeIds, selectedEdgeIds: edgeIds, selected });
+    },
+    clearSelection: () => {
+      set({ selectedNodeIds: [], selectedEdgeIds: [], selected: new Set<string>() });
     },
   };
 }

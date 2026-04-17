@@ -19,59 +19,59 @@ describe("selectionSlice", () => {
     });
   });
 
-  describe("selectNode(id, mode)", () => {
+  describe("select(id, mode)", () => {
     it("replace mode sets a single node as selected", () => {
-      store.getState().selectNode("node-1", "replace");
+      store.getState().select("node-1", "replace");
       expect(store.getState().selected.has("node-1")).toBe(true);
       expect(store.getState().selected.size).toBe(1);
     });
 
     it("replace mode clears previous selection", () => {
-      store.getState().selectNode("node-1", "replace");
-      store.getState().selectNode("node-2", "replace");
+      store.getState().select("node-1", "replace");
+      store.getState().select("node-2", "replace");
       expect(store.getState().selected.has("node-1")).toBe(false);
       expect(store.getState().selected.has("node-2")).toBe(true);
       expect(store.getState().selected.size).toBe(1);
     });
 
     it("add mode adds to existing selection", () => {
-      store.getState().selectNode("node-1", "replace");
-      store.getState().selectNode("node-2", "add");
+      store.getState().select("node-1", "replace");
+      store.getState().select("node-2", "add");
       expect(store.getState().selected.has("node-1")).toBe(true);
       expect(store.getState().selected.has("node-2")).toBe(true);
       expect(store.getState().selected.size).toBe(2);
     });
 
     it("add mode does not duplicate an already selected id", () => {
-      store.getState().selectNode("node-1", "replace");
-      store.getState().selectNode("node-1", "add");
+      store.getState().select("node-1", "replace");
+      store.getState().select("node-1", "add");
       expect(store.getState().selected.size).toBe(1);
     });
 
     it("toggle mode adds an unselected node", () => {
-      store.getState().selectNode("node-1", "toggle");
+      store.getState().select("node-1", "toggle");
       expect(store.getState().selected.has("node-1")).toBe(true);
     });
 
     it("toggle mode removes an already selected node", () => {
-      store.getState().selectNode("node-1", "replace");
-      store.getState().selectNode("node-1", "toggle");
+      store.getState().select("node-1", "replace");
+      store.getState().select("node-1", "toggle");
       expect(store.getState().selected.has("node-1")).toBe(false);
       expect(store.getState().selected.size).toBe(0);
     });
 
     it("toggle mode preserves other selected nodes", () => {
-      store.getState().selectNode("node-1", "replace");
-      store.getState().selectNode("node-2", "add");
-      store.getState().selectNode("node-1", "toggle");
+      store.getState().select("node-1", "replace");
+      store.getState().select("node-2", "add");
+      store.getState().select("node-1", "toggle");
       expect(store.getState().selected.has("node-1")).toBe(false);
       expect(store.getState().selected.has("node-2")).toBe(true);
       expect(store.getState().selected.size).toBe(1);
     });
 
     it("syncs selectedNodeIds with selected set", () => {
-      store.getState().selectNode("node-1", "replace");
-      store.getState().selectNode("node-2", "add");
+      store.getState().select("node-1", "replace");
+      store.getState().select("node-2", "add");
       const ids = store.getState().selectedNodeIds;
       expect(ids).toContain("node-1");
       expect(ids).toContain("node-2");
@@ -89,7 +89,7 @@ describe("selectionSlice", () => {
     });
 
     it("replaces previous selection", () => {
-      store.getState().selectNode("x", "replace");
+      store.getState().select("x", "replace");
       store.getState().selectMany(["a", "b"]);
       expect(store.getState().selected.has("x")).toBe(false);
       expect(store.getState().selected.size).toBe(2);
@@ -107,54 +107,54 @@ describe("selectionSlice", () => {
     });
   });
 
-  describe("clearNodeSelection()", () => {
+  describe("clear()", () => {
     it("clears the selected set", () => {
-      store.getState().selectNode("node-1", "replace");
-      store.getState().selectNode("node-2", "add");
-      store.getState().clearNodeSelection();
+      store.getState().select("node-1", "replace");
+      store.getState().select("node-2", "add");
+      store.getState().clear();
       expect(store.getState().selected.size).toBe(0);
     });
 
     it("clears selectedNodeIds", () => {
-      store.getState().selectNode("node-1", "replace");
-      store.getState().clearNodeSelection();
+      store.getState().select("node-1", "replace");
+      store.getState().clear();
       expect(store.getState().selectedNodeIds).toEqual([]);
     });
   });
 
   describe("isSelected(id)", () => {
     it("returns true for a selected node", () => {
-      store.getState().selectNode("node-1", "replace");
+      store.getState().select("node-1", "replace");
       expect(store.getState().isSelected("node-1")).toBe(true);
     });
 
     it("returns false for an unselected node", () => {
-      store.getState().selectNode("node-1", "replace");
+      store.getState().select("node-1", "replace");
       expect(store.getState().isSelected("node-2")).toBe(false);
     });
 
     it("returns false after clear", () => {
-      store.getState().selectNode("node-1", "replace");
-      store.getState().clearNodeSelection();
+      store.getState().select("node-1", "replace");
+      store.getState().clear();
       expect(store.getState().isSelected("node-1")).toBe(false);
     });
   });
 
   describe("legacy API compatibility", () => {
-    it("legacy select() sets both selectedNodeIds and selectedEdgeIds", () => {
-      store.getState().select(["n1"], ["e1"]);
+    it("selectBulk() sets both selectedNodeIds and selectedEdgeIds", () => {
+      store.getState().selectBulk(["n1"], ["e1"]);
       expect(store.getState().selectedNodeIds).toEqual(["n1"]);
       expect(store.getState().selectedEdgeIds).toEqual(["e1"]);
     });
 
-    it("legacy select() syncs selected set", () => {
-      store.getState().select(["n1", "n2"], []);
+    it("selectBulk() syncs selected set", () => {
+      store.getState().selectBulk(["n1", "n2"], []);
       expect(store.getState().selected.has("n1")).toBe(true);
       expect(store.getState().selected.has("n2")).toBe(true);
     });
 
-    it("legacy clearSelection() clears everything", () => {
-      store.getState().select(["n1"], ["e1"]);
+    it("clearSelection() clears everything", () => {
+      store.getState().selectBulk(["n1"], ["e1"]);
       store.getState().clearSelection();
       expect(store.getState().selectedNodeIds).toEqual([]);
       expect(store.getState().selectedEdgeIds).toEqual([]);

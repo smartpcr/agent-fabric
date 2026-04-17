@@ -135,16 +135,16 @@ describe("graphSlice actions", () => {
 });
 
 describe("selectionSlice actions", () => {
-  it("select sets node and edge ids", () => {
+  it("selectBulk sets node and edge ids", () => {
     const store = createStore();
-    store.getState().select(["n1"], ["e1"]);
+    store.getState().selectBulk(["n1"], ["e1"]);
     expect(store.getState().selectedNodeIds).toEqual(["n1"]);
     expect(store.getState().selectedEdgeIds).toEqual(["e1"]);
   });
 
   it("clearSelection resets selections", () => {
     const store = createStore();
-    store.getState().select(["n1"], ["e1"]);
+    store.getState().selectBulk(["n1"], ["e1"]);
     store.getState().clearSelection();
     expect(store.getState().selectedNodeIds).toEqual([]);
     expect(store.getState().selectedEdgeIds).toEqual([]);
