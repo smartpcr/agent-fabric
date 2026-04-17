@@ -258,3 +258,138 @@ test.describe("Select + delete a node via keyboard", () => {
     await expect(nodeLocator).toHaveCount(0, { timeout: 5000 });
   });
 });
+
+test.describe("Pan/zoom/fit-view — viewport persists across reload", () => {
+  test.beforeEach(async ({ page }) => {
+    // Clear viewport localStorage before each test
+    await page["goto"]("/");
+    await page.evaluate(() => {
+      localStorage.removeItem("agent-fabric:viewport");
+    });
+    await page.reload();
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+  });
+
+  test("wheel zoom changes viewport zoom level", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    const canvasBox = await getBox(canvas);
+    const cx = canvasBox.x + canvasBox.width / 2;
+    const cy = canvasBox.y + canvasBox.height / 2;
+
+    // Read initial viewport transform
+    const initialTransform = await page.evaluate(() => {
+      const pane = document.querySelector(".react-flow__viewport");
+      return pane ? getComputedStyle(pane).transform : "";
+    });
+
+    // Ctrl+wheel zoom in (panOnScroll mode requires Ctrl for zoom)
+    await page.mouse.move(cx, cy);
+    await page.keyboard.down("Control");
+    await page.mouse.wheel(0, -300);
+    await page.keyboard.up("Control");
+    await page.waitForTimeout(500);
+
+    // Viewport transform should have changed
+    const afterTransform = await page.evaluate(() => {
+      const pane = document.querySelector(".react-flow__viewport");
+      return pane ? getComputedStyle(pane).transform : "";
+    });
+
+    expect(afterTransform).not.toBe(initialTransform);
+  });
+
+  test("fit-view button adjusts viewport", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    const canvasBox = await getBox(canvas);
+
+    // Drop a node so fit-view has something to fit to
+    const taskItem = page.locator('[role="option"][data-kind="task"]');
+    await dragPaletteToCanvas(
+      taskItem,
+      canvas,
+      canvasBox.x + canvasBox.width / 2,
+      canvasBox.y + canvasBox.height / 2,
+    );
+    await expect(page.locator(".react-flow__node[data-id]")).toHaveCount(1, { timeout: 5000 });
+
+    // Read current viewport transform
+    const beforeTransform = await page.evaluate(() => {
+      const pane = document.querySelector(".react-flow__viewport");
+      return pane ? getComputedStyle(pane).transform : "";
+    });
+
+    // Click fit-view button
+    const fitViewBtn = page.locator('[data-testid="fit-view"]');
+    await fitViewBtn.click();
+    await page.waitForTimeout(500);
+
+    // Viewport should have changed
+    const afterTransform = await page.evaluate(() => {
+      const pane = document.querySelector(".react-flow__viewport");
+      return pane ? getComputedStyle(pane).transform : "";
+    });
+
+    expect(afterTransform).not.toBe(beforeTransform);
+  });
+
+  test("viewport persists across page reload", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    const canvasBox = await getBox(canvas);
+    const cx = canvasBox.x + canvasBox.width / 2;
+    const cy = canvasBox.y + canvasBox.height / 2;
+
+    // Ctrl+wheel zoom to change the viewport from defaults (panOnScroll mode)
+    await page.mouse.move(cx, cy);
+    await page.keyboard.down("Control");
+    for (let i = 0; i < 5; i++) {
+      await page.mouse.wheel(0, -100);
+      await page.waitForTimeout(100);
+    }
+    await page.keyboard.up("Control");
+    // Wait for xyflow to settle and onMoveEnd to sync to store → localStorage
+    await page.waitForTimeout(1000);
+
+    // Capture the actual rendered viewport transform before reload
+    const transformBefore = await page.evaluate(() => {
+      const pane = document.querySelector(".react-flow__viewport");
+      return pane ? getComputedStyle(pane).transform : "";
+    });
+    expect(transformBefore).not.toBe("");
+    expect(transformBefore).not.toBe("none");
+
+    // Read the saved viewport from localStorage
+    const savedBefore = await page.evaluate(() => {
+      return localStorage.getItem("agent-fabric:viewport");
+    });
+    expect(savedBefore).toBeTruthy();
+    const vpBefore = JSON.parse(savedBefore as string) as { x: number; y: number; zoom: number };
+
+    // Verify zoom actually changed (should be > 1 after zooming in)
+    expect(vpBefore.zoom).toBeGreaterThan(1);
+
+    // Reload the page
+    await page.reload();
+    await page.waitForSelector('[role="application"][aria-label="Workflow Canvas"]', {
+      timeout: 10000,
+    });
+    // Wait for viewport restore to complete (useViewportPersistence restores on mount)
+    await page.waitForTimeout(1000);
+
+    // Verify the actual rendered viewport transform matches pre-reload state
+    const transformAfter = await page.evaluate(() => {
+      const pane = document.querySelector(".react-flow__viewport");
+      return pane ? getComputedStyle(pane).transform : "";
+    });
+    expect(transformAfter).toBe(transformBefore);
+
+    // Also verify localStorage still holds the correct values
+    const savedAfter = await page.evaluate(() => {
+      return localStorage.getItem("agent-fabric:viewport");
+    });
+    expect(savedAfter).toBeTruthy();
+    const vpAfter = JSON.parse(savedAfter as string) as { x: number; y: number; zoom: number };
+    expect(vpAfter.zoom).toBeCloseTo(vpBefore.zoom, 1);
+    expect(vpAfter.x).toBeCloseTo(vpBefore.x, 0);
+    expect(vpAfter.y).toBeCloseTo(vpBefore.y, 0);
+  });
+});

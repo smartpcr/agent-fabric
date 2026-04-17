@@ -11,7 +11,7 @@
   - Test: Green on Chromium (on-PR) + matrix (nightly).
   - Effort: 3h
 
-- [ ] **Step 2**: E2E — select + delete a node via keyboard
+- [x] **Step 2**: E2E — select + delete a node via keyboard
   - File(s): `tests/e2e/build-workflow.spec.ts` (extend)
   - Contents: Focus node with Tab; Delete; assert node is gone.
   - Test: Green.
