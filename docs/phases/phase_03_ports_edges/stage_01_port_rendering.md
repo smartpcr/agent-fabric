@@ -29,7 +29,7 @@
   - Test: 100% — tooltip appears; content correct; keyboard focus triggers.
   - Effort: 2h
 
-- [ ] **Step 5**: Multi-port TaskNode variant (fixture)
+- [x] **Step 5**: Multi-port TaskNode variant (fixture)
   - File(s): `src/registry/builtins/MultiPortTaskNode.spec.ts`, `tests/fixtures/multiPortSpec.ts`, `tests/unit/registry/builtins/MultiPortTaskNode.test.ts`
   - Contents: kind `'task-multi'`, 2 inputs (`inA: string`, `inB: json`), 3 outputs (`outA: string`, `outB: json`, `outC: any`); registered in a test-only helper.
   - Test: 100% — spec shape; rendering via `TaskNode` produces 5 handles.
