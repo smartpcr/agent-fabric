@@ -10,7 +10,7 @@
   - Test: Unit — `tests/unit/app.smoke.test.tsx` imports `App` and asserts render without crash; `npm run dev` starts without errors (manual).
   - Effort: 2h
 
-- [ ] **Step 2**: Configure Tailwind + design tokens + CSS reset
+- [x] **Step 2**: Configure Tailwind + design tokens + CSS reset
   - File(s): `tailwind.config.js`, `postcss.config.js`, `src/styles/tailwind.css`, `src/styles/tokens.css`
   - Contents: Design tokens for color/spacing/radius/shadow as CSS custom properties; dark-mode via `[data-theme="dark"]`; `tailwind.config.js` reads from tokens via `theme.extend`.
   - Test: Unit — `tokens.css` parsed by PostCSS contains the expected variables (regex assertion: `--color-bg`, `--color-fg`, `--radius-md`, etc.).
