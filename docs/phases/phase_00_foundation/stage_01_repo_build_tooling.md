@@ -28,7 +28,7 @@
   - Test: `npm run test` runs and reports green with one trivial test; `npm run test:coverage` prints an HTML report into `coverage/` and fails if thresholds aren't met.
   - Effort: 2h
 
-- [ ] **Step 5**: Playwright install + smoke spec
+- [x] **Step 5**: Playwright install + smoke spec
   - File(s): `playwright.config.ts`, `tests/e2e/smoke.spec.ts`, `package.json` (script: `e2e`, `e2e:install`)
   - Contents: `webServer` config boots `vite preview` on port 4173; Chromium project by default; reporters `html` + `line`; traces on retry.
   - Test: `tests/e2e/smoke.spec.ts` asserts page title contains "Workflow Editor"; `npm run e2e` exits 0 locally.
