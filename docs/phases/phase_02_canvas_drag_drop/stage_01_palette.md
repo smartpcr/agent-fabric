@@ -35,7 +35,7 @@
   - Test: 100% (unit) + integration — dispatched action creates node at expected position.
   - Effort: 2h
 
-- [ ] **Step 6**: Integration — registered specs appear grouped in palette
+- [x] **Step 6**: Integration — registered specs appear grouped in palette
   - File(s): `tests/integration/palette.registry.test.tsx`
   - Contents: Register builtins, mount `Palette`, assert 3 items across 2+ categories with correct labels.
   - Test: Green in CI.

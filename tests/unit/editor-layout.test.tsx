@@ -2,11 +2,14 @@ import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { EditorLayout } from "@/features/editor/EditorLayout";
+import { DragProvider } from "@/features/palette/DragContext";
 
 function renderLayout() {
   return render(
     <ReactFlowProvider>
-      <EditorLayout />
+      <DragProvider>
+        <EditorLayout />
+      </DragProvider>
     </ReactFlowProvider>,
   );
 }
