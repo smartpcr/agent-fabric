@@ -10,11 +10,18 @@ import {
   type NodeSpecRegistry,
   type Result,
 } from "@/domain/validation/connectionRules";
+import { validateNodeData, type ValidationError } from "@/domain/validation/validators";
 import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
 
 export interface ConnectPortsParams {
   readonly source: ConnectionEndpoint;
   readonly target: ConnectionEndpoint;
+  readonly registry: NodeSpecRegistry;
+}
+
+export interface UpdateNodeDataParams {
+  readonly id: string;
+  readonly data: unknown;
   readonly registry: NodeSpecRegistry;
 }
 
@@ -24,6 +31,7 @@ export interface GraphSlice {
   addNode: (spec: NodeSpec, position?: Position) => WorkflowNode;
   removeNode: (id: string) => void;
   connectPorts: (params: ConnectPortsParams) => Result<WorkflowEdge, ConnectionInvalidError>;
+  updateNodeData: (params: UpdateNodeDataParams) => Result<void, ValidationError[]>;
 }
 
 export function createGraphSlice(
@@ -72,6 +80,29 @@ export function createGraphSlice(
 
       set((s) => ({ edges: [...s.edges, edge] }));
       return { ok: true, value: edge };
+    },
+    updateNodeData: (params: UpdateNodeDataParams) => {
+      const state = get();
+      const node = state.nodes.find((n) => n.id === params.id);
+      if (!node) {
+        return { ok: false, error: [{ path: "", message: `Node "${params.id}" not found` }] };
+      }
+
+      const spec = params.registry.get(node.kind);
+      if (!spec) {
+        return { ok: false, error: [{ path: "", message: `No spec for kind "${node.kind}"` }] };
+      }
+
+      const candidate = { ...node, data: params.data };
+      const errors = validateNodeData(candidate, spec);
+      if (errors.length > 0) {
+        return { ok: false, error: errors };
+      }
+
+      set((s) => ({
+        nodes: s.nodes.map((n) => (n.id === params.id ? { ...n, data: params.data } : n)),
+      }));
+      return { ok: true, value: undefined };
     },
   };
 }

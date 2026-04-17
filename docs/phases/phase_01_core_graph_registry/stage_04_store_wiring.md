@@ -17,7 +17,7 @@
   - Test: 100% — missing id is no-op; edges cascade.
   - Effort: 2h
 
-- [ ] **Step 3**: `graphSlice`: `connectPorts(conn): Result<WorkflowEdge, ConnectionInvalidError>`
+- [x] **Step 3**: `graphSlice`: `connectPorts(conn): Result<WorkflowEdge, ConnectionInvalidError>`
   - File(s): `src/store/slices/graphSlice.ts` (extend), `tests/unit/store/slices/graphSlice.connectPorts.test.ts`
   - Contents: Runs `validateConnection` against current state + registry; on success, appends `WorkflowEdge`; on failure, returns `Result.err` and does not mutate state.
   - Test: 100% — valid connect appends; invalid returns error; state unchanged on failure.
