@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, act, cleanup, renderHook } from "@testing-library/react";
 import { z } from "zod";
 import { Palette } from "@/features/palette/Palette";
+import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore } from "@/store/hooks";
@@ -53,20 +54,32 @@ describe("Integration: builtins appear in palette with correct labels", () => {
   });
 
   it("renders exactly 3 items from registered builtins", () => {
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
     const options = screen.getAllByRole("option");
     expect(options).toHaveLength(3);
   });
 
   it("renders builtin labels: Start, Task, End", () => {
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
     expect(screen.getByText("Start")).toBeInTheDocument();
     expect(screen.getByText("Task")).toBeInTheDocument();
     expect(screen.getByText("End")).toBeInTheDocument();
   });
 
   it("items have correct data-kind attributes", () => {
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
     const options = screen.getAllByRole("option");
     const kinds = options.map((el) => el.getAttribute("data-kind"));
     expect(kinds).toContain("start");
@@ -75,7 +88,11 @@ describe("Integration: builtins appear in palette with correct labels", () => {
   });
 
   it("builtins appear under the flow category", () => {
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
     const flowCategory = screen.getByTestId("palette-category-flow");
     expect(flowCategory).toBeInTheDocument();
   });
@@ -108,13 +125,21 @@ describe("Integration: multi-category grouping", () => {
   });
 
   it("groups items across 2+ categories", () => {
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
     expect(screen.getByTestId("palette-category-flow")).toBeInTheDocument();
     expect(screen.getByTestId("palette-category-actions")).toBeInTheDocument();
   });
 
   it("items within the same category are contiguous", () => {
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
     const options = screen.getAllByRole("option");
 
     const flowIndices: number[] = [];

@@ -35,7 +35,7 @@
   - Test: 100% — rounding behavior; disabled bypasses; grid size configurable.
   - Effort: 2h
 
-- [ ] **Step 6**: Undo creates-via-drop
+- [x] **Step 6**: Undo creates-via-drop
   - File(s): `tests/integration/canvas.drop-undo.test.tsx`
   - Contents: Wire with temporal middleware (already present from Phase 0); test drops → undo → node gone.
   - Test: Green in CI.

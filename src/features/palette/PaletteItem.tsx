@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { icons, GripVertical } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
+import { useDragStart } from "@/features/palette/useDragStart";
 
 interface PaletteItemProps {
   readonly spec: NodeSpec;
@@ -25,6 +26,7 @@ function PaletteIcon({ name }: { readonly name: string }) {
 
 export function PaletteItem({ spec, disabled = false, style }: PaletteItemProps) {
   const description = useMemo(() => `${spec.category} — ${spec.kind}`, [spec.category, spec.kind]);
+  const { onPointerDown } = useDragStart({ kind: spec.kind, disabled });
 
   return (
     <Tooltip.Provider delayDuration={300}>
@@ -37,6 +39,7 @@ export function PaletteItem({ spec, disabled = false, style }: PaletteItemProps)
             aria-label={spec.label}
             tabIndex={disabled ? -1 : 0}
             data-kind={spec.kind}
+            onPointerDown={onPointerDown}
             style={{
               ...style,
               padding: "4px 8px",

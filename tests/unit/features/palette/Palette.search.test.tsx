@@ -3,6 +3,7 @@ import { render, screen, act, cleanup, renderHook, within } from "@testing-libra
 import userEvent from "@testing-library/user-event";
 import { z } from "zod";
 import { Palette } from "@/features/palette/Palette";
+import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { useWorkflowStore } from "@/store/hooks";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
@@ -75,20 +76,32 @@ describe("Palette search / filter", () => {
   });
 
   it("renders a search input with accessible label", () => {
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
     const input = screen.getByRole("searchbox", { name: /search palette/i });
     expect(input).toBeInTheDocument();
   });
 
   it("shows all items when query is empty", () => {
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
     const options = screen.getAllByRole("option");
     expect(options).toHaveLength(5);
   });
 
   it("filters items by label (case-insensitive)", async () => {
     const user = userEvent.setup();
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
 
     const input = screen.getByRole("searchbox");
     await user.type(input, "start");
@@ -102,7 +115,11 @@ describe("Palette search / filter", () => {
 
   it("filters items by category (case-insensitive)", async () => {
     const user = userEvent.setup();
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
 
     const input = screen.getByRole("searchbox");
     await user.type(input, "ACTIONS");
@@ -115,7 +132,11 @@ describe("Palette search / filter", () => {
 
   it("filters narrow list — typing resets count", async () => {
     const user = userEvent.setup();
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
 
     const input = screen.getByRole("searchbox");
 
@@ -136,7 +157,11 @@ describe("Palette search / filter", () => {
 
   it("shows empty-state message when no items match", async () => {
     const user = userEvent.setup();
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
 
     const input = screen.getByRole("searchbox");
     await user.type(input, "xyznonexistent");
@@ -149,7 +174,11 @@ describe("Palette search / filter", () => {
 
   it("empty query after filtering shows all items again", async () => {
     const user = userEvent.setup();
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
 
     const input = screen.getByRole("searchbox");
     await user.type(input, "start");
@@ -169,7 +198,11 @@ describe("Palette search / filter", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
     const input = screen.getByRole("searchbox");
 
     // Type rapidly — filter should not apply immediately
@@ -194,7 +227,11 @@ describe("Palette search / filter", () => {
 
   it("partial label match works", async () => {
     const user = userEvent.setup();
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
 
     const input = screen.getByRole("searchbox");
     await user.type(input, "http");
@@ -207,7 +244,11 @@ describe("Palette search / filter", () => {
 
   it("search is case-insensitive for mixed case input", async () => {
     const user = userEvent.setup();
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
 
     const input = screen.getByRole("searchbox");
     await user.type(input, "TaSk");
@@ -220,7 +261,11 @@ describe("Palette search / filter", () => {
 
   it("search expands collapsed categories to show matching items", async () => {
     const user = userEvent.setup();
-    render(<Palette />);
+    render(
+      <DragProvider>
+        <Palette />
+      </DragProvider>,
+    );
 
     // Collapse the "flow" category
     const categoryDiv = screen.getByTestId("palette-category-flow");
