@@ -2,6 +2,7 @@ import { useRef, useCallback, useMemo, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useWorkflowStore } from "@/store/hooks";
 import { PaletteCategory } from "@/features/palette/PaletteCategory";
+import { PaletteItem } from "@/features/palette/PaletteItem";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
 
 function shallowArrayEqual(a: readonly NodeSpec[], b: readonly NodeSpec[]): boolean {
@@ -158,10 +159,6 @@ export function Palette() {
             return (
               <div
                 key={`item-${spec.kind}`}
-                role="option"
-                aria-selected={false}
-                tabIndex={0}
-                data-kind={spec.kind}
                 style={{
                   position: "absolute",
                   top: 0,
@@ -169,15 +166,9 @@ export function Palette() {
                   width: "100%",
                   height: `${String(virtualRow.size)}px`,
                   transform: `translateY(${String(virtualRow.start)}px)`,
-                  padding: "4px 8px 4px 24px",
-                  cursor: "grab",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  boxSizing: "border-box",
                 }}
               >
-                {spec.label}
+                <PaletteItem spec={spec} />
               </div>
             );
           })}

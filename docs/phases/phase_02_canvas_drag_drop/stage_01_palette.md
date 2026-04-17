@@ -1,10 +1,11 @@
 # Phase 2 — Stage 1: Palette
+
 > A virtualized, categorized, keyboard-accessible palette of node types the user drags onto the canvas.
 > Status: `[ ]` not started · **Effort**: 16h
 
 ## Steps
 
-- [ ] **Step 1**: Palette shell with categories + virtualization
+- [x] **Step 1**: Palette shell with categories + virtualization
   - File(s): `src/features/palette/Palette.tsx`, `src/features/palette/PaletteCategory.tsx`
   - Contents: Reads registry via `useWorkflowStore(s => s.registry.list())`; groups by `category`; `@tanstack/react-virtual` for rows; collapsible sections; `role="listbox"` on list, `role="option"` per item.
   - Test: Component test asserts categories render; virtualization active (only visible items in DOM); keyboard navigation moves focus through options.
@@ -41,6 +42,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 1
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/features/palette/**`.
 - Palette is keyboard-only navigable; axe-core clean.
