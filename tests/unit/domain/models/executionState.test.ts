@@ -1,64 +1,68 @@
 import { describe, it, expect } from "vitest";
-import type { NodeExecutionState, EdgeExecutionState } from "@/domain/models/executionState";
+import {
+  pendingNode,
+  runningNode,
+  successNode,
+  errorNode,
+  skippedNode,
+  pendingEdge,
+  activeEdge,
+  completedEdge,
+  skippedEdge,
+  type NodeExecutionState,
+  type EdgeExecutionState,
+} from "@/domain/models/executionState";
 import { assertNever } from "@/utils/assertNever";
 
 describe("NodeExecutionState", () => {
-  it("constructs a pending state", () => {
-    const state: NodeExecutionState = { status: "pending" };
+  it("constructs a pending state via factory", () => {
+    const state = pendingNode();
     expect(state.status).toBe("pending");
   });
 
   it("constructs a running state with startedAt", () => {
-    const state: NodeExecutionState = {
-      status: "running",
-      startedAt: 1000,
-    };
+    const state = runningNode(1000);
     expect(state.status).toBe("running");
-    expect(state.startedAt).toBe(1000);
-    expect(state.iteration).toBeUndefined();
+    if (state.status === "running") {
+      expect(state.startedAt).toBe(1000);
+      expect(state.iteration).toBeUndefined();
+    }
   });
 
   it("constructs a running state with iteration", () => {
-    const state: NodeExecutionState = {
-      status: "running",
-      startedAt: 1000,
-      iteration: 3,
-    };
-    expect(state.iteration).toBe(3);
+    const state = runningNode(1000, 3);
+    if (state.status === "running") {
+      expect(state.iteration).toBe(3);
+    }
   });
 
   it("constructs a success state with finishedAt", () => {
-    const state: NodeExecutionState = {
-      status: "success",
-      finishedAt: 2000,
-    };
+    const state = successNode(2000);
     expect(state.status).toBe("success");
-    expect(state.finishedAt).toBe(2000);
-    expect(state.result).toBeUndefined();
+    if (state.status === "success") {
+      expect(state.finishedAt).toBe(2000);
+      expect(state.result).toBeUndefined();
+    }
   });
 
   it("constructs a success state with result", () => {
-    const state: NodeExecutionState = {
-      status: "success",
-      finishedAt: 2000,
-      result: { output: "done" },
-    };
-    expect(state.result).toEqual({ output: "done" });
+    const state = successNode(2000, { output: "done" });
+    if (state.status === "success") {
+      expect(state.result).toEqual({ output: "done" });
+    }
   });
 
   it("constructs an error state", () => {
-    const state: NodeExecutionState = {
-      status: "error",
-      finishedAt: 3000,
-      error: "something failed",
-    };
+    const state = errorNode(3000, "something failed");
     expect(state.status).toBe("error");
-    expect(state.finishedAt).toBe(3000);
-    expect(state.error).toBe("something failed");
+    if (state.status === "error") {
+      expect(state.finishedAt).toBe(3000);
+      expect(state.error).toBe("something failed");
+    }
   });
 
-  it("constructs a skipped state", () => {
-    const state: NodeExecutionState = { status: "skipped" };
+  it("constructs a skipped state via factory", () => {
+    const state = skippedNode();
     expect(state.status).toBe("skipped");
   });
 
@@ -79,37 +83,35 @@ describe("NodeExecutionState", () => {
           return assertNever(state);
       }
     }
-    expect(describeState({ status: "pending" })).toBe("pending");
-    expect(describeState({ status: "skipped" })).toBe("skipped");
+    expect(describeState(pendingNode())).toBe("pending");
+    expect(describeState(skippedNode())).toBe("skipped");
   });
 });
 
 describe("EdgeExecutionState", () => {
-  it("constructs a pending state", () => {
-    const state: EdgeExecutionState = { status: "pending" };
+  it("constructs a pending state via factory", () => {
+    const state = pendingEdge();
     expect(state.status).toBe("pending");
   });
 
-  it("constructs an active state", () => {
-    const state: EdgeExecutionState = {
-      status: "active",
-      activatedAt: 500,
-    };
+  it("constructs an active state via factory", () => {
+    const state = activeEdge(500);
     expect(state.status).toBe("active");
-    expect(state.activatedAt).toBe(500);
+    if (state.status === "active") {
+      expect(state.activatedAt).toBe(500);
+    }
   });
 
-  it("constructs a completed state", () => {
-    const state: EdgeExecutionState = {
-      status: "completed",
-      completedAt: 1500,
-    };
+  it("constructs a completed state via factory", () => {
+    const state = completedEdge(1500);
     expect(state.status).toBe("completed");
-    expect(state.completedAt).toBe(1500);
+    if (state.status === "completed") {
+      expect(state.completedAt).toBe(1500);
+    }
   });
 
-  it("constructs a skipped state", () => {
-    const state: EdgeExecutionState = { status: "skipped" };
+  it("constructs a skipped state via factory", () => {
+    const state = skippedEdge();
     expect(state.status).toBe("skipped");
   });
 
@@ -128,7 +130,7 @@ describe("EdgeExecutionState", () => {
           return assertNever(state);
       }
     }
-    expect(describeState({ status: "active", activatedAt: 0 })).toBe("active");
+    expect(describeState(activeEdge(0))).toBe("active");
   });
 });
 
