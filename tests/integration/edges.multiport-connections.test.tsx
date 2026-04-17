@@ -3,7 +3,7 @@ import type { StoreApi } from "zustand";
 import { createStore, type WorkflowState } from "@/store/createStore";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
-import { MultiPortTaskNodeSpec } from "@/registry/builtins/MultiPortTaskNode.spec";
+import { MultiPortTaskNodeSpec } from "../fixtures/multiPortSpec";
 import { EndNodeSpec } from "@/registry/builtins/EndNode.spec";
 import { TaskNodeSpec } from "@/registry/builtins/TaskNode.spec";
 
