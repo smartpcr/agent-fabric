@@ -30,6 +30,7 @@ export function createGraphSlice(
     removeNode: (id: string) => {
       set((state) => ({
         nodes: state.nodes.filter((n) => n.id !== id),
+        edges: state.edges.filter((e) => e.source !== id && e.target !== id),
       }));
     },
   };
