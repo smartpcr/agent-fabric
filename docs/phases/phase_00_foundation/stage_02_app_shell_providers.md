@@ -23,7 +23,7 @@
   - Test: Unit: `useWorkflowRepo()` throws outside provider; returns injected impl inside; `NoopTelemetrySink.track()` is a no-op (can be spied but does nothing).
   - Effort: 4h
 
-- [ ] **Step 4**: Zustand store skeleton + `createStore` factory
+- [x] **Step 4**: Zustand store skeleton + `createStore` factory
   - File(s): `src/store/createStore.ts`, `src/store/hooks.ts`, `src/store/slices/graphSlice.ts`, `src/store/slices/selectionSlice.ts`, `src/store/slices/registrySlice.ts`, `src/store/slices/executionSlice.ts`, `src/store/slices/viewportSlice.ts`
   - Contents: Each slice exports `createXxxSlice(set, get)` returning state + actions (stubs for now — just initial state). `createStore()` composes slices via spread; `useWorkflowStore` exported as typed hook.
   - Test: Unit: `createStore()` returns an object containing keys from all five slices; initial state matches an inline snapshot; the store survives a round-trip via `JSON.parse(JSON.stringify(store.getState()))` when `executionSlice` is excluded.
