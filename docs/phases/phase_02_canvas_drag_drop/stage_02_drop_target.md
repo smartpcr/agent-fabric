@@ -11,7 +11,7 @@
   - Test: 100% — drop fires `addNode` with the payload kind.
   - Effort: 3h
 
-- [ ] **Step 2**: Convert client coordinates to flow coordinates
+- [x] **Step 2**: Convert client coordinates to flow coordinates
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/unit/features/canvas/coordinates.test.ts`
   - Contents: Use `useReactFlow().screenToFlowPosition({x, y})` taking bounding rect into account; handles zoom and pan correctly.
   - Test: 100% — given mocked viewport `{x: 100, y: 200, zoom: 2}`, drop at client `(300, 400)` maps to expected flow coords within 1px.
