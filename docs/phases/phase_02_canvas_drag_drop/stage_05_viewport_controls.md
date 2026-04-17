@@ -17,7 +17,7 @@
   - Test: 100% — renders; click dispatches `setViewport`.
   - Effort: 2h
 
-- [ ] **Step 3**: Controls toolbar (zoom in/out, fit-view, lock)
+- [x] **Step 3**: Controls toolbar (zoom in/out, fit-view, lock)
   - File(s): `src/features/canvas/Controls.tsx`, `tests/unit/features/canvas/Controls.test.tsx`
   - Contents: Buttons dispatch `zoomIn`, `zoomOut`, `fitView`, `toggleInteractive`. Tooltip + keyboard shortcuts (`+`, `-`, `f`, `l`).
   - Test: 100% — each button dispatches correctly; shortcuts firing in canvas only.
