@@ -1,10 +1,11 @@
 # Phase 1 — Stage 4: Store Wiring for Domain
+
 > Fill in the zustand `graphSlice` + `registrySlice` with validated actions and selectors. Provide test utilities.
 > Status: `[ ]` not started · **Effort**: 20h
 
 ## Steps
 
-- [ ] **Step 1**: `graphSlice`: state + `addNode` action
+- [x] **Step 1**: `graphSlice`: state + `addNode` action
   - File(s): `src/store/slices/graphSlice.ts` (extend), `tests/unit/store/slices/graphSlice.addNode.test.ts`
   - Contents: `nodes: WorkflowNode[]`, `edges: WorkflowEdge[]`; `addNode(spec, position?) → WorkflowNode` uses `makeNode`; returns the new node.
   - Test: 100% — starts empty; `addNode` appends; returned node matches state.
@@ -59,6 +60,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 4
+
 - All 9 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/store/**`.
 - Integration test green.
