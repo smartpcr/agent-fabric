@@ -1,4 +1,5 @@
 # Phase 0 — Stage 2: App Shell & Providers
+
 > Render an empty xyflow canvas inside a 3-pane editor layout; wire dependency-injection providers; add the zustand store skeleton and an error boundary.
 > Status: `[ ]` not started · **Effort**: 14h
 
@@ -10,7 +11,7 @@
   - Test: Component test renders `Canvas`; asserts `getByRole('application', { name: /workflow canvas/i })` is present.
   - Effort: 3h
 
-- [ ] **Step 2**: 3-pane editor layout (palette / canvas / property-grid)
+- [x] **Step 2**: 3-pane editor layout (palette / canvas / property-grid)
   - File(s): `src/features/editor/EditorLayout.tsx`, `src/features/palette/Palette.tsx` (placeholder), `src/features/property-grid/PropertyGrid.tsx` (placeholder)
   - Contents: CSS grid layout `grid-template-columns: 240px 1fr 320px`; resizable splitters (use `react-resizable-panels`); collapsible side panels via `Ctrl+\` keyboard shortcut; panels have `role="complementary"` + `aria-label`.
   - Test: Component test asserts three panels exist; pressing `Ctrl+\` collapses/expands the palette; focus ring visible on splitter handle.
@@ -35,6 +36,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 2
+
 - `EditorPage` renders the three-panel layout with a working canvas and collapsible panels.
 - All four DI providers throw with a helpful message when unused.
 - Store skeleton instantiable in tests without React.
