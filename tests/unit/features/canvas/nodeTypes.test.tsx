@@ -8,10 +8,11 @@ import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore } from "@/store/hooks";
 import { nodeTypes } from "@/features/canvas/nodeTypes";
 
-// Track which nodeTypes were passed to ReactFlow
+// Track nodes and nodeTypes passed to ReactFlow
 let capturedNodeTypes: Record<string, unknown> | undefined;
+let capturedNodes: Array<{ id: string; type?: string; kind?: string; data: unknown }> | undefined;
 
-// Mock @xyflow/react — capture nodeTypes prop and render matching component
+// Mock @xyflow/react — resolve renderer strictly from node.type (like real xyflow)
 vi.mock("@xyflow/react", () => ({
   ReactFlow: ({
     children,
@@ -21,7 +22,6 @@ vi.mock("@xyflow/react", () => ({
     children?: ReactNode;
     nodes?: Array<{
       id: string;
-      kind?: string;
       type?: string;
       data: unknown;
       position: { x: number; y: number };
@@ -29,11 +29,11 @@ vi.mock("@xyflow/react", () => ({
     nodeTypes?: Record<string, unknown>;
   }) => {
     capturedNodeTypes = nt;
+    capturedNodes = nodes;
     return (
       <div data-testid="mock-reactflow">
         {nodes?.map((n) => {
-          const nodeType = n.type ?? n.kind ?? "";
-          const Component = nt?.[nodeType] as
+          const Component = (n.type ? nt?.[n.type] : undefined) as
             | React.ComponentType<{
                 id: string;
                 type: string;
@@ -44,7 +44,7 @@ vi.mock("@xyflow/react", () => ({
           return (
             <div key={n.id} data-testid={`rf-node-${n.id}`}>
               {Component ? (
-                <Component id={n.id} type={nodeType} data={n.data} selected={false} />
+                <Component id={n.id} type={n.type ?? ""} data={n.data} selected={false} />
               ) : (
                 "unknown"
               )}
@@ -86,6 +86,7 @@ vi.mock("@/store/selectors/graphSelectors", () => ({
 afterEach(() => {
   cleanup();
   capturedNodeTypes = undefined;
+  capturedNodes = undefined;
 });
 
 function setupStore() {
@@ -122,6 +123,30 @@ describe("Canvas with nodeTypes", () => {
     expect(capturedNodeTypes).toHaveProperty("start");
     expect(capturedNodeTypes).toHaveProperty("end");
     expect(capturedNodeTypes).toHaveProperty("task");
+  });
+
+  it("maps store nodes with kind to xyflow nodes with type", () => {
+    setupStore();
+    const { result, unmount } = renderHook(() => useWorkflowStore());
+    act(() => {
+      result.current.addNode(result.current.registry.resolve("start"), { x: 0, y: 0 });
+      result.current.addNode(result.current.registry.resolve("task"), { x: 100, y: 100 });
+    });
+    unmount();
+
+    render(
+      <DragProvider>
+        <Canvas />
+      </DragProvider>,
+    );
+    expect(capturedNodes).toBeDefined();
+    expect(capturedNodes).toHaveLength(2);
+    for (const n of capturedNodes ?? []) {
+      expect(n.type).toBeDefined();
+      expect(typeof n.type).toBe("string");
+    }
+    expect(capturedNodes?.[0]?.type).toBe("start");
+    expect(capturedNodes?.[1]?.type).toBe("task");
   });
 
   it("renders StartNode for a node of type 'start'", () => {
