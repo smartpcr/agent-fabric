@@ -11,7 +11,7 @@
   - Test: 100% — each action; de-duplication; clear.
   - Effort: 3h
 
-- [ ] **Step 2**: Click selects; shift-click adds; ctrl/cmd-click toggles
+- [x] **Step 2**: Click selects; shift-click adds; ctrl/cmd-click toggles
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/integration/selection.click.test.tsx`
   - Contents: xyflow `onSelectionChange` routed through store; modifier keys detected.
   - Test: Integration — click / shift-click / ctrl-click behave as spec.

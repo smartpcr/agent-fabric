@@ -77,6 +77,7 @@ vi.mock("@xyflow/react", () => ({
     />
   ),
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
+  SelectionMode: { Partial: "partial", Full: "full" },
 }));
 
 vi.mock("@/features/canvas/Background", () => ({
