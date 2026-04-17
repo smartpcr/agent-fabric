@@ -1,7 +1,7 @@
 # Phase 2 — Stage 3: Custom Node Chrome
 
 > BaseNode + concrete Task / Start / End React components wired into the xyflow `nodeTypes` map.
-> Status: `[ ]` not started · **Effort**: 12h
+> Status: `[x]` complete · **Effort**: 12h
 
 ## Steps
 

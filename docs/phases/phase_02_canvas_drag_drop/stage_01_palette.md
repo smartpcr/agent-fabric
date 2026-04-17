@@ -1,7 +1,7 @@
 # Phase 2 — Stage 1: Palette
 
 > A virtualized, categorized, keyboard-accessible palette of node types the user drags onto the canvas.
-> Status: `[ ]` not started · **Effort**: 16h
+> Status: `[x]` complete · **Effort**: 16h
 
 ## Steps
 
