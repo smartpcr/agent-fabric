@@ -1,6 +1,12 @@
-import { BaseEdge, getBezierPath, type EdgeProps } from "@xyflow/react";
+import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from "@xyflow/react";
 
 const ARROW_MARKER_ID = "default-edge-arrow";
+const MAX_LABEL_LENGTH = 20;
+
+function truncateLabel(text: string): string {
+  if (text.length <= MAX_LABEL_LENGTH) return text;
+  return `${text.slice(0, MAX_LABEL_LENGTH)}…`;
+}
 
 export function DefaultEdge({
   id,
@@ -12,8 +18,9 @@ export function DefaultEdge({
   targetPosition,
   style,
   markerEnd,
+  data,
 }: EdgeProps) {
-  const [edgePath] = getBezierPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
     targetX,
@@ -21,6 +28,9 @@ export function DefaultEdge({
     sourcePosition,
     targetPosition,
   });
+
+  const label = data?.label;
+  const labelText = typeof label === "string" ? label : undefined;
 
   return (
     <>
@@ -43,8 +53,29 @@ export function DefaultEdge({
         markerEnd={markerEnd ?? `url(#${ARROW_MARKER_ID})`}
         style={style}
       />
+      {labelText && (
+        <EdgeLabelRenderer>
+          <div
+            data-testid="edge-label"
+            title={labelText}
+            style={{
+              position: "absolute",
+              transform: `translate(-50%, -50%) translate(${String(labelX)}px, ${String(labelY)}px)`,
+              pointerEvents: "all",
+              fontSize: 12,
+              background: "white",
+              padding: "2px 6px",
+              borderRadius: 4,
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            {truncateLabel(labelText)}
+          </div>
+        </EdgeLabelRenderer>
+      )}
     </>
   );
 }
 
 DefaultEdge.ARROW_MARKER_ID = ARROW_MARKER_ID;
+DefaultEdge.MAX_LABEL_LENGTH = MAX_LABEL_LENGTH;
