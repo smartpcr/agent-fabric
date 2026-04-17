@@ -11,7 +11,7 @@
   - Test: 100% — rejection with specific error code; existing edge highlighted in UI.
   - Effort: 2h
 
-- [ ] **Step 2**: `multi` cardinality allows fan-in
+- [x] **Step 2**: `multi` cardinality allows fan-in
   - File(s): `src/domain/validation/connectionRules.ts` (extend), `tests/unit/domain/validation/connectionRules.multi.test.ts`
   - Contents: Target with `cardinality: 'multi'` accepts any number of inbound edges.
   - Test: 100% — 5 edges into one multi input succeed.
