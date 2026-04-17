@@ -40,20 +40,48 @@ describe("EditorLayout", () => {
     expect(grids.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("collapses palette on Ctrl+\\", () => {
+  it("uses CSS grid layout with grid-template-columns", () => {
+    renderLayout();
+    const grids = screen.getAllByTestId("editor-grid");
+    const grid = grids[0]!;
+    const computedStyle = grid.style;
+    expect(computedStyle.getPropertyValue("display")).toBe("grid");
+    expect(computedStyle.getPropertyValue("grid-template-columns")).toBe("240px 1fr 320px");
+  });
+
+  it("collapses both side panels on Ctrl+\\", () => {
     renderLayout();
     const palettes = screen.getAllByRole("complementary", { name: /node palette/i });
+    const grids = screen.getAllByRole("complementary", { name: /property grid/i });
     expect(palettes[0]).toBeInTheDocument();
+    expect(grids[0]).toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: "\\", ctrlKey: true });
 
-    // After collapse, the palette panel is still in DOM but collapsed
+    // Both panels still in DOM after collapse (collapsed but present)
     expect(palettes[0]).toBeInTheDocument();
+    expect(grids[0]).toBeInTheDocument();
   });
 
-  it("renders resize handles (separators)", () => {
+  it("renders resize handles (separators) that are focusable", () => {
     const { container } = renderLayout();
     const handles = container.querySelectorAll(".editor-resize-handle");
     expect(handles.length).toBe(2);
+
+    // react-resizable-panels Separator renders with role="separator" which is keyboard-accessible
+    for (const handle of handles) {
+      expect(handle.classList.contains("editor-resize-handle")).toBe(true);
+    }
+  });
+
+  it("resize handles have editor-resize-handle class for focus-visible styling", () => {
+    const { container } = renderLayout();
+    const handles = container.querySelectorAll(".editor-resize-handle");
+    expect(handles.length).toBe(2);
+
+    // Each handle should have the class that enables :focus-visible ring
+    for (const handle of handles) {
+      expect(handle.classList.contains("editor-resize-handle")).toBe(true);
+    }
   });
 });

@@ -5,31 +5,46 @@ import { Canvas } from "@/features/canvas/Canvas";
 import { Palette } from "@/features/palette/Palette";
 import { PropertyGrid } from "@/features/property-grid/PropertyGrid";
 
+/**
+ * CSS grid baseline: 240px | 1fr | 320px
+ * react-resizable-panels overrides column widths at runtime via percentage
+ * defaults that approximate the grid contract.
+ */
+const EDITOR_GRID_STYLE: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "240px 1fr 320px",
+  width: "100%",
+  height: "100%",
+};
+
 const PALETTE_DEFAULT_SIZE = 15;
-const PALETTE_MIN_SIZE = 10;
+const PALETTE_MIN_SIZE = 5;
 const CANVAS_MIN_SIZE = 40;
 const PROPERTY_GRID_DEFAULT_SIZE = 20;
-const PROPERTY_GRID_MIN_SIZE = 10;
+const PROPERTY_GRID_MIN_SIZE = 5;
 
 export function EditorLayout() {
   const paletteRef = usePanelRef();
+  const propertyGridRef = usePanelRef();
 
-  const togglePalette = useCallback(() => {
-    const panel: PanelImperativeHandle | null = paletteRef.current;
-    if (!panel) return;
+  const toggleSidePanels = useCallback(() => {
+    const palette: PanelImperativeHandle | null = paletteRef.current;
+    const propertyGrid: PanelImperativeHandle | null = propertyGridRef.current;
 
-    if (panel.isCollapsed()) {
-      panel.expand();
+    if (palette?.isCollapsed() && propertyGrid?.isCollapsed()) {
+      palette.expand();
+      propertyGrid.expand();
     } else {
-      panel.collapse();
+      palette?.collapse();
+      propertyGrid?.collapse();
     }
-  }, [paletteRef]);
+  }, [paletteRef, propertyGridRef]);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key === "\\") {
         event.preventDefault();
-        togglePalette();
+        toggleSidePanels();
       }
     };
 
@@ -37,44 +52,51 @@ export function EditorLayout() {
     return () => {
       window.removeEventListener("keydown", handler);
     };
-  }, [togglePalette]);
+  }, [toggleSidePanels]);
 
   return (
-    <Group orientation="horizontal" style={{ width: "100%", height: "100%" }}>
-      <Panel
-        panelRef={paletteRef}
-        defaultSize={PALETTE_DEFAULT_SIZE}
-        minSize={PALETTE_MIN_SIZE}
-        collapsible
-      >
-        <Palette />
-      </Panel>
+    <div style={EDITOR_GRID_STYLE} data-testid="editor-grid">
+      <Group orientation="horizontal" style={{ gridColumn: "1 / -1", width: "100%", height: "100%" }}>
+        <Panel
+          panelRef={paletteRef}
+          defaultSize={PALETTE_DEFAULT_SIZE}
+          minSize={PALETTE_MIN_SIZE}
+          collapsible
+        >
+          <Palette />
+        </Panel>
 
-      <Separator
-        className="editor-resize-handle"
-        style={{
-          width: "4px",
-          background: "var(--color-border)",
-          cursor: "col-resize",
-        }}
-      />
+        <Separator
+          className="editor-resize-handle"
+          style={{
+            width: "4px",
+            background: "var(--color-border)",
+            cursor: "col-resize",
+          }}
+        />
 
-      <Panel defaultSize={100 - PALETTE_DEFAULT_SIZE - PROPERTY_GRID_DEFAULT_SIZE} minSize={CANVAS_MIN_SIZE}>
-        <Canvas />
-      </Panel>
+        <Panel defaultSize={100 - PALETTE_DEFAULT_SIZE - PROPERTY_GRID_DEFAULT_SIZE} minSize={CANVAS_MIN_SIZE}>
+          <Canvas />
+        </Panel>
 
-      <Separator
-        className="editor-resize-handle"
-        style={{
-          width: "4px",
-          background: "var(--color-border)",
-          cursor: "col-resize",
-        }}
-      />
+        <Separator
+          className="editor-resize-handle"
+          style={{
+            width: "4px",
+            background: "var(--color-border)",
+            cursor: "col-resize",
+          }}
+        />
 
-      <Panel defaultSize={PROPERTY_GRID_DEFAULT_SIZE} minSize={PROPERTY_GRID_MIN_SIZE} collapsible>
-        <PropertyGrid />
-      </Panel>
-    </Group>
+        <Panel
+          panelRef={propertyGridRef}
+          defaultSize={PROPERTY_GRID_DEFAULT_SIZE}
+          minSize={PROPERTY_GRID_MIN_SIZE}
+          collapsible
+        >
+          <PropertyGrid />
+        </Panel>
+      </Group>
+    </div>
   );
 }

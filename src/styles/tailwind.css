@@ -36,3 +36,10 @@
     max-width: 100%;
   }
 }
+
+@layer components {
+  .editor-resize-handle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -1px;
+  }
+}
