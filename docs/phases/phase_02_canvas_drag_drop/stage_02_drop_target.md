@@ -41,7 +41,7 @@
   - Test: Green in CI.
   - Effort: 1h
 
-- [ ] **Step 7**: Integration — palette drag → canvas drop → node rendered
+- [x] **Step 7**: Integration — palette drag → canvas drop → node rendered
   - File(s): `tests/integration/editor.drag-drop.test.tsx`
   - Contents: Mount `EditorPage` with registered builtins; simulate pointer drag from palette to canvas; assert node rendered at drop point.
   - Test: Green in CI.
