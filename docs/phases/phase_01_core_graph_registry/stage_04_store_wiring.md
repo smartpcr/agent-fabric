@@ -11,7 +11,7 @@
   - Test: 100% — starts empty; `addNode` appends; returned node matches state.
   - Effort: 2h
 
-- [ ] **Step 2**: `graphSlice`: `removeNode` (cascading edges)
+- [x] **Step 2**: `graphSlice`: `removeNode` (cascading edges)
   - File(s): `src/store/slices/graphSlice.ts` (extend), `tests/unit/store/slices/graphSlice.removeNode.test.ts`
   - Contents: Remove node by id; drop all edges where `source === id || target === id`.
   - Test: 100% — missing id is no-op; edges cascade.

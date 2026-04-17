@@ -25,6 +25,7 @@ describe("createStore", () => {
     expect(state).toHaveProperty("edges");
     expect(state).toHaveProperty("addNode");
     expect(state).toHaveProperty("removeNode");
+    expect(state).toHaveProperty("connectPorts");
 
     // selectionSlice keys
     expect(state).toHaveProperty("selectedNodeIds");
