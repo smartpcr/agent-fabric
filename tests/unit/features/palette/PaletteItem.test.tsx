@@ -51,8 +51,9 @@ describe("PaletteItem", () => {
 
   it("renders a lucide icon", () => {
     const { container } = render(<PaletteItem spec={testSpec} />);
-    const svg = container.querySelector("svg");
-    expect(svg).toBeInTheDocument();
+    const svgs = container.querySelectorAll("svg");
+    // Should have drag handle + spec icon = 2 SVGs
+    expect(svgs.length).toBeGreaterThanOrEqual(2);
   });
 
   it("shows tooltip on hover", async () => {
@@ -129,14 +130,23 @@ describe("PaletteItem", () => {
     expect(option.style.cursor).toBe("not-allowed");
   });
 
-  it("handles unknown icon gracefully (no SVG rendered)", () => {
+  it("renders a drag handle affordance", () => {
+    render(<PaletteItem spec={testSpec} />);
+    const handle = screen.getByTestId("drag-handle");
+    expect(handle).toBeInTheDocument();
+    expect(handle.tagName.toLowerCase()).toBe("svg");
+  });
+
+  it("handles unknown icon gracefully (no SVG rendered for icon)", () => {
     const specWithBadIcon: NodeSpec = {
       ...testSpec,
       icon: "nonexistent-icon-xyz",
     };
     const { container } = render(<PaletteItem spec={specWithBadIcon} />);
-    const svg = container.querySelector("svg");
-    expect(svg).toBeNull();
+    // Only the drag-handle SVG should be present, not a spec icon SVG
+    const svgs = container.querySelectorAll("svg");
+    expect(svgs).toHaveLength(1); // just the grip handle
+    expect(svgs[0]).toHaveAttribute("data-testid", "drag-handle");
     // Label still renders
     expect(screen.getByText("Start")).toBeInTheDocument();
   });

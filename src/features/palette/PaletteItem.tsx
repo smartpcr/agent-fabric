@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { icons } from "lucide-react";
+import { icons, GripVertical } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
 
@@ -39,7 +39,7 @@ export function PaletteItem({ spec, disabled = false, style }: PaletteItemProps)
             data-kind={spec.kind}
             style={{
               ...style,
-              padding: "4px 8px 4px 24px",
+              padding: "4px 8px",
               cursor: disabled ? "not-allowed" : "grab",
               opacity: disabled ? 0.5 : 1,
               display: "flex",
@@ -48,6 +48,16 @@ export function PaletteItem({ spec, disabled = false, style }: PaletteItemProps)
               boxSizing: "border-box",
             }}
           >
+            <GripVertical
+              size={14}
+              aria-hidden="true"
+              data-testid="drag-handle"
+              style={{
+                flexShrink: 0,
+                color: disabled ? "inherit" : "#888",
+                cursor: disabled ? "not-allowed" : "grab",
+              }}
+            />
             <PaletteIcon name={spec.icon} />
             <span>{spec.label}</span>
           </div>
