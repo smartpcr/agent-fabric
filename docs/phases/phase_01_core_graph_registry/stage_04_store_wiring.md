@@ -23,7 +23,7 @@
   - Test: 100% — valid connect appends; invalid returns error; state unchanged on failure.
   - Effort: 3h
 
-- [ ] **Step 4**: `graphSlice`: `updateNodeData(id, newData): Result<void, ValidationError[]>`
+- [x] **Step 4**: `graphSlice`: `updateNodeData(id, newData): Result<void, ValidationError[]>`
   - File(s): `src/store/slices/graphSlice.ts` (extend), `tests/unit/store/slices/graphSlice.updateNodeData.test.ts`
   - Contents: Validates via `validateNodeData`; on success, replaces `node.data`; on failure, returns errors; state unchanged.
   - Test: 100% — valid update persists; invalid returns errors; no mutation on failure.

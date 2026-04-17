@@ -26,6 +26,7 @@ export interface GraphSlice {
   removeNode: (id: string) => void;
   connectPorts: (params: ConnectPortsParams) => Result<WorkflowEdge, ConnectionInvalidError>;
   updateNodeData: (id: string, newData: unknown) => Result<void, ValidationError[]>;
+  updateNodePosition: (id: string, position: Position) => void;
 }
 
 export function createGraphSlice(
@@ -97,6 +98,13 @@ export function createGraphSlice(
         nodes: s.nodes.map((n) => (n.id === id ? { ...n, data: newData } : n)),
       }));
       return { ok: true, value: undefined };
+    },
+    updateNodePosition: (id: string, position: Position) => {
+      const x = Number.isFinite(position.x) ? position.x : 0;
+      const y = Number.isFinite(position.y) ? position.y : 0;
+      set((s) => ({
+        nodes: s.nodes.map((n) => (n.id === id ? { ...n, position: { x, y } } : n)),
+      }));
     },
   };
 }
