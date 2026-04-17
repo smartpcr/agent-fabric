@@ -55,6 +55,7 @@ function flattenGroups(groups: CategoryGroup[], collapsed: Set<string>): FlatRow
 }
 
 export interface PaletteProps {
+  /** Override viewport center computation. Production uses ConnectedPalette with useViewportCenter. */
   readonly getViewportCenter?: () => Position;
 }
 
