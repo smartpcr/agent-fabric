@@ -35,7 +35,7 @@
   - Test: Integration — set viewport → save → restore → viewport matches.
   - Effort: 2h
 
-- [ ] **Step 6**: Integration — build 3-node chain via palette + canvas interactions
+- [x] **Step 6**: Integration — build 3-node chain via palette + canvas interactions
   - File(s): `tests/integration/editor.build-graph.test.tsx`
   - Contents: User-flow — drag Start, Task, End; connect via ports (uses Phase 3 handles); assert graph shape.
   - Test: Green in CI.
