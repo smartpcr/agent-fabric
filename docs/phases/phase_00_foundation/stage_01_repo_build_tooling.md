@@ -4,7 +4,7 @@
 
 ## Steps
 
-- [ ] **Step 1**: Initialize Vite + React + TypeScript project
+- [x] **Step 1**: Initialize Vite + React + TypeScript project
   - File(s): `package.json`, `tsconfig.json`, `vite.config.ts`, `src/main.tsx`, `src/App.tsx`, `index.html`, `.gitignore`, `.nvmrc`
   - Contents: `strict: true`, `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`; path alias `@/*` → `./src/*` in both tsconfig and vite config; `engines.node` pinned.
   - Test: Unit — `tests/unit/app.smoke.test.tsx` imports `App` and asserts render without crash; `npm run dev` starts without errors (manual).
