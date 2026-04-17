@@ -11,7 +11,7 @@
   - Test: 100% — data attributes present; accessible name = port label; type class applied.
   - Effort: 3h
 
-- [ ] **Step 2**: Handle layout engine — distribute N handles along node edges
+- [x] **Step 2**: Handle layout engine — distribute N handles along node edges
   - File(s): `src/features/nodes/ports/handleLayout.ts`, `tests/unit/features/nodes/ports/handleLayout.test.ts`
   - Contents: `computeHandlePositions({ count, edge: 'top'|'bottom'|'left'|'right', padding })` returns percentage offsets; evenly spaced; clamped to `[padding, 1-padding]`.
   - Test: 100% — 1 port → 50%; 2 → 33%/67%; 5 → evenly; clamp at extremes.

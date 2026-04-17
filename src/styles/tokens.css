@@ -16,6 +16,14 @@
   --color-warning: #f59e0b;
   --color-warning-fg: #1a1a2e;
 
+  /* Port colors — one per data type, used by handle styling */
+  --color-port-string: #3b82f6;
+  --color-port-json: #8b5cf6;
+  --color-port-number: #f59e0b;
+  --color-port-boolean: #22c55e;
+  --color-port-any: #6b7280;
+  --color-port-neutral: #9ca3af;
+
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -53,7 +61,15 @@
   --color-warning: #fbbf24;
   --color-warning-fg: #0f172a;
 
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  /* Port colors — dark theme */
+  --color-port-string: #60a5fa;
+  --color-port-json: #a78bfa;
+  --color-port-number: #fbbf24;
+  --color-port-boolean: #4ade80;
+  --color-port-any: #94a3b8;
+  --color-port-neutral: #9ca3af;
+
+  --shadow-sm:0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
 }
