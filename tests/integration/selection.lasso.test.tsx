@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { render, cleanup, renderHook, act } from "@testing-library/react";
+import { render, screen, cleanup, renderHook, act, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
 import { DragProvider } from "@/features/palette/DragContext";
@@ -11,6 +11,13 @@ import { useWorkflowStore } from "@/store/hooks";
 let capturedSelectionMode: string | undefined;
 let capturedOnSelectionChange: (({ nodes }: { nodes: Array<{ id: string }> }) => void) | undefined;
 
+/**
+ * Mock ReactFlow that simulates lasso behavior:
+ * - Renders a pane area (data-testid="rf-pane") that listens for pointer drag gestures
+ * - On pointerdown + pointermove + pointerup on the pane, computes which nodes
+ *   fall within the drag rectangle and fires onSelectionChange with those nodes
+ * - Nodes are rendered with position data-attributes so the mock can compute intersection
+ */
 vi.mock("@xyflow/react", () => ({
   ReactFlow: ({
     children,
@@ -34,9 +41,55 @@ vi.mock("@xyflow/react", () => ({
   }) => {
     capturedSelectionMode = selectionMode;
     capturedOnSelectionChange = onSelectionChange;
+
+    // Store node list on pane element for the lasso simulation
+    const allNodes = nodes ?? [];
+
     return (
       <div data-testid="mock-reactflow">
-        {nodes?.map((n) => {
+        <div
+          data-testid="rf-pane"
+          data-nodes={JSON.stringify(
+            allNodes.map((n) => ({ id: n.id, x: n.position.x, y: n.position.y })),
+          )}
+          onPointerUp={(e) => {
+            // Simulate lasso: compute which nodes intersect the drag box
+            // The drag box is defined by data attributes set during pointerdown
+            const pane = e.currentTarget;
+            const startX = Number(pane.getAttribute("data-drag-start-x") ?? "0");
+            const startY = Number(pane.getAttribute("data-drag-start-y") ?? "0");
+            const endX = e.clientX;
+            const endY = e.clientY;
+
+            if (pane.getAttribute("data-dragging") !== "true") return;
+            pane.removeAttribute("data-dragging");
+
+            const minX = Math.min(startX, endX);
+            const maxX = Math.max(startX, endX);
+            const minY = Math.min(startY, endY);
+            const maxY = Math.max(startY, endY);
+
+            // Only trigger lasso if selection mode is partial and there was actual drag distance
+            if (selectionMode === "partial" && (maxX - minX > 1 || maxY - minY > 1)) {
+              const nodesData = JSON.parse(pane.getAttribute("data-nodes") ?? "[]") as Array<{
+                id: string;
+                x: number;
+                y: number;
+              }>;
+              const enclosed = nodesData.filter(
+                (n) => n.x >= minX && n.x <= maxX && n.y >= minY && n.y <= maxY,
+              );
+              onSelectionChange?.({ nodes: enclosed.map((n) => ({ id: n.id })) });
+            }
+          }}
+          onPointerDown={(e) => {
+            const pane = e.currentTarget;
+            pane.setAttribute("data-dragging", "true");
+            pane.setAttribute("data-drag-start-x", String(e.clientX));
+            pane.setAttribute("data-drag-start-y", String(e.clientY));
+          }}
+        />
+        {allNodes.map((n) => {
           const Component = (n.type ? nt?.[n.type] : undefined) as
             | React.ComponentType<{
                 id: string;
@@ -46,7 +99,12 @@ vi.mock("@xyflow/react", () => ({
               }>
             | undefined;
           return (
-            <div key={n.id} data-testid={`rf-node-${n.id}`}>
+            <div
+              key={n.id}
+              data-testid={`rf-node-${n.id}`}
+              data-pos-x={n.position.x}
+              data-pos-y={n.position.y}
+            >
               {Component ? (
                 <Component id={n.id} type={n.type ?? ""} data={n.data} selected={false} />
               ) : (
@@ -106,13 +164,13 @@ function setupStore() {
   unmount();
 }
 
-function addNodes(...kinds: string[]) {
+function addNodesAt(...positions: Array<{ kind: string; x: number; y: number }>) {
   const ids: string[] = [];
   const { result, unmount } = renderHook(() => useWorkflowStore());
   act(() => {
-    for (const kind of kinds) {
+    for (const { kind, x, y } of positions) {
       const spec = result.current.registry.resolve(kind);
-      const node = result.current.addNode(spec, { x: kinds.indexOf(kind) * 100, y: 0 });
+      const node = result.current.addNode(spec, { x, y });
       ids.push(node.id);
     }
   });
@@ -125,6 +183,13 @@ function getSelected(): Set<string> {
   const selected = result.current.selected;
   unmount();
   return selected;
+}
+
+/** Simulate a lasso drag on the pane from (startX,startY) to (endX,endY) */
+function simulateLassoDrag(startX: number, startY: number, endX: number, endY: number) {
+  const pane = screen.getByTestId("rf-pane");
+  fireEvent.pointerDown(pane, { clientX: startX, clientY: startY });
+  fireEvent.pointerUp(pane, { clientX: endX, clientY: endY });
 }
 
 describe("Lasso (box) selection", () => {
@@ -153,9 +218,14 @@ describe("Lasso (box) selection", () => {
     expect(typeof capturedOnSelectionChange).toBe("function");
   });
 
-  it("lasso enclosing 2 of 3 nodes selects only those 2", () => {
+  it("drag on empty canvas creates box; 2 of 3 enclosed nodes become selected", () => {
     setupStore();
-    const [id1, id2, id3] = addNodes("start", "task", "end");
+    // Place nodes at known positions: (10,10), (50,50), (200,200)
+    const [id1, id2, id3] = addNodesAt(
+      { kind: "start", x: 10, y: 10 },
+      { kind: "task", x: 50, y: 50 },
+      { kind: "end", x: 200, y: 200 },
+    );
 
     render(
       <DragProvider>
@@ -163,9 +233,9 @@ describe("Lasso (box) selection", () => {
       </DragProvider>,
     );
 
-    // Simulate xyflow lasso completion: only id1 and id2 were in the box
+    // Drag a lasso box from (0,0) to (100,100) — encloses node1 (10,10) and node2 (50,50)
     act(() => {
-      capturedOnSelectionChange?.({ nodes: [{ id: id1 }, { id: id2 }] });
+      simulateLassoDrag(0, 0, 100, 100);
     });
 
     const selected = getSelected();
@@ -175,9 +245,13 @@ describe("Lasso (box) selection", () => {
     expect(selected.size).toBe(2);
   });
 
-  it("lasso enclosing all nodes selects all", () => {
+  it("drag enclosing all nodes selects all", () => {
     setupStore();
-    const [id1, id2, id3] = addNodes("start", "task", "end");
+    const [id1, id2, id3] = addNodesAt(
+      { kind: "start", x: 10, y: 10 },
+      { kind: "task", x: 50, y: 50 },
+      { kind: "end", x: 100, y: 100 },
+    );
 
     render(
       <DragProvider>
@@ -186,16 +260,19 @@ describe("Lasso (box) selection", () => {
     );
 
     act(() => {
-      capturedOnSelectionChange?.({ nodes: [{ id: id1 }, { id: id2 }, { id: id3 }] });
+      simulateLassoDrag(0, 0, 200, 200);
     });
 
     const selected = getSelected();
+    expect(selected.has(id1)).toBe(true);
+    expect(selected.has(id2)).toBe(true);
+    expect(selected.has(id3)).toBe(true);
     expect(selected.size).toBe(3);
   });
 
-  it("lasso enclosing no nodes clears selection", () => {
+  it("drag enclosing no nodes clears selection", () => {
     setupStore();
-    const [id1] = addNodes("start");
+    const [id1] = addNodesAt({ kind: "start", x: 100, y: 100 });
 
     render(
       <DragProvider>
@@ -203,22 +280,28 @@ describe("Lasso (box) selection", () => {
       </DragProvider>,
     );
 
-    // First select a node
+    // First select the node via a lasso that encloses it
     act(() => {
-      capturedOnSelectionChange?.({ nodes: [{ id: id1 }] });
+      simulateLassoDrag(50, 50, 150, 150);
     });
+    expect(getSelected().has(id1)).toBe(true);
     expect(getSelected().size).toBe(1);
 
-    // Empty lasso clears
+    // Drag a box that misses all nodes (0,0 to 50,50 — node is at 100,100)
     act(() => {
-      capturedOnSelectionChange?.({ nodes: [] });
+      simulateLassoDrag(0, 0, 50, 50);
     });
+
     expect(getSelected().size).toBe(0);
   });
 
   it("lasso selection replaces previous selection", () => {
     setupStore();
-    const [id1, id2, id3] = addNodes("start", "task", "end");
+    const [id1, id2, id3] = addNodesAt(
+      { kind: "start", x: 10, y: 10 },
+      { kind: "task", x: 50, y: 50 },
+      { kind: "end", x: 200, y: 200 },
+    );
 
     render(
       <DragProvider>
@@ -226,21 +309,22 @@ describe("Lasso (box) selection", () => {
       </DragProvider>,
     );
 
-    // Select id1 first
+    // First lasso selects id1
     act(() => {
-      capturedOnSelectionChange?.({ nodes: [{ id: id1 }] });
+      simulateLassoDrag(0, 0, 30, 30);
     });
     expect(getSelected().has(id1)).toBe(true);
+    expect(getSelected().size).toBe(1);
 
-    // Lasso selects id2 and id3 instead
+    // Second lasso selects id3 only
     act(() => {
-      capturedOnSelectionChange?.({ nodes: [{ id: id2 }, { id: id3 }] });
+      simulateLassoDrag(150, 150, 250, 250);
     });
 
     const selected = getSelected();
     expect(selected.has(id1)).toBe(false);
-    expect(selected.has(id2)).toBe(true);
+    expect(selected.has(id2)).toBe(false);
     expect(selected.has(id3)).toBe(true);
-    expect(selected.size).toBe(2);
+    expect(selected.size).toBe(1);
   });
 });
