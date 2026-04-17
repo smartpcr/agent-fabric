@@ -1,12 +1,15 @@
 import type { StoreApi } from "zustand";
 import type { WorkflowState } from "@/store/createStore";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
+import { NodeRegistry } from "@/registry/NodeRegistry";
 
 export interface RegistrySlice {
   nodeTypes: Record<string, unknown>;
   nodeSpecs: Record<string, NodeSpec>;
+  registry: NodeRegistry;
   registerNodeType: (name: string, definition: unknown) => void;
   registerNodeSpec: (spec: NodeSpec) => void;
+  setRegistry: (registry: NodeRegistry) => void;
 }
 
 export function createRegistrySlice(
@@ -16,6 +19,7 @@ export function createRegistrySlice(
   return {
     nodeTypes: {},
     nodeSpecs: {},
+    registry: new NodeRegistry(),
     registerNodeType: (name: string, definition: unknown) => {
       set((state) => ({
         nodeTypes: { ...state.nodeTypes, [name]: definition },
@@ -25,6 +29,9 @@ export function createRegistrySlice(
       set((state) => ({
         nodeSpecs: { ...state.nodeSpecs, [spec.kind]: spec },
       }));
+    },
+    setRegistry: (registry: NodeRegistry) => {
+      set({ registry });
     },
   };
 }
