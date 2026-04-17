@@ -1,6 +1,11 @@
-import { useCallback, useEffect } from "react";
-import { Group, Panel, Separator, usePanelRef } from "react-resizable-panels";
-import type { PanelImperativeHandle } from "react-resizable-panels";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Group,
+  Panel,
+  Separator,
+  usePanelRef,
+  type PanelImperativeHandle,
+} from "react-resizable-panels";
 import { Canvas } from "@/features/canvas/Canvas";
 import { Palette } from "@/features/palette/Palette";
 import { PropertyGrid } from "@/features/property-grid/PropertyGrid";
@@ -26,17 +31,22 @@ const PROPERTY_GRID_MIN_SIZE = 5;
 export function EditorLayout() {
   const paletteRef = usePanelRef();
   const propertyGridRef = usePanelRef();
+  const [sidePanelsCollapsed, setSidePanelsCollapsed] = useState(false);
 
   const toggleSidePanels = useCallback(() => {
     const palette: PanelImperativeHandle | null = paletteRef.current;
     const propertyGrid: PanelImperativeHandle | null = propertyGridRef.current;
 
-    if (palette?.isCollapsed() && propertyGrid?.isCollapsed()) {
-      palette.expand();
-      propertyGrid.expand();
+    const bothCollapsed = palette?.isCollapsed() && propertyGrid?.isCollapsed();
+
+    if (bothCollapsed) {
+      palette?.expand();
+      propertyGrid?.expand();
+      setSidePanelsCollapsed(false);
     } else {
       palette?.collapse();
       propertyGrid?.collapse();
+      setSidePanelsCollapsed(true);
     }
   }, [paletteRef, propertyGridRef]);
 
@@ -56,12 +66,16 @@ export function EditorLayout() {
 
   return (
     <div style={EDITOR_GRID_STYLE} data-testid="editor-grid">
-      <Group orientation="horizontal" style={{ gridColumn: "1 / -1", width: "100%", height: "100%" }}>
+      <Group
+        orientation="horizontal"
+        style={{ gridColumn: "1 / -1", width: "100%", height: "100%" }}
+      >
         <Panel
           panelRef={paletteRef}
           defaultSize={PALETTE_DEFAULT_SIZE}
           minSize={PALETTE_MIN_SIZE}
           collapsible
+          data-collapsed={sidePanelsCollapsed}
         >
           <Palette />
         </Panel>
@@ -75,7 +89,10 @@ export function EditorLayout() {
           }}
         />
 
-        <Panel defaultSize={100 - PALETTE_DEFAULT_SIZE - PROPERTY_GRID_DEFAULT_SIZE} minSize={CANVAS_MIN_SIZE}>
+        <Panel
+          defaultSize={100 - PALETTE_DEFAULT_SIZE - PROPERTY_GRID_DEFAULT_SIZE}
+          minSize={CANVAS_MIN_SIZE}
+        >
           <Canvas />
         </Panel>
 
@@ -93,6 +110,7 @@ export function EditorLayout() {
           defaultSize={PROPERTY_GRID_DEFAULT_SIZE}
           minSize={PROPERTY_GRID_MIN_SIZE}
           collapsible
+          data-collapsed={sidePanelsCollapsed}
         >
           <PropertyGrid />
         </Panel>

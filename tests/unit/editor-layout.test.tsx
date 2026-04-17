@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { EditorLayout } from "@/features/editor/EditorLayout";
 
@@ -43,24 +43,45 @@ describe("EditorLayout", () => {
   it("uses CSS grid layout with grid-template-columns", () => {
     renderLayout();
     const grids = screen.getAllByTestId("editor-grid");
-    const grid = grids[0]!;
+    const grid = grids[0];
+    expect(grid).toBeDefined();
     const computedStyle = grid.style;
     expect(computedStyle.getPropertyValue("display")).toBe("grid");
     expect(computedStyle.getPropertyValue("grid-template-columns")).toBe("240px 1fr 320px");
   });
 
-  it("collapses both side panels on Ctrl+\\", () => {
-    renderLayout();
-    const palettes = screen.getAllByRole("complementary", { name: /node palette/i });
-    const grids = screen.getAllByRole("complementary", { name: /property grid/i });
-    expect(palettes[0]).toBeInTheDocument();
-    expect(grids[0]).toBeInTheDocument();
+  it("collapses both side panels on Ctrl+\\ and re-expands on second press", () => {
+    const { container } = renderLayout();
 
-    fireEvent.keyDown(window, { key: "\\", ctrlKey: true });
+    // Get panel DOM elements that carry data-collapsed attribute
+    const panelEls = container.querySelectorAll("[data-panel]");
+    expect(panelEls.length).toBeGreaterThanOrEqual(3);
+    const palettePanel = panelEls[0];
+    const propertyGridPanel = panelEls[panelEls.length - 1];
+    expect(palettePanel).toBeDefined();
+    expect(propertyGridPanel).toBeDefined();
 
-    // Both panels still in DOM after collapse (collapsed but present)
-    expect(palettes[0]).toBeInTheDocument();
-    expect(grids[0]).toBeInTheDocument();
+    // Initially panels are not collapsed
+    expect(palettePanel?.getAttribute("data-collapsed")).not.toBe("true");
+    expect(propertyGridPanel?.getAttribute("data-collapsed")).not.toBe("true");
+
+    // Collapse via Ctrl+\
+    act(() => {
+      fireEvent.keyDown(window, { key: "\\", ctrlKey: true });
+    });
+
+    // After collapse, data-collapsed should be "true" on both side panels
+    expect(palettePanel?.getAttribute("data-collapsed")).toBe("true");
+    expect(propertyGridPanel?.getAttribute("data-collapsed")).toBe("true");
+
+    // Re-expand via second Ctrl+\
+    act(() => {
+      fireEvent.keyDown(window, { key: "\\", ctrlKey: true });
+    });
+
+    // After expand, data-collapsed should revert to "false"
+    expect(palettePanel?.getAttribute("data-collapsed")).toBe("false");
+    expect(propertyGridPanel?.getAttribute("data-collapsed")).toBe("false");
   });
 
   it("renders resize handles (separators) that are focusable", () => {
@@ -68,20 +89,30 @@ describe("EditorLayout", () => {
     const handles = container.querySelectorAll(".editor-resize-handle");
     expect(handles.length).toBe(2);
 
-    // react-resizable-panels Separator renders with role="separator" which is keyboard-accessible
     for (const handle of handles) {
       expect(handle.classList.contains("editor-resize-handle")).toBe(true);
     }
   });
 
-  it("resize handles have editor-resize-handle class for focus-visible styling", () => {
+  it("splitter handle receives focus and has focus-visible styling class", () => {
     const { container } = renderLayout();
     const handles = container.querySelectorAll(".editor-resize-handle");
     expect(handles.length).toBe(2);
 
-    // Each handle should have the class that enables :focus-visible ring
-    for (const handle of handles) {
-      expect(handle.classList.contains("editor-resize-handle")).toBe(true);
-    }
+    const handle = handles[0] as HTMLElement;
+
+    // Focus the handle programmatically
+    act(() => {
+      handle.focus();
+    });
+
+    // Verify the handle received focus
+    expect(document.activeElement).toBe(handle);
+
+    // Verify it has the class that enables :focus-visible ring styling
+    expect(handle.classList.contains("editor-resize-handle")).toBe(true);
+
+    // The separator has role="separator" making it keyboard-accessible
+    expect(handle.getAttribute("role")).toBe("separator");
   });
 });
