@@ -11,7 +11,7 @@
   - Test: 100% — non-empty id/label required (throws); defaults applied; frozen object.
   - Effort: 2h
 
-- [ ] **Step 2**: `WorkflowNode<TData>` + id generator
+- [x] **Step 2**: `WorkflowNode<TData>` + id generator
   - File(s): `src/domain/models/node.ts`, `src/utils/id.ts`, `tests/unit/domain/models/node.test.ts`, `tests/unit/utils/id.test.ts`
   - Contents: `newId(prefix)` using `nanoid`; `interface WorkflowNode<TData = unknown> { id; kind; position; data }`; factory `makeNode({kind, data, position?})` generates id and default position `{x:0,y:0}`.
   - Test: 100% — IDs unique across 10k calls; position validated as finite numbers; generic `data` type preserved.
