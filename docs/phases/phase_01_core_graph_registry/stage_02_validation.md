@@ -17,7 +17,7 @@
   - Test: 100% — 12 scenarios mapped to each rule; each failure returns a specific error `code`.
   - Effort: 4h
 
-- [ ] **Step 3**: `validateGraph(graph, registry)` — full-graph rules
+- [x] **Step 3**: `validateGraph(graph, registry)` — full-graph rules
   - File(s): `src/domain/validation/graphRules.ts`, `tests/unit/domain/validation/graphRules.test.ts`
   - Contents: Returns `Result<void, GraphValidationError[]>`; rules: exactly one entry; terminal reachability; no unreachable nodes (DFS from entry); every required input port has an inbound edge; every loop node has exactly one loop-back edge.
   - Test: 100% — each rule fails with descriptive message; complex valid graph passes.
