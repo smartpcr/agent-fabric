@@ -29,7 +29,7 @@
   - Test: 100% — valid passes; multiple errors aggregate; deeply nested paths formatted as `a.b[0].c`.
   - Effort: 2h
 
-- [ ] **Step 5**: Typed error hierarchy
+- [x] **Step 5**: Typed error hierarchy
   - File(s): `src/domain/validation/errors.ts`, `tests/unit/domain/validation/errors.test.ts`
   - Contents: `class DomainError extends Error`; subclasses `ConnectionInvalidError`, `GraphValidationError`, `SerializationError`, `MigrationError`; each carries a `code: string` and `details` object; JSON serializable (custom `toJSON`).
   - Test: 100% — `instanceof` chains; JSON round-trip preserves code + details; message formatting.
