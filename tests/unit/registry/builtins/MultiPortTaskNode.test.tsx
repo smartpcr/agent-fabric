@@ -1,7 +1,62 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
 import { MultiPortTaskNodeSpec } from "@/registry/builtins/MultiPortTaskNode.spec";
 import { TaskNodeSpec } from "@/registry/builtins/TaskNode.spec";
 import { NodeRegistry } from "@/registry/NodeRegistry";
+import { TaskNode } from "@/features/nodes/TaskNode";
+import type { NodeProps } from "@xyflow/react";
+
+// Mock @xyflow/react — render Handle as a div that exposes props
+vi.mock("@xyflow/react", () => ({
+  Handle: (props: Record<string, unknown>) => (
+    <div
+      data-testid={props["data-testid"] as string}
+      data-handle-type={props.type as string}
+      data-handle-position={props.position as string}
+      data-handle-id={props.id as string}
+      data-port-id={props["data-port-id"] as string}
+    />
+  ),
+  Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
+  SelectionMode: { Partial: "partial", Full: "full" },
+  MiniMap: () => null,
+}));
+
+// Mock store hooks
+vi.mock("@/store/hooks", () => ({
+  useWorkflowStore: (selector: (state: Record<string, unknown>) => unknown) =>
+    selector({
+      registry: { get: () => ({ icon: "cog" }) },
+      openInspector: vi.fn(),
+      select: vi.fn(),
+      deleteSelected: vi.fn(),
+    }),
+}));
+
+// Mock selector — return multi-port spec when kind is "task-multi"
+vi.mock("@/store/selectors/graphSelectors", () => ({
+  selectNodeSpec: (_state: unknown, kind: string) => {
+    if (kind === "task-multi") {
+      // Import inline to avoid circular — return the actual spec shape
+      return {
+        kind: "task-multi",
+        icon: "cog",
+        ports: [
+          { id: "inA", kind: "in", label: "Input A", dataType: "string", cardinality: "single" },
+          { id: "inB", kind: "in", label: "Input B", dataType: "json", cardinality: "single" },
+          { id: "outA", kind: "out", label: "Output A", dataType: "string", cardinality: "single" },
+          { id: "outB", kind: "out", label: "Output B", dataType: "json", cardinality: "single" },
+          { id: "outC", kind: "out", label: "Output C", dataType: "any", cardinality: "single" },
+        ],
+      };
+    }
+    return { kind: "task", icon: "cog" };
+  },
+}));
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("MultiPortTaskNodeSpec", () => {
   describe("spec shape", () => {
@@ -137,6 +192,64 @@ describe("MultiPortTaskNodeSpec", () => {
       const { MultiPortTaskNodeSpec: fixtureSpec } =
         await import("../../../fixtures/multiPortSpec");
       expect(fixtureSpec).toBe(MultiPortTaskNodeSpec);
+    });
+  });
+
+  describe("rendering via TaskNode", () => {
+    function renderMultiPortTaskNode() {
+      const props = {
+        id: "multi-1",
+        type: "task-multi",
+        data: { name: "Multi Task" },
+        selected: false,
+        isConnectable: true,
+        zIndex: 0,
+        positionAbsoluteX: 0,
+        positionAbsoluteY: 0,
+        dragging: false,
+        deletable: true,
+        selectable: true,
+      } as unknown as NodeProps;
+      return render(<TaskNode {...props} />);
+    }
+
+    it("renders exactly 5 handles", () => {
+      renderMultiPortTaskNode();
+      const handles = screen.getAllByTestId(/task-handle-/);
+      expect(handles).toHaveLength(5);
+    });
+
+    it("renders 2 input (target) handles at top", () => {
+      renderMultiPortTaskNode();
+      const targets = screen
+        .getAllByTestId(/task-handle-/)
+        .filter((el) => el.getAttribute("data-handle-type") === "target");
+      expect(targets).toHaveLength(2);
+      for (const t of targets) {
+        expect(t.getAttribute("data-handle-position")).toBe("top");
+      }
+    });
+
+    it("renders 3 output (source) handles at bottom", () => {
+      renderMultiPortTaskNode();
+      const sources = screen
+        .getAllByTestId(/task-handle-/)
+        .filter((el) => el.getAttribute("data-handle-type") === "source");
+      expect(sources).toHaveLength(3);
+      for (const s of sources) {
+        expect(s.getAttribute("data-handle-position")).toBe("bottom");
+      }
+    });
+
+    it("renders handles with port IDs matching spec", () => {
+      renderMultiPortTaskNode();
+      const expectedIds = ["inA", "inB", "outA", "outB", "outC"];
+      for (const portId of expectedIds) {
+        const handle = screen.getByTestId(`task-handle-${portId}`);
+        expect(handle).toBeInTheDocument();
+        expect(handle.getAttribute("data-port-id")).toBe(portId);
+        expect(handle.getAttribute("data-handle-id")).toBe(portId);
+      }
     });
   });
 });
