@@ -24,7 +24,7 @@
 | 4         | Selection & Deletion        | [stage_04_selection_deletion.md](phase_02_canvas_drag_drop/stage_04_selection_deletion.md) |      5 |         12 | `[x]`      |
 | 5         | Viewport & Controls         | [stage_05_viewport_controls.md](phase_02_canvas_drag_drop/stage_05_viewport_controls.md)   |      6 |         14 | `[x]`      |
 | 6         | Phase 2 E2E                 | [stage_06_e2e.md](phase_02_canvas_drag_drop/stage_06_e2e.md)                               |      5 |         12 | `[x]`      |
-| **Total** |                             |                                                                                            | **29** |     **80** | `[x]` 100% |
+| **Total** |                             |                                                                                            | **34** |     **80** | `[x]` 100% |
 
 ## Architectural Notes
 
@@ -41,7 +41,7 @@
 
 ## Definition of Done
 
-- All 29 steps `[x]` with score ≥ 90.
+- All 34 steps `[x]` with score ≥ 90.
 - Integration test: "build 3-node chain" is part of `tests/integration/`.
 - E2E on Chromium/Firefox/WebKit all green.
 - axe-core shows zero violations on the editor page.
