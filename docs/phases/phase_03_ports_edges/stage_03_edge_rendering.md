@@ -11,7 +11,7 @@
   - Test: 100% — path rendered; marker-end attribute set.
   - Effort: 3h
 
-- [ ] **Step 2**: Edge label rendering (`EdgeLabelRenderer`)
+- [x] **Step 2**: Edge label rendering (`EdgeLabelRenderer`)
   - File(s): `src/features/edges/DefaultEdge.tsx` (extend), `tests/unit/features/edges/DefaultEdge.label.test.tsx`
   - Contents: Label rendered at midpoint; truncated to 20 chars with ellipsis; `title` attribute for full value.
   - Test: 100% — label visible at midpoint; truncation; hover title.
