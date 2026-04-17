@@ -23,7 +23,7 @@
   - Test: 100% — Enter commits, Escape cancels; store receives `updateEdgeLabel` on commit.
   - Effort: 3h
 
-- [ ] **Step 4**: Edge selection (single + shift-multi)
+- [x] **Step 4**: Edge selection (single + shift-multi)
   - File(s): `src/store/slices/selectionSlice.ts` (extend), `src/features/canvas/Canvas.tsx` (extend), `tests/unit/store/slices/selectionSlice.edge.test.ts`
   - Contents: Add `selectedEdges: Set<string>`; click on edge selects; shift-click adds.
   - Test: 100% — selection state correct; deselect on canvas click.
