@@ -1,6 +1,6 @@
 import { newId } from "@/utils/id";
 
-export type EdgeKind = "default" | "loop-back";
+export type EdgeKind = "default" | "loop-back" | "conditional";
 
 export interface WorkflowEdge {
   readonly id: string;

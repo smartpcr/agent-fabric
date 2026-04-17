@@ -29,7 +29,7 @@
   - Test: 100% — selection state correct; deselect on canvas click.
   - Effort: 2h
 
-- [ ] **Step 5**: Edge deletion via keyboard
+- [x] **Step 5**: Edge deletion via keyboard
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `src/store/slices/graphSlice.ts` (extend), `tests/integration/edges.delete.test.tsx`
   - Contents: Delete/Backspace removes selected edges; undoable.
   - Test: Integration — selected edge + Delete → removed; undo restores.
