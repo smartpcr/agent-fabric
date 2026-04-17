@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, cleanup, renderHook, act, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
 import { DragProvider } from "@/features/palette/DragContext";
@@ -104,9 +105,10 @@ function addNodes(...kinds: string[]) {
 }
 
 describe("Accessible node focus (keyboard)", () => {
-  it("Tab moves focus between nodes in DOM order", () => {
+  it("Tab moves focus between nodes in DOM order", async () => {
     setupStore();
     const [id1, id2] = addNodes("start", "task");
+    const user = userEvent.setup();
 
     render(
       <DragProvider>
@@ -117,24 +119,21 @@ describe("Accessible node focus (keyboard)", () => {
     const allNodes = screen.getAllByTestId("base-node");
     expect(allNodes).toHaveLength(2);
 
-    // Focus first node
-    act(() => {
-      allNodes[0].focus();
-    });
+    // Tab into the first focusable node
+    await user.tab();
     expect(document.activeElement).toBe(allNodes[0]);
     expect(allNodes[0].getAttribute("data-node-id")).toBe(id1);
 
-    // Tab to second node
-    act(() => {
-      allNodes[1].focus();
-    });
+    // Tab to the second node
+    await user.tab();
     expect(document.activeElement).toBe(allNodes[1]);
     expect(allNodes[1].getAttribute("data-node-id")).toBe(id2);
   });
 
-  it("Tab twice focuses the second node", () => {
+  it("Tab twice focuses the second node", async () => {
     setupStore();
     addNodes("start", "task", "end");
+    const user = userEvent.setup();
 
     render(
       <DragProvider>
@@ -145,16 +144,12 @@ describe("Accessible node focus (keyboard)", () => {
     const allNodes = screen.getAllByTestId("base-node");
     expect(allNodes).toHaveLength(3);
 
-    // Focus first node, then tab to second
-    act(() => {
-      allNodes[0].focus();
-    });
+    // Tab to first node
+    await user.tab();
     expect(document.activeElement).toBe(allNodes[0]);
 
-    // Tab to second
-    act(() => {
-      allNodes[1].focus();
-    });
+    // Tab to second node
+    await user.tab();
     expect(document.activeElement).toBe(allNodes[1]);
   });
 
