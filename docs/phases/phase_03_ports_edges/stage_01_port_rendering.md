@@ -17,7 +17,7 @@
   - Test: 100% — 1 port → 50%; 2 → 33%/67%; 5 → evenly; clamp at extremes.
   - Effort: 3h
 
-- [ ] **Step 3**: Handle styling by dataType (color token per type)
+- [x] **Step 3**: Handle styling by dataType (color token per type)
   - File(s): `src/features/nodes/ports/handleStyles.ts`, `src/styles/tokens.css` (extend), `tests/unit/features/nodes/ports/handleStyles.test.ts`
   - Contents: Map `dataType → --color-port-X` CSS variable; unknown types fall back to neutral; legend component lists mappings (for Phase 8 docs).
   - Test: 100% — known types map; unknown falls back.
