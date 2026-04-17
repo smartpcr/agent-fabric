@@ -14,6 +14,7 @@ import { CanvasControls } from "@/features/canvas/Controls";
 import { KeyboardConnectContext } from "@/features/canvas/KeyboardConnectContext";
 import { MiniMap } from "@/features/canvas/MiniMap";
 import { nodeTypes } from "@/features/canvas/nodeTypes";
+import { edgeTypes } from "@/features/canvas/edgeTypes";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { findSnapTarget, getHandlePositions } from "@/features/canvas/snapToHandle";
 import { useKeyboardConnect } from "@/features/canvas/useKeyboardConnect";
@@ -332,6 +333,7 @@ export function Canvas() {
           nodes={rfNodes}
           edges={edges}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           selectionMode={SelectionMode.Partial}
           panOnScroll
           zoomOnPinch
