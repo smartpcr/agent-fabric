@@ -110,3 +110,151 @@ test.describe("Build workflow — drag palette to canvas", () => {
     await expect(page.locator(".react-flow__node-end")).toHaveCount(1);
   });
 });
+
+test.describe("Select + delete a node via keyboard", () => {
+  test.beforeEach(async ({ page }) => {
+    await page["goto"]("/");
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+  });
+
+  test("Tab-focus node then Delete removes it (keyboard-only flow)", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    const canvasBox = await getBox(canvas);
+
+    // Drop a task node onto the canvas
+    const taskItem = page.locator('[role="option"][data-kind="task"]');
+    await dragPaletteToCanvas(
+      taskItem,
+      canvas,
+      canvasBox.x + canvasBox.width / 2,
+      canvasBox.y + canvasBox.height / 2,
+    );
+
+    // Verify node exists
+    const nodeLocator = page.locator(".react-flow__node[data-id]");
+    await expect(nodeLocator).toHaveCount(1, { timeout: 5000 });
+    const dataId = await nodeLocator.getAttribute("data-id");
+
+    // Focus the canvas area first
+    await canvas.focus();
+
+    // Tab until the xyflow node receives focus (xyflow nodes have tabindex=0)
+    // The node may need several Tab presses to reach depending on DOM order
+    let focused = false;
+    for (let i = 0; i < 20; i++) {
+      await page.keyboard.press("Tab");
+      const activeId = await page.evaluate(() => {
+        const el = document.activeElement;
+        return el?.getAttribute("data-id") ?? el?.closest("[data-id]")?.getAttribute("data-id");
+      });
+      if (activeId === dataId) {
+        focused = true;
+        break;
+      }
+    }
+    expect(focused).toBe(true);
+
+    // Press Delete while the node is focused — keydown bubbles to canvas handler
+    await page.keyboard.press("Delete");
+
+    // Assert node is gone
+    await expect(nodeLocator).toHaveCount(0, { timeout: 5000 });
+  });
+
+  test("click node to select, press Delete, node is removed", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    const canvasBox = await getBox(canvas);
+
+    // Drop a task node onto the canvas
+    const taskItem = page.locator('[role="option"][data-kind="task"]');
+    await dragPaletteToCanvas(
+      taskItem,
+      canvas,
+      canvasBox.x + canvasBox.width / 2,
+      canvasBox.y + canvasBox.height / 2,
+    );
+
+    // Verify node exists
+    const nodeLocator = page.locator(".react-flow__node[data-id]");
+    await expect(nodeLocator).toHaveCount(1, { timeout: 5000 });
+
+    // Click the node to select it (fires onNodeClick → selectAction in store)
+    await nodeLocator.click();
+
+    // Focus the canvas wrapper so Delete keydown fires on the canvas handler
+    await canvas.focus();
+
+    // Press Delete to remove the selected node
+    await page.keyboard.press("Delete");
+
+    // Assert node is gone
+    await expect(nodeLocator).toHaveCount(0, { timeout: 5000 });
+  });
+
+  test("drop two nodes, select one, delete it, other remains", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    const canvasBox = await getBox(canvas);
+
+    // Drop Start node
+    const startItem = page.locator('[role="option"][data-kind="start"]');
+    await dragPaletteToCanvas(
+      startItem,
+      canvas,
+      canvasBox.x + canvasBox.width / 3,
+      canvasBox.y + canvasBox.height / 2,
+    );
+
+    // Drop Task node
+    const taskItem = page.locator('[role="option"][data-kind="task"]');
+    await dragPaletteToCanvas(
+      taskItem,
+      canvas,
+      canvasBox.x + (canvasBox.width * 2) / 3,
+      canvasBox.y + canvasBox.height / 2,
+    );
+
+    // Verify both nodes exist
+    const allNodes = page.locator(".react-flow__node[data-id]");
+    await expect(allNodes).toHaveCount(2, { timeout: 5000 });
+
+    // Click the task node to select it
+    const taskNode = page.locator(".react-flow__node-task");
+    await taskNode.click();
+
+    // Focus canvas and press Delete
+    await canvas.focus();
+    await page.keyboard.press("Delete");
+
+    // Task node removed, Start node remains
+    await expect(allNodes).toHaveCount(1, { timeout: 5000 });
+    await expect(page.locator(".react-flow__node-start")).toHaveCount(1);
+    await expect(page.locator(".react-flow__node-task")).toHaveCount(0);
+  });
+
+  test("Backspace also deletes a selected node", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    const canvasBox = await getBox(canvas);
+
+    // Drop a node
+    const endItem = page.locator('[role="option"][data-kind="end"]');
+    await dragPaletteToCanvas(
+      endItem,
+      canvas,
+      canvasBox.x + canvasBox.width / 2,
+      canvasBox.y + canvasBox.height / 2,
+    );
+
+    const nodeLocator = page.locator(".react-flow__node[data-id]");
+    await expect(nodeLocator).toHaveCount(1, { timeout: 5000 });
+
+    // Click to select
+    await nodeLocator.click();
+
+    // Focus canvas and press Backspace
+    await canvas.focus();
+    await page.keyboard.press("Backspace");
+
+    // Node removed
+    await expect(nodeLocator).toHaveCount(0, { timeout: 5000 });
+  });
+});

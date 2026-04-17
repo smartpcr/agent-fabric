@@ -4,6 +4,8 @@ import { useWorkflowStore } from "@/store/hooks";
 
 export function StartNode({ id, selected }: NodeProps) {
   const openInspector = useWorkflowStore((s) => s.openInspector);
+  const selectNode = useWorkflowStore((s) => s.select);
+  const deleteSelected = useWorkflowStore((s) => s.deleteSelected);
   return (
     <BaseNode
       title="Start"
@@ -14,6 +16,10 @@ export function StartNode({ id, selected }: NodeProps) {
       onEnter={() => {
         openInspector(id);
       }}
+      onNodeFocus={() => {
+        selectNode(id, "replace");
+      }}
+      onDelete={deleteSelected}
     >
       <Handle type="source" position={Position.Bottom} data-testid="start-handle-bottom" />
     </BaseNode>

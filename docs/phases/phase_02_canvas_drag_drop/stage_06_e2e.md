@@ -1,10 +1,11 @@
 # Phase 2 — Stage 6: Phase 2 E2E
+
 > Playwright scenarios exercising palette + canvas + selection + viewport + a11y.
 > Status: `[ ]` not started · **Effort**: 12h
 
 ## Steps
 
-- [ ] **Step 1**: E2E — drag Task from palette, drop on canvas, verify node renders
+- [x] **Step 1**: E2E — drag Task from palette, drop on canvas, verify node renders
   - File(s): `tests/e2e/build-workflow.spec.ts`
   - Contents: Playwright drag simulation via pointer events; assert DOM node `[data-id]` matching the new id.
   - Test: Green on Chromium (on-PR) + matrix (nightly).
@@ -34,6 +35,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 6
+
 - All 5 steps `[x]` with score ≥ 90.
 - Phase 2 scored ≥ 90 overall.
 - E2E matrix green (Chromium + Firefox + WebKit in nightly).
