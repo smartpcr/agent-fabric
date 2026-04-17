@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import {
   ReactFlow,
   Controls,
@@ -14,6 +14,7 @@ import { CanvasControls } from "@/features/canvas/Controls";
 import { MiniMap } from "@/features/canvas/MiniMap";
 import { nodeTypes } from "@/features/canvas/nodeTypes";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
+import { findSnapTarget, getHandlePositions } from "@/features/canvas/snapToHandle";
 import { useViewportPersistence } from "@/features/canvas/useViewportPersistence";
 import { validateConnection } from "@/domain/validation/connectionRules";
 import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
@@ -21,6 +22,11 @@ import { useDragContext } from "@/features/palette/DragContext";
 import { useToast } from "@/hooks/useToast";
 import { useWorkflowStore } from "@/store/hooks";
 import type { SelectMode } from "@/store/slices/selectionSlice";
+
+interface ConnectDragSource {
+  nodeId: string;
+  portId: string;
+}
 
 export function Canvas() {
   useViewportPersistence();
@@ -43,6 +49,11 @@ export function Canvas() {
   const toggleInteractive = useWorkflowStore((s) => s.toggleInteractive);
   const tryConnect = useWorkflowStore((s) => s.tryConnect);
   const { screenToFlowPosition, getViewport, zoomIn, zoomOut, fitView } = useReactFlow();
+
+  // Track connect-drag source for snap override
+  const connectDragSourceRef = useRef<ConnectDragSource | null>(null);
+  const lastPointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
   const rfNodes = useMemo(() => nodes.map((n) => ({ ...n, type: n.kind })), [nodes]);
@@ -133,11 +144,40 @@ export function Canvas() {
   const handleConnect = useCallback(
     (connection: Connection) => {
       if (!connection.source || !connection.target) return;
+
+      const source = connectDragSourceRef.current;
+      let targetNodeId = connection.target;
+      let targetPortId = connection.targetHandle ?? "in";
+
+      // Attempt snap override: use findSnapTarget with last pointer position
+      if (source) {
+        const graph = {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          id: "store",
+          name: "store",
+          nodes,
+          edges,
+        };
+        const handles = getHandlePositions(canvasRef.current);
+        const snap = findSnapTarget(
+          lastPointerRef.current,
+          source.nodeId,
+          source.portId,
+          handles,
+          graph,
+          registry,
+        );
+        if (snap) {
+          targetNodeId = snap.nodeId;
+          targetPortId = snap.portId;
+        }
+      }
+
       const result = tryConnect({
         source: connection.source,
         sourcePort: connection.sourceHandle ?? "out",
-        target: connection.target,
-        targetPort: connection.targetHandle ?? "in",
+        target: targetNodeId,
+        targetPort: targetPortId,
       });
       if (!result.ok) {
         showToast({
@@ -147,8 +187,28 @@ export function Canvas() {
         });
       }
     },
-    [tryConnect, showToast],
+    [tryConnect, showToast, nodes, edges, registry],
   );
+
+  const handleConnectStart = useCallback(
+    (
+      _event: React.MouseEvent | React.TouchEvent,
+      params: { nodeId: string | null; handleId: string | null },
+    ) => {
+      if (params.nodeId && params.handleId) {
+        connectDragSourceRef.current = { nodeId: params.nodeId, portId: params.handleId };
+      }
+    },
+    [],
+  );
+
+  const handleConnectEnd = useCallback(() => {
+    connectDragSourceRef.current = null;
+  }, []);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    lastPointerRef.current = { x: e.clientX, y: e.clientY };
+  }, []);
 
   const isValidConnection = useCallback(
     (connection: Connection) => {
@@ -174,11 +234,13 @@ export function Canvas() {
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- role="application" is interactive per WAI-ARIA
     <div
+      ref={canvasRef}
       role="application"
       aria-label="Workflow Canvas"
       style={{ width: "100%", height: "100%" }}
       tabIndex={-1}
       onPointerUp={handlePointerUp}
+      onPointerMove={handlePointerMove}
       onKeyDown={handleKeyDown}
       onFocusCapture={handleFocusCapture}
     >
@@ -199,6 +261,8 @@ export function Canvas() {
         onSelectionChange={handleSelectionChange}
         onMoveEnd={handleMoveEnd}
         onConnect={handleConnect}
+        onConnectStart={handleConnectStart}
+        onConnectEnd={handleConnectEnd}
         isValidConnection={isValidConnection}
         connectionRadius={20}
       >

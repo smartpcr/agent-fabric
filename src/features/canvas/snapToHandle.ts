@@ -17,6 +17,29 @@ export interface SnapResult {
 const SNAP_RADIUS = 20;
 
 /**
+ * Query rendered xyflow handle elements from the DOM and return their center positions.
+ * Each handle element is expected to have `data-nodeid` and `data-handleid` attributes.
+ */
+export function getHandlePositions(container: Element | null): HandlePosition[] {
+  if (!container) return [];
+  const handles = container.querySelectorAll<HTMLElement>(".react-flow__handle");
+  const positions: HandlePosition[] = [];
+  for (const el of handles) {
+    const nodeId = el.closest<HTMLElement>("[data-id]")?.getAttribute("data-id");
+    const portId = el.getAttribute("data-handleid");
+    if (!nodeId || !portId) continue;
+    const rect = el.getBoundingClientRect();
+    positions.push({
+      nodeId,
+      portId,
+      x: rect.x + rect.width / 2,
+      y: rect.y + rect.height / 2,
+    });
+  }
+  return positions;
+}
+
+/**
  * Find the nearest compatible handle within `radius` pixels of the given point.
  *
  * @param point - The cursor position in flow coordinates.
