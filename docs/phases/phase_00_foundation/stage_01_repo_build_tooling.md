@@ -16,7 +16,7 @@
   - Test: Unit — `tokens.css` parsed by PostCSS contains the expected variables (regex assertion: `--color-bg`, `--color-fg`, `--radius-md`, etc.).
   - Effort: 2h
 
-- [ ] **Step 3**: ESLint + Prettier + typecheck scripts
+- [x] **Step 3**: ESLint + Prettier + typecheck scripts
   - File(s): `.eslintrc.cjs`, `.prettierrc`, `.editorconfig`, `package.json` (scripts block)
   - Contents: `eslint-config-typescript-strict`, `eslint-plugin-react`, `eslint-plugin-react-hooks`, `eslint-plugin-jsx-a11y`; prettier with 2-space tabs, 100-col line. Scripts: `lint`, `lint:fix`, `format`, `typecheck`.
   - Test: `npm run lint` + `npm run typecheck` exit 0 on an empty `App.tsx`; CI job (from Stage 3) re-runs both.
