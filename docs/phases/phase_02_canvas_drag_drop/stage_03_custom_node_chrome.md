@@ -1,10 +1,11 @@
 # Phase 2 — Stage 3: Custom Node Chrome
+
 > BaseNode + concrete Task / Start / End React components wired into the xyflow `nodeTypes` map.
 > Status: `[ ]` not started · **Effort**: 12h
 
 ## Steps
 
-- [ ] **Step 1**: `BaseNode` chrome (header, body slot, selection ring)
+- [x] **Step 1**: `BaseNode` chrome (header, body slot, selection ring)
   - File(s): `src/features/nodes/BaseNode.tsx`, `tests/unit/features/nodes/BaseNode.test.tsx`
   - Contents: Header (title + icon); body slot via `children`; selection ring via `[data-selected="true"]`; `aria-selected`; focus ring on keyboard focus; `tabIndex={0}`.
   - Test: 100% — renders children; selected attribute reflects prop; keyboard focusable.
@@ -35,6 +36,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 3
+
 - All 5 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/features/nodes/**`.
 - Keyboard-only traversal of nodes verified.
