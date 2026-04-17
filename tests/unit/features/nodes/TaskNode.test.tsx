@@ -16,9 +16,14 @@ vi.mock("@xyflow/react", () => ({
 }));
 
 // Mock store hooks — return spec with icon for the "task" kind
+const mockOpenInspector = vi.fn();
 vi.mock("@/store/hooks", () => ({
   useWorkflowStore: (selector: (state: Record<string, unknown>) => unknown) =>
-    selector({ registry: { get: () => ({ icon: "cog" }) }, nodeSpecs: { task: { icon: "cog" } } }),
+    selector({
+      registry: { get: () => ({ icon: "cog" }) },
+      nodeSpecs: { task: { icon: "cog" } },
+      openInspector: mockOpenInspector,
+    }),
 }));
 
 // Mock selector so it returns the spec from mocked state

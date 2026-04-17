@@ -23,7 +23,7 @@
   - Test: 100% — title binds to data; handles present; icon lookup.
   - Effort: 3h
 
-- [ ] **Step 4**: `nodeTypes` map in Canvas
+- [x] **Step 4**: `nodeTypes` map in Canvas
   - File(s): `src/features/canvas/nodeTypes.tsx`, `src/features/canvas/Canvas.tsx` (extend), `tests/unit/features/canvas/nodeTypes.test.tsx`
   - Contents: Map `{ start: StartNode, end: EndNode, task: TaskNode }`; passed to `<ReactFlow nodeTypes={...}/>`.
   - Test: 100% — xyflow renders the correct component given a node of each kind.
