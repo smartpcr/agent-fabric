@@ -35,7 +35,7 @@
   - Test: 100% — register/resolve/list; duplicate error; frozen registry rejects register with clear error.
   - Effort: 3h
 
-- [ ] **Step 6**: Built-in `StartNode` spec
+- [x] **Step 6**: Built-in `StartNode` spec
   - File(s): `src/registry/builtins/StartNode.spec.ts`, `tests/unit/registry/builtins/StartNode.test.ts`
   - Contents: kind `'start'`, 1 output port `out`, `capabilities.isEntry = true`, `propertySchema = z.object({})`, `defaultData = {}`.
   - Test: 100% — spec shape; registers cleanly; capabilities.
