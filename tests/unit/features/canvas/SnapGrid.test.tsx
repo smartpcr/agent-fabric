@@ -12,7 +12,9 @@ vi.mock("@xyflow/react", () => ({
   ReactFlow: ({ children }: { children?: ReactNode }) => (
     <div data-testid="mock-reactflow">{children}</div>
   ),
-  Controls: () => <div data-testid="mock-controls" />,
+  Controls: ({ children }: { children?: ReactNode }) => (
+    <div data-testid="mock-controls">{children}</div>
+  ),
   ReactFlowProvider: ({ children }: { children?: ReactNode }) => <>{children}</>,
   useReactFlow: () => ({
     getViewport: () => ({ x: 0, y: 0, zoom: 1 }),
@@ -205,5 +207,50 @@ describe("viewportSlice snap state", () => {
       result.current.setSnapGridSize(24);
     });
     expect(result.current.snapGridSize).toBe(24);
+  });
+});
+
+// --- Snap toggle in Controls ---
+
+describe("Canvas snap toggle control", () => {
+  beforeEach(() => {
+    setupStore(false);
+  });
+
+  it("renders a snap toggle button in canvas controls", () => {
+    renderCanvasWithDrag("task");
+    expect(screen.getByTestId("snap-toggle")).toBeInTheDocument();
+  });
+
+  it("clicking snap toggle enables snapping", () => {
+    renderCanvasWithDrag("task");
+
+    const toggleBtn = screen.getByTestId("snap-toggle");
+    expect(toggleBtn.getAttribute("aria-pressed")).toBe("false");
+
+    act(() => {
+      fireEvent.click(toggleBtn);
+    });
+
+    expect(toggleBtn.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("toggling snap on affects drop position", () => {
+    renderCanvasWithDrag("task");
+
+    // Enable snap
+    act(() => {
+      fireEvent.click(screen.getByTestId("snap-toggle"));
+    });
+
+    // Drop at non-grid-aligned position
+    fireEvent.click(screen.getByTestId("start-drag"));
+    const canvas = screen.getByRole("application");
+    fireEvent.pointerUp(canvas, { clientX: 10, clientY: 25 });
+
+    const nodes = getStoreNodes();
+    expect(nodes).toHaveLength(1);
+    // With default grid size 16: 10→16, 25→32
+    expect(nodes[0].position).toEqual({ x: 16, y: 32 });
   });
 });

@@ -22,7 +22,9 @@ vi.mock("@xyflow/react", () => ({
   ReactFlow: ({ children }: { children?: ReactNode }) => (
     <div data-testid="mock-reactflow">{children}</div>
   ),
-  Controls: () => <div data-testid="mock-controls" />,
+  Controls: ({ children }: { children?: ReactNode }) => (
+    <div data-testid="mock-controls">{children}</div>
+  ),
   ReactFlowProvider: ({ children }: { children?: ReactNode }) => <>{children}</>,
   useReactFlow: () => ({
     getViewport: () => MOCK_VIEWPORT,

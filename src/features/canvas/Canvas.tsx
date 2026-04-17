@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { ReactFlow, Controls, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { Grid3X3 } from "lucide-react";
 import { Background } from "@/features/canvas/Background";
 import { snapToGrid } from "@/features/canvas/SnapGrid";
 import { useDragContext } from "@/features/palette/DragContext";
@@ -12,6 +13,7 @@ export function Canvas() {
   const registry = useWorkflowStore((s) => s.registry);
   const snapEnabled = useWorkflowStore((s) => s.snapEnabled);
   const snapGridSize = useWorkflowStore((s) => s.snapGridSize);
+  const toggleSnap = useWorkflowStore((s) => s.toggleSnap);
   const { screenToFlowPosition } = useReactFlow();
 
   const handlePointerUp = useCallback(
@@ -41,7 +43,27 @@ export function Canvas() {
     >
       <ReactFlow nodes={[]} edges={[]}>
         <Background />
-        <Controls />
+        <Controls>
+          <button
+            type="button"
+            data-testid="snap-toggle"
+            aria-label={snapEnabled ? "Disable snap to grid" : "Enable snap to grid"}
+            aria-pressed={snapEnabled}
+            onClick={toggleSnap}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              padding: "4px",
+              background: snapEnabled ? "rgba(59, 130, 246, 0.15)" : "transparent",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            <Grid3X3 size={14} aria-hidden="true" />
+          </button>
+        </Controls>
       </ReactFlow>
     </div>
   );
