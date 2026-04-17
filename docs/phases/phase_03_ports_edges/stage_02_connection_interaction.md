@@ -17,7 +17,7 @@
   - Test: 100% — valid pair returns true; incompatible returns false.
   - Effort: 3h
 
-- [ ] **Step 3**: Rejection reason toast on invalid drop
+- [x] **Step 3**: Rejection reason toast on invalid drop
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `src/hooks/useToast.ts` (existing), `tests/integration/connection.rejection.test.tsx`
   - Contents: If `tryConnect` returns `err`, show toast with `error.message`.
   - Test: Integration — invalid drop → toast with specific message.

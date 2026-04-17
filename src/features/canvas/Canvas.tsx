@@ -200,6 +200,7 @@ export function Canvas() {
         onMoveEnd={handleMoveEnd}
         onConnect={handleConnect}
         isValidConnection={isValidConnection}
+        connectionRadius={20}
       >
         <Background />
         <MiniMap />
