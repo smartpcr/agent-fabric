@@ -349,6 +349,14 @@ test.describe("Pan/zoom/fit-view — viewport persists across reload", () => {
     // Wait for xyflow to settle and onMoveEnd to sync to store → localStorage
     await page.waitForTimeout(1000);
 
+    // Capture the actual rendered viewport transform before reload
+    const transformBefore = await page.evaluate(() => {
+      const pane = document.querySelector(".react-flow__viewport");
+      return pane ? getComputedStyle(pane).transform : "";
+    });
+    expect(transformBefore).not.toBe("");
+    expect(transformBefore).not.toBe("none");
+
     // Read the saved viewport from localStorage
     const savedBefore = await page.evaluate(() => {
       return localStorage.getItem("agent-fabric:viewport");
@@ -364,16 +372,22 @@ test.describe("Pan/zoom/fit-view — viewport persists across reload", () => {
     await page.waitForSelector('[role="application"][aria-label="Workflow Canvas"]', {
       timeout: 10000,
     });
-    await page.waitForTimeout(500);
+    // Wait for viewport restore to complete (useViewportPersistence restores on mount)
+    await page.waitForTimeout(1000);
 
-    // Read viewport from localStorage after reload
+    // Verify the actual rendered viewport transform matches pre-reload state
+    const transformAfter = await page.evaluate(() => {
+      const pane = document.querySelector(".react-flow__viewport");
+      return pane ? getComputedStyle(pane).transform : "";
+    });
+    expect(transformAfter).toBe(transformBefore);
+
+    // Also verify localStorage still holds the correct values
     const savedAfter = await page.evaluate(() => {
       return localStorage.getItem("agent-fabric:viewport");
     });
     expect(savedAfter).toBeTruthy();
     const vpAfter = JSON.parse(savedAfter as string) as { x: number; y: number; zoom: number };
-
-    // Viewport should match what was saved before reload
     expect(vpAfter.zoom).toBeCloseTo(vpBefore.zoom, 1);
     expect(vpAfter.x).toBeCloseTo(vpBefore.x, 0);
     expect(vpAfter.y).toBeCloseTo(vpBefore.y, 0);
