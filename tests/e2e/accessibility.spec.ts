@@ -3,12 +3,15 @@ import AxeBuilder from "@axe-core/playwright";
 
 test.describe("Accessibility audit — editor page", () => {
   test.beforeEach(async ({ page }) => {
-    await page["goto"]("/");
+    await page["goto"]("/editor");
     // Wait for the palette to render with registry items
     await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
   });
 
   test("axe-core reports 0 violations on /editor", async ({ page }) => {
+    // Verify we are on the /editor URL
+    expect(page.url()).toContain("/editor");
+
     const results = await new AxeBuilder({ page }).analyze();
 
     // Log violations for debugging if any are found
