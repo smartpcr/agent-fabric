@@ -1215,7 +1215,7 @@ async function fileExists(filePath) {
 async function getDefaultPhasePlanPath(cwd, phase) {
     const normalizedPhase = normalizePhaseValue(phase)
     const phaseNumber = getNormalizedNumber(normalizedPhase)
-    if (!phaseNumber)
+    if (phaseNumber == null)
         return ""
 
     const repoRoot = await findRepoRoot(cwd)
