@@ -42,6 +42,8 @@ export interface GraphSlice {
   edges: WorkflowEdge[];
   addNode: (spec: NodeSpec, position?: Position) => WorkflowNode;
   removeNode: (id: string) => void;
+  /** Batch-remove all currently selected nodes and their connected edges in a single undo step */
+  deleteSelected: () => void;
   connectPorts: (params: ConnectPortsParams) => Result<WorkflowEdge, ConnectionInvalidError>;
   updateNodeData: (id: string, newData: unknown) => Result<void, ValidationError[]>;
   updateNodePosition: (id: string, position: Position) => void;
@@ -69,6 +71,18 @@ export function createGraphSlice(
       set((state) => ({
         nodes: state.nodes.filter((n) => n.id !== id),
         edges: state.edges.filter((e) => e.source !== id && e.target !== id),
+      }));
+    },
+    deleteSelected: () => {
+      const selected = get().selected;
+      if (selected.size === 0) return;
+      // Batch node/edge removal AND selection clear in a single set() so zundo
+      // records exactly one undo step.
+      set((state) => ({
+        nodes: state.nodes.filter((n) => !selected.has(n.id)),
+        edges: state.edges.filter((e) => !selected.has(e.source) && !selected.has(e.target)),
+        selected: new Set<string>(),
+        selectedNodeIds: [] as string[],
       }));
     },
     connectPorts: (params: ConnectPortsParams) => {

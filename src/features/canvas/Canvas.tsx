@@ -27,6 +27,7 @@ export function Canvas() {
   const selectAction = useWorkflowStore((s) => s.select);
   const selectMany = useWorkflowStore((s) => s.selectMany);
   const clearSelection = useWorkflowStore((s) => s.clear);
+  const deleteSelected = useWorkflowStore((s) => s.deleteSelected);
   const { screenToFlowPosition } = useReactFlow();
 
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
@@ -74,12 +75,25 @@ export function Canvas() {
     [selectMany],
   );
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        deleteSelected();
+      }
+    },
+    [deleteSelected],
+  );
+
   return (
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- role="application" is interactive per WAI-ARIA
     <div
       role="application"
       aria-label="Workflow Canvas"
       style={{ width: "100%", height: "100%" }}
+      tabIndex={-1}
       onPointerUp={handlePointerUp}
+      onKeyDown={handleKeyDown}
     >
       <ReactFlow
         nodes={rfNodes}

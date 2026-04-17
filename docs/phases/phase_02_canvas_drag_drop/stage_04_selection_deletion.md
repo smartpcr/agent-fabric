@@ -17,7 +17,7 @@
   - Test: Integration — click / shift-click / ctrl-click behave as spec.
   - Effort: 2h
 
-- [ ] **Step 3**: Lasso (box) selection
+- [x] **Step 3**: Lasso (box) selection
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/integration/selection.lasso.test.tsx`
   - Contents: xyflow `selectionMode="partial"`; drag on empty canvas creates box; all intersecting nodes selected on release.
   - Test: Integration — box encloses 2 of 3 nodes; those 2 become selected.
