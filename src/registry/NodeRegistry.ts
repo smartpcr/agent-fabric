@@ -26,6 +26,10 @@ export class NodeRegistry {
     return spec;
   }
 
+  get(kind: string): NodeSpec | undefined {
+    return this.specs.get(kind);
+  }
+
   has(kind: string): boolean {
     return this.specs.has(kind);
   }

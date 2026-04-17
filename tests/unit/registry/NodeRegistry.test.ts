@@ -149,4 +149,18 @@ describe("NodeRegistry", () => {
       expect(registry.has("missing")).toBe(false);
     });
   });
+
+  describe("get", () => {
+    it("returns the spec for a registered kind", () => {
+      const registry = new NodeRegistry();
+      const spec = makeSpec("task");
+      registry.register(spec);
+      expect(registry.get("task")).toBe(spec);
+    });
+
+    it("returns undefined for an unregistered kind", () => {
+      const registry = new NodeRegistry();
+      expect(registry.get("missing")).toBeUndefined();
+    });
+  });
 });
