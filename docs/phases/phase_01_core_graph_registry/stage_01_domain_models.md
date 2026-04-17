@@ -17,7 +17,7 @@
   - Test: 100% — IDs unique across 10k calls; position validated as finite numbers; generic `data` type preserved.
   - Effort: 2h
 
-- [ ] **Step 3**: `WorkflowEdge` model
+- [x] **Step 3**: `WorkflowEdge` model
   - File(s): `src/domain/models/edge.ts`, `tests/unit/domain/models/edge.test.ts`
   - Contents: `interface WorkflowEdge { id; source; sourcePort; target; targetPort; label?; condition?; kind }`; `kind: 'default' | 'loop-back'`; factory `makeEdge({...})`.
   - Test: 100% — id unique; source/target required; kind defaults to `'default'`.
