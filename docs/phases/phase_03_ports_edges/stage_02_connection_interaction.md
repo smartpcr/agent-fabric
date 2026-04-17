@@ -35,7 +35,7 @@
   - Test: Integration — full keyboard path works without mouse.
   - Effort: 3h
 
-- [ ] **Step 6**: Undo connect + disconnect
+- [x] **Step 6**: Undo connect + disconnect
   - File(s): `tests/integration/connection.undo.test.tsx`
   - Contents: Connect → undo → gone; disconnect via deleting edge → undo → restored.
   - Test: Green.
