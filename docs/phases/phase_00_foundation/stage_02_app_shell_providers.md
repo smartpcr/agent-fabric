@@ -1,7 +1,7 @@
 # Phase 0 — Stage 2: App Shell & Providers
 
 > Render an empty xyflow canvas inside a 3-pane editor layout; wire dependency-injection providers; add the zustand store skeleton and an error boundary.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` complete · **Effort**: 14h
 
 ## Steps
 

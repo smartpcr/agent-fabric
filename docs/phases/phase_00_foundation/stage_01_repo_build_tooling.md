@@ -1,6 +1,7 @@
 # Phase 0 — Stage 1: Repo & Build Tooling
+
 > Scaffold a strict TypeScript + Vite + React project with Tailwind, Vitest, Playwright, ESLint/Prettier, and husky pre-commit gates.
-> Status: `[ ]` not started · **Effort**: 12h
+> Status: `[x]` complete · **Effort**: 12h
 
 ## Steps
 
@@ -41,6 +42,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 1
+
 - `npm run dev / test / e2e / lint / typecheck` all exit 0.
 - 100% coverage maintained on any file touched under `src/`.
 - Husky blocks a lint-failing commit.
