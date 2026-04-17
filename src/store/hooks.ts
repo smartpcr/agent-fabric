@@ -1,12 +1,17 @@
 import { type StoreApi } from "zustand";
 import { useStoreWithEqualityFn } from "zustand/traditional";
+import type { TemporalState } from "zundo";
 import { createStore, type WorkflowState } from "@/store/createStore";
 
-let defaultStore: StoreApi<WorkflowState> | null = null;
+type StoreWithTemporal = StoreApi<WorkflowState> & {
+  temporal: StoreApi<TemporalState<Pick<WorkflowState, "nodes" | "edges">>>;
+};
 
-function getDefaultStore(): StoreApi<WorkflowState> {
+let defaultStore: StoreWithTemporal | null = null;
+
+function getDefaultStore(): StoreWithTemporal {
   if (defaultStore === null) {
-    defaultStore = createStore();
+    defaultStore = createStore() as StoreWithTemporal;
   }
   return defaultStore;
 }
@@ -22,4 +27,22 @@ export function useWorkflowStore<T>(
 ): WorkflowState | T {
   const store = getDefaultStore();
   return useStoreWithEqualityFn(store, selector as (state: WorkflowState) => T, equalityFn);
+}
+
+/**
+ * Access the temporal (undo/redo) store.
+ * Returns `{ undo, redo, clear, pastStates, futureStates }`.
+ */
+export function useTemporalStore(): TemporalState<Pick<WorkflowState, "nodes" | "edges">>;
+export function useTemporalStore<T>(
+  selector: (state: TemporalState<Pick<WorkflowState, "nodes" | "edges">>) => T,
+): T;
+export function useTemporalStore<T>(
+  selector?: (state: TemporalState<Pick<WorkflowState, "nodes" | "edges">>) => T,
+): TemporalState<Pick<WorkflowState, "nodes" | "edges">> | T {
+  const store = getDefaultStore();
+  return useStoreWithEqualityFn(
+    store.temporal,
+    selector as (state: TemporalState<Pick<WorkflowState, "nodes" | "edges">>) => T,
+  );
 }
