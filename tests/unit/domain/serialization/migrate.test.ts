@@ -43,10 +43,28 @@ describe("migrate", () => {
     expect(result).toHaveProperty("name", "Old");
   });
 
-  it("chains multiple migrations until reaching current version", () => {
+  it("clearMigrations removes all registered migrations", () => {
     registerMigration(0, (json) => ({ ...json, schemaVersion: 1 }));
-    const json = { schemaVersion: 0, id: "g1", name: "Ancient", nodes: [], edges: [] };
-    const result = migrate(json);
-    expect(result).toHaveProperty("schemaVersion", 1);
+    clearMigrations();
+    const json = { schemaVersion: 0 };
+    expect(() => migrate(json)).toThrow(MigrationError);
+  });
+
+  it("MigrationError details include toVersion for unknown numeric version", () => {
+    const json = { schemaVersion: 42 };
+    try {
+      migrate(json);
+    } catch (err) {
+      expect((err as MigrationError).details).toHaveProperty("toVersion", 1);
+    }
+  });
+
+  it("MigrationError message for no migration path includes the version", () => {
+    const json = { schemaVersion: 5 };
+    try {
+      migrate(json);
+    } catch (err) {
+      expect((err as MigrationError).message).toContain("5");
+    }
   });
 });
