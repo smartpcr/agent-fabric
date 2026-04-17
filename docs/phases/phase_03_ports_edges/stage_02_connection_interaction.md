@@ -29,7 +29,7 @@
   - Test: 100% — snap math; nearest compatible chosen; > 20px means no snap.
   - Effort: 3h
 
-- [ ] **Step 5**: Keyboard connection flow
+- [x] **Step 5**: Keyboard connection flow
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `src/features/nodes/ports/OutputHandle.tsx` (extend), `tests/integration/connection.keyboard.test.tsx`
   - Contents: Focus output handle (Tab); Enter enters connect mode; arrow keys move focus between compatible target handles; Enter confirms; Escape cancels; screen-reader announces outcome.
   - Test: Integration — full keyboard path works without mouse.
