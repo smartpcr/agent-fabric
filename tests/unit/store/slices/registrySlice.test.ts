@@ -4,11 +4,7 @@ import { createStore } from "@/store/createStore";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { makeOutputPort, makeInputPort } from "@/domain/models/port";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
-import {
-  selectNodeSpec,
-  selectNodeSpecMemoized,
-  clearSelectorCache,
-} from "@/store/selectors/graphSelectors";
+import { selectNodeSpec, clearSelectorCache } from "@/store/selectors/graphSelectors";
 
 const startSpec: NodeSpec = {
   kind: "start",
@@ -67,6 +63,10 @@ describe("registrySlice", () => {
   });
 
   describe("selectNodeSpec", () => {
+    beforeEach(() => {
+      clearSelectorCache();
+    });
+
     it("resolves a registered spec by kind", () => {
       const store = createStore();
       const reg = new NodeRegistry();
@@ -82,28 +82,6 @@ describe("registrySlice", () => {
       const result = selectNodeSpec(store.getState(), "nonexistent");
       expect(result).toBeUndefined();
     });
-  });
-
-  describe("selectNodeSpecMemoized", () => {
-    beforeEach(() => {
-      clearSelectorCache();
-    });
-
-    it("resolves a registered spec by kind", () => {
-      const store = createStore();
-      const reg = new NodeRegistry();
-      reg.register(startSpec);
-      store.getState().setRegistry(reg);
-
-      const result = selectNodeSpecMemoized(store.getState(), "start");
-      expect(result).toBe(startSpec);
-    });
-
-    it("returns undefined for unregistered kind", () => {
-      const store = createStore();
-      const result = selectNodeSpecMemoized(store.getState(), "nonexistent");
-      expect(result).toBeUndefined();
-    });
 
     it("returns referentially stable result across unrelated state changes", () => {
       const store = createStore();
@@ -111,20 +89,20 @@ describe("registrySlice", () => {
       reg.register(startSpec);
       store.getState().setRegistry(reg);
 
-      const first = selectNodeSpecMemoized(store.getState(), "start");
+      const first = selectNodeSpec(store.getState(), "start");
 
-      // Trigger unrelated state change (add a node position update, etc.)
+      // Trigger unrelated state change
       store.getState().addNode(startSpec, { x: 100, y: 200 });
 
-      const second = selectNodeSpecMemoized(store.getState(), "start");
+      const second = selectNodeSpec(store.getState(), "start");
 
       expect(first).toBe(second);
     });
 
     it("returns same undefined for repeated calls on unknown kind", () => {
       const store = createStore();
-      const r1 = selectNodeSpecMemoized(store.getState(), "missing");
-      const r2 = selectNodeSpecMemoized(store.getState(), "missing");
+      const r1 = selectNodeSpec(store.getState(), "missing");
+      const r2 = selectNodeSpec(store.getState(), "missing");
       expect(r1).toBeUndefined();
       expect(r2).toBeUndefined();
     });
@@ -135,7 +113,7 @@ describe("registrySlice", () => {
       reg1.register(startSpec);
       store.getState().setRegistry(reg1);
 
-      const first = selectNodeSpecMemoized(store.getState(), "start");
+      const first = selectNodeSpec(store.getState(), "start");
 
       const modifiedStart: NodeSpec = {
         ...startSpec,
@@ -145,7 +123,7 @@ describe("registrySlice", () => {
       reg2.register(modifiedStart);
       store.getState().setRegistry(reg2);
 
-      const second = selectNodeSpecMemoized(store.getState(), "start");
+      const second = selectNodeSpec(store.getState(), "start");
 
       expect(second).not.toBe(first);
       expect(second?.label).toBe("Modified Start");
@@ -158,8 +136,8 @@ describe("registrySlice", () => {
       reg.register(endSpec);
       store.getState().setRegistry(reg);
 
-      const startResult = selectNodeSpecMemoized(store.getState(), "start");
-      const endResult = selectNodeSpecMemoized(store.getState(), "end");
+      const startResult = selectNodeSpec(store.getState(), "start");
+      const endResult = selectNodeSpec(store.getState(), "end");
 
       expect(startResult).toBe(startSpec);
       expect(endResult).toBe(endSpec);
