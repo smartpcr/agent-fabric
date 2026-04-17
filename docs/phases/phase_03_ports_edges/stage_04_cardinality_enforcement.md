@@ -1,10 +1,11 @@
 # Phase 3 — Stage 4: Cardinality & DataType Enforcement
+
 > Enforce single/multi cardinality and dataType compatibility at connect time with user-visible feedback.
 > Status: `[ ]` not started · **Effort**: 10h
 
 ## Steps
 
-- [ ] **Step 1**: Enforce `single` cardinality
+- [x] **Step 1**: Enforce `single` cardinality
   - File(s): `src/domain/validation/connectionRules.ts` (extend), `tests/unit/domain/validation/connectionRules.cardinality.test.ts`
   - Contents: Target input with `cardinality: 'single'` and existing inbound edge → reject.
   - Test: 100% — rejection with specific error code; existing edge highlighted in UI.
@@ -34,6 +35,7 @@
   - Effort: 1h
 
 ## Acceptance for Stage 4
+
 - All 5 steps `[x]` with score ≥ 90.
 - 100% unit coverage on updated validator.
 - Phase 3 scored ≥ 90 overall.
