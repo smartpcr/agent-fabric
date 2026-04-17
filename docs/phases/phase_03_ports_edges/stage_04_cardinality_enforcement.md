@@ -17,7 +17,7 @@
   - Test: 100% — 5 edges into one multi input succeed.
   - Effort: 2h
 
-- [ ] **Step 3**: DataType mismatch rejection message
+- [x] **Step 3**: DataType mismatch rejection message
   - File(s): `src/domain/validation/connectionRules.ts` (extend), `tests/unit/domain/validation/connectionRules.dataType.test.ts`
   - Contents: Matrix of 4 types × 4 types tested; reject message includes source and target types.
   - Test: 100% — each combination; message quality.
