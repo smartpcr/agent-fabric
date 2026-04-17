@@ -57,10 +57,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={toast.id}
             data-variant={toast.variant}
             open
-            onOpenChange={(open) => {
-              if (!open) {
-                dismiss(toast.id);
-              }
+            onOpenChange={() => {
+              dismiss(toast.id);
             }}
             style={{
               padding: "12px 16px",

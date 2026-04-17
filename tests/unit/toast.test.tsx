@@ -85,4 +85,30 @@ describe("useToast", () => {
 
     spy.mockRestore();
   });
+
+  it("shows a toast without description", () => {
+    function TitleOnlyConsumer() {
+      const { show } = useToast();
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            show({ title: "No-desc toast" });
+          }}
+        >
+          Trigger no-desc
+        </button>
+      );
+    }
+
+    render(
+      <ToastProvider>
+        <TitleOnlyConsumer />
+      </ToastProvider>,
+    );
+
+    fireEvent.click(screen.getByText("Trigger no-desc"));
+
+    expect(screen.getByText("No-desc toast")).toBeInTheDocument();
+  });
 });

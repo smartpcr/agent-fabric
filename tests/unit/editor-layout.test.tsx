@@ -84,6 +84,33 @@ describe("EditorLayout", () => {
     expect(propertyGridPanel?.getAttribute("data-collapsed")).toBe("false");
   });
 
+  it("responds to Meta+\\ (macOS Cmd key)", () => {
+    const { container, unmount } = renderLayout();
+    const panelEls = container.querySelectorAll("[data-panel]");
+    const palettePanel = panelEls[0];
+
+    act(() => {
+      fireEvent.keyDown(window, { key: "\\", metaKey: true });
+    });
+
+    expect(palettePanel?.getAttribute("data-collapsed")).toBe("true");
+
+    // Unmount to exercise useEffect cleanup
+    unmount();
+  });
+
+  it("ignores non-shortcut keys", () => {
+    const { container } = renderLayout();
+    const panelEls = container.querySelectorAll("[data-panel]");
+    const palettePanel = panelEls[0];
+
+    act(() => {
+      fireEvent.keyDown(window, { key: "a", ctrlKey: true });
+    });
+
+    expect(palettePanel?.getAttribute("data-collapsed")).not.toBe("true");
+  });
+
   it("renders resize handles (separators) that are focusable", () => {
     const { container } = renderLayout();
     const handles = container.querySelectorAll(".editor-resize-handle");

@@ -101,3 +101,69 @@ describe("createStore", () => {
     expect(store2.getState().nodes).toHaveLength(0);
   });
 });
+
+describe("graphSlice actions", () => {
+  it("removeNode removes by id", () => {
+    const store = createStore();
+    store.getState().addNode({ id: "a" });
+    store.getState().addNode({ id: "b" });
+    store.getState().removeNode("a");
+    expect(store.getState().nodes).toEqual([{ id: "b" }]);
+  });
+});
+
+describe("selectionSlice actions", () => {
+  it("select sets node and edge ids", () => {
+    const store = createStore();
+    store.getState().select(["n1"], ["e1"]);
+    expect(store.getState().selectedNodeIds).toEqual(["n1"]);
+    expect(store.getState().selectedEdgeIds).toEqual(["e1"]);
+  });
+
+  it("clearSelection resets selections", () => {
+    const store = createStore();
+    store.getState().select(["n1"], ["e1"]);
+    store.getState().clearSelection();
+    expect(store.getState().selectedNodeIds).toEqual([]);
+    expect(store.getState().selectedEdgeIds).toEqual([]);
+  });
+});
+
+describe("registrySlice actions", () => {
+  it("registerNodeType adds to registry", () => {
+    const store = createStore();
+    store.getState().registerNodeType("custom", { label: "Custom" });
+    expect(store.getState().nodeTypes).toEqual({ custom: { label: "Custom" } });
+  });
+});
+
+describe("executionSlice actions", () => {
+  it("startExecution sets status to running", () => {
+    const store = createStore();
+    store.getState().startExecution();
+    expect(store.getState().executionStatus).toBe("running");
+  });
+
+  it("stopExecution resets status and log", () => {
+    const store = createStore();
+    store.getState().startExecution();
+    store.getState().stopExecution();
+    expect(store.getState().executionStatus).toBe("idle");
+    expect(store.getState().executionLog).toEqual([]);
+  });
+});
+
+describe("viewportSlice actions", () => {
+  it("setZoom updates zoom", () => {
+    const store = createStore();
+    store.getState().setZoom(2);
+    expect(store.getState().zoom).toBe(2);
+  });
+
+  it("setPan updates panX and panY", () => {
+    const store = createStore();
+    store.getState().setPan(100, 200);
+    expect(store.getState().panX).toBe(100);
+    expect(store.getState().panY).toBe(200);
+  });
+});
