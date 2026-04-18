@@ -1,10 +1,11 @@
 # Phase 6 — Stage 5: Run Inspector & Controls
+
 > Slide-in inspector showing per-node event timeline, plus run controls and connection status.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: `RunInspector` panel (Radix Dialog, slide-in)
+- [x] **Step 1**: `RunInspector` panel (Radix Dialog, slide-in)
   - File(s): `src/features/execution/RunInspector.tsx`, `tests/unit/features/execution/RunInspector.test.tsx`
   - Contents: Right-side sheet; focus-trap; Escape closes; opens on error badge click or from run controls.
   - Test: 100% — open/close; focus trap; Escape dismisses.
@@ -40,6 +41,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 5
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/features/execution/**`.
 - axe-core clean on inspector panel.
