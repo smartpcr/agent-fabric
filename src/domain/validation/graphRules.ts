@@ -357,7 +357,7 @@ function checkUnexpectedCycles(
         // Only flag if NO node in the cycle is loop-capable
         const hasLoopNode = cycleNodeIds.some((id) => isLoopCapable(id));
         if (hasLoopNode) {
-          return;
+          continue;
         }
 
         const sortedKey = [...cycleNodeIds].sort().join(",");

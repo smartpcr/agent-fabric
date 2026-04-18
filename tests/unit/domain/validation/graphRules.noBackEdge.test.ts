@@ -401,5 +401,64 @@ describe("validateGraph — no back-edges on non-loop nodes", () => {
       const cycles = allErrors.filter((e: GraphValidationError) => e.code === "UNEXPECTED_CYCLE");
       expect(cycles.length).toBe(0);
     });
+
+    it("loop cycle encountered first does not cause false UNEXPECTED_CYCLE downstream", () => {
+      // Regression: loop self-edge is visited first during DFS; downstream
+      // tasks that share edges into the loop region must NOT be flagged.
+      const start = makeNode({ kind: "start", data: {} });
+      const loop = makeNode({ kind: "loop-while", data: { condition: "x < 10" } });
+      const taskA = makeNode({ kind: "task", data: {} });
+      const taskB = makeNode({ kind: "task", data: {} });
+      const end = makeNode({ kind: "end", data: {} });
+      let g = makeGraph("loop-then-downstream");
+      g = addNodeToGraph(g, start);
+      g = addNodeToGraph(g, loop);
+      g = addNodeToGraph(g, taskA);
+      g = addNodeToGraph(g, taskB);
+      g = addNodeToGraph(g, end);
+      // start → loop
+      g = addEdgeToGraph(
+        g,
+        makeEdge({ source: start.id, sourcePort: "out", target: loop.id, targetPort: "in" }),
+      );
+      // loop self-edge (loop-back)
+      g = addEdgeToGraph(
+        g,
+        makeEdge({
+          source: loop.id,
+          sourcePort: "body-out",
+          target: loop.id,
+          targetPort: "body-in",
+          kind: "loop-back",
+        }),
+      );
+      // loop done → taskA → taskB → end
+      g = addEdgeToGraph(
+        g,
+        makeEdge({ source: loop.id, sourcePort: "done", target: taskA.id, targetPort: "in" }),
+      );
+      g = addEdgeToGraph(
+        g,
+        makeEdge({ source: taskA.id, sourcePort: "out", target: taskB.id, targetPort: "in" }),
+      );
+      g = addEdgeToGraph(
+        g,
+        makeEdge({ source: taskB.id, sourcePort: "out", target: end.id, targetPort: "in" }),
+      );
+      // Also taskB feeds back into loop (creating a path to the loop node again — not a cycle)
+      g = addEdgeToGraph(
+        g,
+        makeEdge({ source: start.id, sourcePort: "out", target: taskA.id, targetPort: "in" }),
+      );
+
+      const result = validateGraph(g, registry);
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        const cycles = result.value.filter(
+          (e: GraphValidationError) => e.code === "UNEXPECTED_CYCLE",
+        );
+        expect(cycles.length).toBe(0);
+      }
+    });
   });
 });
