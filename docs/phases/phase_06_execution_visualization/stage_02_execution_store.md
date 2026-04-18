@@ -35,7 +35,7 @@
   - Test: 100% — stable reference across unrelated state changes.
   - Effort: 2h
 
-- [ ] **Step 6**: Reset on new run; optional retention
+- [x] **Step 6**: Reset on new run; optional retention
   - File(s): `src/store/slices/executionSlice.ts` (extend), `tests/unit/store/slices/executionSlice.reset.test.ts`
   - Contents: `startRun(runId)` either clears prior runs (default) or retains them behind a flag.
   - Test: 100% — default behavior; retention flag preserves prior runs.
