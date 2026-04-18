@@ -17,12 +17,12 @@
   - Test: Benchmark threshold.
   - Effort: 4h
 
-- [ ] **Step 3**: Selector memoization audit
+- [x] **Step 3**: Selector memoization audit
   - File(s): `src/store/selectors/**` (various), profiler report notes.
   - Contents: React Devtools Profiler recording + React.memo audit on nodes/edges; fix any selector returning new references unnecessarily.
   - Effort: 3h
 
-- [ ] **Step 4**: Lighthouse CI config + thresholds
+- [x] **Step 4**: Lighthouse CI config + thresholds
   - File(s): `.lighthouserc.json`, `.github/workflows/lighthouse.yml`
   - Contents: Performance ≥ 90; accessibility ≥ 95; best-practices ≥ 90; SEO ignored (internal app).
   - Test: CI run passes thresholds on main.
