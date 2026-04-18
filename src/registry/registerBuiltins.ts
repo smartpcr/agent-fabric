@@ -4,6 +4,8 @@ import { EndNodeSpec } from "@/registry/builtins/EndNode.spec";
 import { TaskNodeSpec } from "@/registry/builtins/TaskNode.spec";
 import { DecisionNodeSpec } from "@/registry/builtins/DecisionNode.spec";
 import { DecisionSwitchNodeSpec } from "@/registry/builtins/DecisionSwitchNode.spec";
+import { LoopWhileNodeSpec } from "@/registry/builtins/LoopWhileNode.spec";
+import { LoopForEachNodeSpec } from "@/registry/builtins/LoopForEachNode.spec";
 
 const builtins = [
   StartNodeSpec,
@@ -11,6 +13,8 @@ const builtins = [
   TaskNodeSpec,
   DecisionNodeSpec,
   DecisionSwitchNodeSpec,
+  LoopWhileNodeSpec,
+  LoopForEachNodeSpec,
 ] as const;
 
 export function registerBuiltins(registry: NodeRegistry): void {

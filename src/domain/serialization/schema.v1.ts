@@ -16,6 +16,8 @@ const EndNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("end") });
 const TaskNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("task") });
 const DecisionNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("decision") });
 const DecisionSwitchNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("decision-switch") });
+const LoopWhileNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("loop-while") });
+const LoopForEachNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("loop-foreach") });
 
 const NodeJsonV1 = z.discriminatedUnion("kind", [
   StartNodeJsonV1,
@@ -23,6 +25,8 @@ const NodeJsonV1 = z.discriminatedUnion("kind", [
   TaskNodeJsonV1,
   DecisionNodeJsonV1,
   DecisionSwitchNodeJsonV1,
+  LoopWhileNodeJsonV1,
+  LoopForEachNodeJsonV1,
 ]);
 
 const edgeBase = {
