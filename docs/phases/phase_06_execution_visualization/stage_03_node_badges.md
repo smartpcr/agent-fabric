@@ -11,7 +11,7 @@
   - Test: 100% — each state renders correct icon; ARIA correct.
   - Effort: 3h
 
-- [ ] **Step 2**: Running spinner — CSS animation, `prefers-reduced-motion` respected
+- [x] **Step 2**: Running spinner — CSS animation, `prefers-reduced-motion` respected
   - File(s): `src/features/nodes/badges/StatusBadge.tsx` (extend), `src/styles/animations.css`, `tests/unit/features/nodes/badges/StatusBadge.reducedMotion.test.tsx`
   - Contents: `@media (prefers-reduced-motion: reduce)` disables spin; static icon instead.
   - Test: 100% — simulate reduced-motion via CSSOM; assert no `animation` class.

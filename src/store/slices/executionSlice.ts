@@ -14,6 +14,7 @@ export interface NodeExecutionState {
   readonly finishedAt?: number;
   readonly error?: string;
   readonly iteration?: number;
+  readonly totalIterations?: number;
 }
 
 /** Possible execution status values for a single edge. */
