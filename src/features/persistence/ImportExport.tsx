@@ -2,6 +2,7 @@ import { useCallback, useRef, type ChangeEvent } from "react";
 import { CURRENT_SCHEMA_VERSION, type WorkflowGraph } from "@/domain/models/graph";
 import { GraphJsonV1 } from "@/domain/serialization/schema.v1";
 import { migrate } from "@/domain/serialization/migrate";
+import { useToast } from "@/hooks/useToast";
 
 // ─── Props ───────────────────────────────────────────────────────────
 
@@ -169,8 +170,11 @@ export function parseImportedJson(text: string): ImportParseResult {
 export interface ImportButtonProps {
   /** Called with the validated graph after the user confirms import. */
   readonly onImport: (graph: WorkflowGraph) => void;
-  /** Called with an error message when the file fails to parse/validate. */
-  readonly onError: (message: string) => void;
+  /**
+   * Optional additional error callback. The component always shows an
+   * error toast; this callback is invoked in addition to the toast.
+   */
+  readonly onError?: (message: string) => void;
   /**
    * Confirmation function. Returns `true` to proceed, `false` to cancel.
    * Defaults to `window.confirm`.
@@ -195,6 +199,7 @@ export function ImportButton({
   confirm: confirmFn = (msg: string) => window.confirm(msg),
 }: ImportButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
 
   const handleClick = useCallback(() => {
     inputRef.current?.click();
@@ -211,7 +216,12 @@ export function ImportButton({
         const result = parseImportedJson(text);
 
         if (!result.ok) {
-          onError(result.message);
+          toast.show({
+            title: "Import failed",
+            description: result.message,
+            variant: "error",
+          });
+          onError?.(result.message);
           return;
         }
 
@@ -227,7 +237,7 @@ export function ImportButton({
       // Reset the input so the same file can be re-selected
       e.target.value = "";
     },
-    [onImport, onError, confirmFn],
+    [onImport, onError, confirmFn, toast],
   );
 
   return (

@@ -1,8 +1,26 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { ImportButton, parseImportedJson } from "@/features/persistence/ImportExport";
+import { ToastProvider } from "@/features/editor/Toast";
 import { CURRENT_SCHEMA_VERSION, type WorkflowGraph } from "@/domain/models/graph";
+
+// Radix Toast calls hasPointerCapture / setPointerCapture / releasePointerCapture
+// which jsdom doesn't implement — polyfill for the test environment.
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false;
+}
+if (!Element.prototype.setPointerCapture) {
+  // eslint-disable-next-line no-empty-function
+  Element.prototype.setPointerCapture = () => {};
+}
+if (!Element.prototype.releasePointerCapture) {
+  // eslint-disable-next-line no-empty-function
+  Element.prototype.releasePointerCapture = () => {};
+}
+/* eslint-enable @typescript-eslint/no-unnecessary-condition */
 
 // ─── Fixtures ────────────────────────────────────────────────────────
 
@@ -20,6 +38,11 @@ function validGraphJson(overrides: Partial<WorkflowGraph> = {}): string {
 
 function makeFile(content: string, name = "workflow.json"): File {
   return new File([content], name, { type: "application/json" });
+}
+
+/** Wrapper that provides ToastProvider for ImportButton. */
+function Wrapper({ children }: { children: ReactNode }) {
+  return <ToastProvider>{children}</ToastProvider>;
 }
 
 // ─── Teardown ────────────────────────────────────────────────────────
@@ -180,13 +203,13 @@ describe("parseImportedJson", () => {
 
 describe("ImportButton", () => {
   it("renders an import button", () => {
-    render(<ImportButton onImport={vi.fn()} onError={vi.fn()} />);
+    render(<ImportButton onImport={vi.fn()} />, { wrapper: Wrapper });
     expect(screen.getByTestId("import-button")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Import workflow" })).toBeInTheDocument();
   });
 
   it("renders a hidden file input", () => {
-    render(<ImportButton onImport={vi.fn()} onError={vi.fn()} />);
+    render(<ImportButton onImport={vi.fn()} />, { wrapper: Wrapper });
     const input = screen.getByTestId("import-file-input");
     expect(input.type).toBe("file");
     expect(input.style.display).toBe("none");
@@ -194,7 +217,7 @@ describe("ImportButton", () => {
   });
 
   it("clicking import button triggers file input click", async () => {
-    render(<ImportButton onImport={vi.fn()} onError={vi.fn()} />);
+    render(<ImportButton onImport={vi.fn()} />, { wrapper: Wrapper });
 
     const input = screen.getByTestId("import-file-input");
     const clickSpy = vi.spyOn(input, "click");
@@ -207,10 +230,11 @@ describe("ImportButton", () => {
 
   it("calls onImport with parsed graph after user confirms", async () => {
     const onImport = vi.fn();
-    const onError = vi.fn();
     const confirmFn = vi.fn().mockReturnValue(true);
 
-    render(<ImportButton onImport={onImport} onError={onError} confirm={confirmFn} />);
+    render(<ImportButton onImport={onImport} confirm={confirmFn} />, {
+      wrapper: Wrapper,
+    });
 
     const input = screen.getByTestId("import-file-input");
     const file = makeFile(validGraphJson());
@@ -226,15 +250,15 @@ describe("ImportButton", () => {
     const imported = onImport.mock.calls[0][0] as WorkflowGraph;
     expect(imported.id).toBe("g-import");
     expect(imported.name).toBe("Imported Workflow");
-    expect(onError).not.toHaveBeenCalled();
   });
 
   it("does not call onImport when user cancels confirmation", async () => {
     const onImport = vi.fn();
-    const onError = vi.fn();
     const confirmFn = vi.fn().mockReturnValue(false);
 
-    render(<ImportButton onImport={onImport} onError={onError} confirm={confirmFn} />);
+    render(<ImportButton onImport={onImport} confirm={confirmFn} />, {
+      wrapper: Wrapper,
+    });
 
     const input = screen.getByTestId("import-file-input");
     const file = makeFile(validGraphJson());
@@ -245,14 +269,15 @@ describe("ImportButton", () => {
 
     expect(confirmFn).toHaveBeenCalledOnce();
     expect(onImport).not.toHaveBeenCalled();
-    expect(onError).not.toHaveBeenCalled();
   });
 
-  it("calls onError for invalid JSON file", async () => {
+  it("shows error toast for invalid JSON file", async () => {
     const onImport = vi.fn();
     const onError = vi.fn();
 
-    render(<ImportButton onImport={onImport} onError={onError} />);
+    render(<ImportButton onImport={onImport} onError={onError} />, {
+      wrapper: Wrapper,
+    });
 
     const input = screen.getByTestId("import-file-input");
     const file = makeFile("not valid json");
@@ -261,15 +286,22 @@ describe("ImportButton", () => {
       await userEvent.upload(input, file);
     });
 
+    // Error toast should be rendered
+    expect(screen.getByText("Import failed")).toBeInTheDocument();
+    expect(screen.getByText("File is not valid JSON.")).toBeInTheDocument();
+
+    // onError callback also called
     expect(onError).toHaveBeenCalledWith("File is not valid JSON.");
     expect(onImport).not.toHaveBeenCalled();
   });
 
-  it("calls onError for valid JSON that fails schema validation", async () => {
+  it("shows error toast for valid JSON that fails schema validation", async () => {
     const onImport = vi.fn();
     const onError = vi.fn();
 
-    render(<ImportButton onImport={onImport} onError={onError} />);
+    render(<ImportButton onImport={onImport} onError={onError} />, {
+      wrapper: Wrapper,
+    });
 
     const input = screen.getByTestId("import-file-input");
     const file = makeFile(JSON.stringify({ random: "object" }));
@@ -278,9 +310,30 @@ describe("ImportButton", () => {
       await userEvent.upload(input, file);
     });
 
+    // Error toast should be rendered
+    expect(screen.getByText("Import failed")).toBeInTheDocument();
+
+    // onError callback also called
     expect(onError).toHaveBeenCalledOnce();
     const errorMessage = onError.mock.calls[0][0] as string;
     expect(errorMessage).toContain("Invalid workflow");
+    expect(onImport).not.toHaveBeenCalled();
+  });
+
+  it("works without onError callback (toast only)", async () => {
+    const onImport = vi.fn();
+
+    render(<ImportButton onImport={onImport} />, { wrapper: Wrapper });
+
+    const input = screen.getByTestId("import-file-input");
+    const file = makeFile("broken json");
+
+    await act(async () => {
+      await userEvent.upload(input, file);
+    });
+
+    // Error toast still shown even without onError prop
+    expect(screen.getByText("Import failed")).toBeInTheDocument();
     expect(onImport).not.toHaveBeenCalled();
   });
 
@@ -288,7 +341,9 @@ describe("ImportButton", () => {
     const onImport = vi.fn();
     const confirmFn = vi.fn().mockReturnValue(true);
 
-    render(<ImportButton onImport={onImport} onError={vi.fn()} confirm={confirmFn} />);
+    render(<ImportButton onImport={onImport} confirm={confirmFn} />, {
+      wrapper: Wrapper,
+    });
 
     const input = screen.getByTestId("import-file-input");
     const file = makeFile(validGraphJson());
@@ -302,9 +357,8 @@ describe("ImportButton", () => {
 
   it("does nothing when no file is selected (empty file list)", () => {
     const onImport = vi.fn();
-    const onError = vi.fn();
 
-    render(<ImportButton onImport={onImport} onError={onError} />);
+    render(<ImportButton onImport={onImport} />, { wrapper: Wrapper });
 
     const input = screen.getByTestId("import-file-input");
 
@@ -314,15 +368,13 @@ describe("ImportButton", () => {
     });
 
     expect(onImport).not.toHaveBeenCalled();
-    expect(onError).not.toHaveBeenCalled();
   });
 
   it("uses window.confirm by default when confirm prop is not provided", async () => {
     const onImport = vi.fn();
-    const onError = vi.fn();
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
 
-    render(<ImportButton onImport={onImport} onError={onError} />);
+    render(<ImportButton onImport={onImport} />, { wrapper: Wrapper });
 
     const input = screen.getByTestId("import-file-input");
     const file = makeFile(validGraphJson());
