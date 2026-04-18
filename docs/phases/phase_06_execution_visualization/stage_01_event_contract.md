@@ -23,7 +23,7 @@
   - Test: 100% — emit / subscribe / multi-subscriber; passes the contract tests.
   - Effort: 2h
 
-- [ ] **Step 4**: `SseExecutionEventSource`
+- [x] **Step 4**: `SseExecutionEventSource`
   - File(s): `src/adapters/SseExecutionEventSource.ts`, `tests/unit/adapters/SseExecutionEventSource.test.ts`
   - Contents: `eventsource-parser` for incremental parsing; exponential backoff with jitter on reconnect; heartbeat timeout (30s) triggers reconnect; Zod-validate incoming events.
   - Test: 100% — MSW-mocked SSE stream; reconnect with backoff; invalid event dropped with warning; passes contract tests.
