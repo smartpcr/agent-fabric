@@ -17,7 +17,7 @@
   - Test: 100% — clamp; step increments via keyboard; invalid input rejected.
   - Effort: 2h
 
-- [ ] **Step 3**: `BooleanField` (Radix Switch)
+- [x] **Step 3**: `BooleanField` (Radix Switch)
   - File(s): `src/features/property-grid/fields/BooleanField.tsx`, `tests/unit/features/property-grid/fields/BooleanField.test.tsx`
   - Contents: Radix `Switch` with `aria-label` from schema description.
   - Test: 100% — toggle state; keyboard activation (Space).
