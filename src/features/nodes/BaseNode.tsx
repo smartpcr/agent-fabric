@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 import { icons } from "lucide-react";
+import { useExecutionState } from "@/features/execution/useExecutionState";
+import { StatusBadge, type BadgeStatus } from "@/features/nodes/badges/StatusBadge";
+import { IterationBadge } from "@/features/nodes/badges/IterationBadge";
+import type { NodeExecutionStatus } from "@/store/slices/executionSlice";
 
 function resolveIconName(name: string): string {
   return name
@@ -14,6 +18,15 @@ function NodeIcon({ name }: { readonly name: string }) {
   const Icon = icons[pascalName as keyof typeof icons];
   return <Icon size={16} aria-hidden="true" data-testid="node-icon" />;
 }
+
+/** Map store execution status to the badge's display status. */
+const STATUS_TO_BADGE: Record<NodeExecutionStatus, BadgeStatus> = {
+  idle: "pending",
+  running: "running",
+  succeeded: "success",
+  failed: "error",
+  skipped: "skipped",
+};
 
 export interface BaseNodeProps {
   /** Node ID for keyboard interactions */
@@ -63,6 +76,14 @@ const BODY_STYLE: React.CSSProperties = {
   padding: "8px 10px",
 };
 
+const BADGE_CONTAINER_STYLE: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+  padding: "4px 10px",
+  borderTop: "1px solid #e5e7eb",
+};
+
 export function BaseNode({
   nodeId,
   title,
@@ -74,6 +95,11 @@ export function BaseNode({
   onNodeFocus,
   onDelete,
 }: BaseNodeProps) {
+  const execState = useExecutionState(nodeId ?? "");
+  const hasNodeId = nodeId !== undefined;
+  const badgeStatus =
+    hasNodeId && execState !== undefined ? STATUS_TO_BADGE[execState.status] : undefined;
+
   /* eslint-disable jsx-a11y/role-supports-aria-props, jsx-a11y/no-noninteractive-tabindex, jsx-a11y/no-noninteractive-element-interactions */
   return (
     <div
@@ -112,6 +138,12 @@ export function BaseNode({
       {children !== undefined && children !== null && (
         <div data-testid="node-body" style={BODY_STYLE}>
           {children}
+        </div>
+      )}
+      {badgeStatus !== undefined && (
+        <div data-testid="node-badges" style={BADGE_CONTAINER_STYLE}>
+          <StatusBadge status={badgeStatus} />
+          <IterationBadge iteration={execState?.iteration} total={execState?.totalIterations} />
         </div>
       )}
     </div>
