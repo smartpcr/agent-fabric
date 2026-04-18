@@ -11,7 +11,7 @@
   - Test: 100% — undo / redo actions present; limit enforced.
   - Effort: 2h
 
-- [ ] **Step 2**: `partialize` records only graph slice
+- [x] **Step 2**: `partialize` records only graph slice
   - File(s): `src/store/createStore.ts` (extend), `tests/unit/store/createStore.partialize.test.ts`
   - Contents: `partialize: s => ({ nodes: s.nodes, edges: s.edges })`; selection/execution/viewport excluded.
   - Test: 100% — selection toggle does not create a history entry.

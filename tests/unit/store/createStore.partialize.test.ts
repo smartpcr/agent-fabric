@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { StoreApi } from "zustand";
 import type { TemporalState } from "zundo";
 import { z } from "zod";
 import { createStore, type WorkflowState } from "@/store/createStore";
+import { HISTORY_GROUP_DELAY } from "@/store/historyGroup";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
 import { makeInputPort, makeOutputPort } from "@/domain/models/port";
 
@@ -32,14 +33,27 @@ function createTemporalStore(): StoreWithTemporal {
   return createStore() as StoreWithTemporal;
 }
 
+/** Flush the history group debounce timer. */
+function flush(): void {
+  vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
+}
+
 // ─── Tests ───────────────────────────────────────────────────────────
 
 describe("createStore partialize — only graph slice tracked", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
   it("selection toggle does not create a history entry", () => {
     const store = createTemporalStore();
 
     // Add a node so we have something to select
     const node = store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     const pastAfterAdd = store.temporal.getState().pastStates.length;
 
     // Toggle selection — should NOT add a history entry
@@ -55,7 +69,9 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     const n1 = store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     const n2 = store.getState().addNode(taskSpec, { x: 100, y: 0 });
+    flush();
     const pastAfter = store.temporal.getState().pastStates.length;
 
     store.getState().selectMany([n1.id, n2.id]);
@@ -66,6 +82,7 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     const node = store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     store.getState().select(node.id, "replace");
     const pastBefore = store.temporal.getState().pastStates.length;
 
@@ -77,6 +94,7 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     const pastBefore = store.temporal.getState().pastStates.length;
 
     store.getState().selectEdge("some-edge", "replace");
@@ -90,6 +108,7 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     const pastBefore = store.temporal.getState().pastStates.length;
 
     store.getState().setZoom(2);
@@ -103,6 +122,7 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     const pastBefore = store.temporal.getState().pastStates.length;
 
     store.getState().toggleSnap();
@@ -113,6 +133,7 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     const pastBefore = store.temporal.getState().pastStates.length;
 
     store.getState().toggleInteractive();
@@ -123,6 +144,7 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     const node = store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     const pastBefore = store.temporal.getState().pastStates.length;
 
     store.getState().openInspector(node.id);
@@ -133,6 +155,7 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     const pastBefore = store.temporal.getState().pastStates.length;
 
     // startExecution changes execution state
@@ -152,6 +175,7 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     const pastBefore = store.temporal.getState().pastStates.length;
 
     // setRegistry changes registry state
@@ -166,9 +190,11 @@ describe("createStore partialize — only graph slice tracked", () => {
     expect(store.temporal.getState().pastStates).toHaveLength(0);
 
     store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     expect(store.temporal.getState().pastStates).toHaveLength(1);
 
     store.getState().addNode(taskSpec, { x: 100, y: 0 });
+    flush();
     expect(store.temporal.getState().pastStates).toHaveLength(2);
   });
 
@@ -176,9 +202,11 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     const node = store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
     const pastAfterAdd = store.temporal.getState().pastStates.length;
 
     store.getState().removeNode(node.id);
+    flush();
     expect(store.temporal.getState().pastStates.length).toBe(pastAfterAdd + 1);
   });
 
@@ -186,6 +214,7 @@ describe("createStore partialize — only graph slice tracked", () => {
     const store = createTemporalStore();
 
     store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    flush();
 
     const pastState = store.temporal.getState().pastStates[0];
     const keys = Object.keys(pastState);

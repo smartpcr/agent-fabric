@@ -12,6 +12,7 @@ import { useWorkflowStore, useTemporalStore } from "@/store/hooks";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { PropertyGrid } from "@/features/property-grid/PropertyGrid";
+import { HISTORY_GROUP_DELAY } from "@/store/historyGroup";
 
 // Mock @monaco-editor/react to avoid Monaco in tests
 vi.mock("@monaco-editor/react", () => ({
@@ -46,16 +47,30 @@ function setupRegistry() {
 }
 
 beforeEach(() => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
   resetStore();
   setupRegistry();
+  // Drain any stale debounce from resetStore and re-clear history
+  act(() => {
+    vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
+  });
+  const { result: t } = renderHook(() => useTemporalStore());
+  act(() => {
+    t.current.clear();
+  });
 });
 
 afterEach(() => {
   cleanup();
   resetStore();
+  vi.useRealTimers();
 });
 
 describe("PropertyGrid undo/redo integration", () => {
+  function flush(): void {
+    vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
+  }
+
   it("undo restores previous form values", async () => {
     const { result: store } = renderHook(() => useWorkflowStore());
     const { result: temporal } = renderHook(() => useTemporalStore());
@@ -70,6 +85,11 @@ describe("PropertyGrid undo/redo integration", () => {
       }
     });
     expect(nodeId).not.toBe("");
+
+    // Flush so addNode becomes its own history entry
+    act(() => {
+      flush();
+    });
 
     act(() => {
       store.current.select(nodeId, "replace");
@@ -90,6 +110,11 @@ describe("PropertyGrid undo/redo integration", () => {
       store.current.updateNodeData(nodeId, { name: "Updated Task", params: [], apiKey: "" });
     });
 
+    // Flush so updateNodeData becomes its own history entry
+    act(() => {
+      flush();
+    });
+
     // Wait for form to re-render with new value
     await waitFor(() => {
       const input = screen.getByTestId("field-name");
@@ -98,6 +123,7 @@ describe("PropertyGrid undo/redo integration", () => {
 
     // Undo should restore the previous value
     act(() => {
+      flush();
       temporal.current.undo();
     });
 
@@ -121,6 +147,10 @@ describe("PropertyGrid undo/redo integration", () => {
     });
 
     act(() => {
+      flush();
+    });
+
+    act(() => {
       store.current.select(nodeId, "replace");
     });
 
@@ -135,11 +165,16 @@ describe("PropertyGrid undo/redo integration", () => {
       store.current.updateNodeData(nodeId, { name: "Changed", params: [], apiKey: "" });
     });
 
+    act(() => {
+      flush();
+    });
+
     await waitFor(() => {
       expect(screen.getByTestId("field-name").value).toBe("Changed");
     });
 
     act(() => {
+      flush();
       temporal.current.undo();
     });
 
@@ -149,6 +184,7 @@ describe("PropertyGrid undo/redo integration", () => {
 
     // Redo should re-apply
     act(() => {
+      flush();
       temporal.current.redo();
     });
 
@@ -168,6 +204,10 @@ describe("PropertyGrid undo/redo integration", () => {
         const node = store.current.addNode(spec, { x: 0, y: 0 });
         nodeId = node.id;
       }
+    });
+
+    act(() => {
+      flush();
     });
 
     act(() => {
@@ -203,6 +243,7 @@ describe("PropertyGrid undo/redo integration", () => {
 
     // Undo while focused
     act(() => {
+      flush();
       temporal.current.undo();
     });
 
@@ -232,6 +273,10 @@ describe("PropertyGrid undo/redo integration", () => {
     });
 
     act(() => {
+      flush();
+    });
+
+    act(() => {
       store.current.select(nodeId, "replace");
     });
 
@@ -250,6 +295,11 @@ describe("PropertyGrid undo/redo integration", () => {
       expect(screen.getByTestId("field-name").value).toBe("First Edit");
     });
 
+    // Commit first edit to history before second edit
+    act(() => {
+      flush();
+    });
+
     act(() => {
       store.current.updateNodeData(nodeId, { name: "Second Edit", params: [], apiKey: "" });
     });
@@ -260,6 +310,7 @@ describe("PropertyGrid undo/redo integration", () => {
 
     // Undo once → back to "First Edit"
     act(() => {
+      flush();
       temporal.current.undo();
     });
 
@@ -269,6 +320,7 @@ describe("PropertyGrid undo/redo integration", () => {
 
     // Undo again → back to "Task"
     act(() => {
+      flush();
       temporal.current.undo();
     });
 
@@ -300,6 +352,7 @@ describe("PropertyGrid undo/redo integration", () => {
 
     // Undo the node addition — node is removed, grid should show empty state
     act(() => {
+      flush();
       temporal.current.undo();
     });
 
@@ -319,6 +372,10 @@ describe("PropertyGrid undo/redo integration", () => {
         const node = store.current.addNode(spec, { x: 0, y: 0 });
         nodeId = node.id;
       }
+    });
+
+    act(() => {
+      flush();
     });
 
     act(() => {
@@ -343,12 +400,13 @@ describe("PropertyGrid undo/redo integration", () => {
     });
 
     // Wait for the 300ms debounce to commit to the store
-    await act(async () => {
-      await new Promise((r) => setTimeout(r, 350));
+    act(() => {
+      vi.advanceTimersByTime(350);
     });
 
     // Undo returns to original
     act(() => {
+      flush();
       temporal.current.undo();
     });
 

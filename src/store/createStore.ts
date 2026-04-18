@@ -6,6 +6,7 @@ import { createSelectionSlice, type SelectionSlice } from "@/store/slices/select
 import { createRegistrySlice, type RegistrySlice } from "@/store/slices/registrySlice";
 import { createExecutionSlice, type ExecutionSlice } from "@/store/slices/executionSlice";
 import { createViewportSlice, type ViewportSlice } from "@/store/slices/viewportSlice";
+import { createHistoryGroupHandler } from "@/store/historyGroup";
 
 export const UNDO_LIMIT = 50;
 
@@ -39,6 +40,7 @@ export function createStore() {
         }),
         equality: (pastState, currentState) =>
           pastState.nodes === currentState.nodes && pastState.edges === currentState.edges,
+        handleSet: createHistoryGroupHandler(),
       },
     ),
   );

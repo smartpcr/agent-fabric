@@ -13,6 +13,7 @@ import { Toolbar } from "@/features/editor/Toolbar";
 import { useWorkflowStore, useTemporalStore } from "@/store/hooks";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
+import { HISTORY_GROUP_DELAY } from "@/store/historyGroup";
 
 interface MockNode {
   readonly id: string;
@@ -72,8 +73,26 @@ function readStoreNodes() {
 }
 
 describe("Auto-layout toolbar button", () => {
+  function flush(): void {
+    vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
+  }
+
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     setupStore();
+    // Drain any stale debounce from setupStore and re-clear history
+    act(() => {
+      vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
+    });
+    const { result: t, unmount: u } = renderHook(() => useTemporalStore());
+    act(() => {
+      t.current.clear();
+    });
+    u();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("renders the auto-layout button", () => {
@@ -121,6 +140,9 @@ describe("Auto-layout toolbar button", () => {
     act(() => {
       result.current.addNode(spec, { x: 50, y: 60 });
     });
+    act(() => {
+      flush();
+    });
     unmount();
 
     const beforeLayout = readStoreNodes().map((n) => ({ ...n.position }));
@@ -128,6 +150,7 @@ describe("Auto-layout toolbar button", () => {
     // Clear temporal history so the layout is the only undo step
     const { result: temporal, unmount: unmountT } = renderHook(() => useTemporalStore());
     act(() => {
+      flush();
       temporal.current.clear();
     });
     unmountT();
@@ -148,6 +171,7 @@ describe("Auto-layout toolbar button", () => {
     // Undo
     const { result: temporal2, unmount: unmountT2 } = renderHook(() => useTemporalStore());
     act(() => {
+      flush();
       temporal2.current.undo();
     });
     unmountT2();

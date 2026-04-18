@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from "vitest";
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { render, screen, cleanup, renderHook, act, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Canvas } from "@/features/canvas/Canvas";
@@ -7,6 +7,7 @@ import { DragProvider } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore, useTemporalStore } from "@/store/hooks";
+import { HISTORY_GROUP_DELAY } from "@/store/historyGroup";
 
 vi.mock("@xyflow/react", () => ({
   ReactFlow: ({ children }: { children?: ReactNode }) => (
@@ -127,6 +128,18 @@ function renderCanvas() {
 }
 
 describe("Delete / Backspace removes selected nodes + edges", () => {
+  function flush(): void {
+    vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("Delete key removes 2 selected nodes", () => {
     setupStore();
     const [id1, id2, id3] = addNodesAt(
@@ -217,6 +230,7 @@ describe("Delete / Backspace removes selected nodes + edges", () => {
     renderCanvas();
     const canvas = screen.getByRole("application");
     act(() => {
+      flush();
       fireEvent.keyDown(canvas, { key: "Delete" });
     });
 
@@ -225,6 +239,7 @@ describe("Delete / Backspace removes selected nodes + edges", () => {
     // Undo — single step should restore both nodes
     const { result: temporal, unmount } = renderHook(() => useTemporalStore());
     act(() => {
+      flush();
       temporal.current.undo();
     });
     unmount();
@@ -248,6 +263,7 @@ describe("Delete / Backspace removes selected nodes + edges", () => {
 
     const canvas = screen.getByRole("application");
     act(() => {
+      flush();
       fireEvent.keyDown(canvas, { key: "Delete" });
     });
 
@@ -257,6 +273,7 @@ describe("Delete / Backspace removes selected nodes + edges", () => {
     // Undo — should restore node and edge
     const { result: temporal, unmount } = renderHook(() => useTemporalStore());
     act(() => {
+      flush();
       temporal.current.undo();
     });
     unmount();
