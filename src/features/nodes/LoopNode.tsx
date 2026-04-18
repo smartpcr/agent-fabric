@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Position, type NodeProps } from "@xyflow/react";
 import { BaseNode } from "@/features/nodes/BaseNode";
 import { InputHandle } from "@/features/nodes/ports/InputHandle";
@@ -53,8 +54,67 @@ export function LoopNode({ id, data, type, selected }: NodeProps) {
   const openInspector = useWorkflowStore((s) => s.openInspector);
   const selectNode = useWorkflowStore((s) => s.select);
   const deleteSelected = useWorkflowStore((s) => s.deleteSelected);
+  const updateNodeData = useWorkflowStore((s) => s.updateNodeData);
   const icon = spec?.icon ?? "repeat";
   const label = spec?.label ?? "Loop";
+
+  const isForEach = type === "loop-foreach";
+
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const committedRef = useRef(false);
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [editing]);
+
+  const commitEdit = useCallback(
+    (value: string) => {
+      if (isForEach) {
+        updateNodeData(id, { ...loopData, iterable: value });
+      } else {
+        updateNodeData(id, { ...loopData, condition: value });
+      }
+    },
+    [id, loopData, isForEach, updateNodeData],
+  );
+
+  const handlePreviewClick = useCallback(() => {
+    const currentValue = isForEach ? (loopData.iterable ?? "") : (loopData.condition ?? "");
+    setEditText(currentValue);
+    committedRef.current = false;
+    setEditing(true);
+  }, [isForEach, loopData]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        committedRef.current = true;
+        setEditing(false);
+        commitEdit(editText);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        committedRef.current = true;
+        setEditing(false);
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+      }
+      e.stopPropagation();
+    },
+    [editText, commitEdit],
+  );
+
+  const handleBlur = useCallback(() => {
+    if (!committedRef.current) {
+      setEditing(false);
+      commitEdit(editText);
+    }
+  }, [editText, commitEdit]);
 
   const inPort = spec?.ports.find((p) => p.kind === "in" && p.id === "in");
   const bodyOutPort = spec?.ports.find((p) => p.kind === "out" && p.id === "body-out");
@@ -95,22 +155,56 @@ export function LoopNode({ id, data, type, selected }: NodeProps) {
         }}
         onDelete={deleteSelected}
       >
-        {/* Condition/iterable preview */}
-        <div
-          data-testid="loop-preview"
-          style={{
-            fontSize: "11px",
-            color: "#4338ca",
-            textAlign: "center",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            maxWidth: "150px",
-            margin: "0 auto",
-          }}
-        >
-          {preview}
-        </div>
+        {/* Condition/iterable preview — click to edit */}
+        {editing ? (
+          <input
+            ref={inputRef}
+            data-testid="loop-inline-input"
+            type="text"
+            value={editText}
+            onChange={(e) => {
+              setEditText(e.target.value);
+            }}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            style={{
+              fontSize: 11,
+              padding: "2px 6px",
+              borderRadius: 4,
+              border: "1px solid #6366f1",
+              outline: "none",
+              width: "140px",
+              textAlign: "center",
+              display: "block",
+              margin: "0 auto",
+            }}
+          />
+        ) : (
+          <div
+            data-testid="loop-preview"
+            onClick={handlePreviewClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                handlePreviewClick();
+              }
+            }}
+            style={{
+              fontSize: "11px",
+              color: "#4338ca",
+              textAlign: "center",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              maxWidth: "150px",
+              margin: "0 auto",
+              cursor: "pointer",
+            }}
+          >
+            {preview}
+          </div>
+        )}
 
         {/* Iteration counter slot — populated by Phase 6 */}
         <div
