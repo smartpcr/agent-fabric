@@ -41,7 +41,7 @@
   - Test: 100% — collapse persists (session-storage); nested validation.
   - Effort: 3h
 
-- [ ] **Step 7**: `CodeField` (multi-line, lazy-loaded)
+- [x] **Step 7**: `CodeField` (multi-line, lazy-loaded)
   - File(s): `src/features/property-grid/fields/CodeField.tsx`, `tests/unit/features/property-grid/fields/CodeField.test.tsx`
   - Contents: Lazy-import Monaco; read-only worker; skeleton placeholder during load; language hint from schema (`{ language: 'javascript' }`).
   - Test: 100% — renders value; height responsive; lazy-load guard works in jsdom (mock Monaco).
