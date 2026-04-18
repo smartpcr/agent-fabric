@@ -29,7 +29,7 @@
   - Test: 100% — badge updates on store change; no subscription leak.
   - Effort: 3h
 
-- [ ] **Step 5**: Error badge hover tooltip
+- [x] **Step 5**: Error badge hover tooltip
   - File(s): `src/features/nodes/badges/StatusBadge.tsx` (extend), `tests/unit/features/nodes/badges/StatusBadge.error.test.tsx`
   - Contents: On `error` state, Radix tooltip shows first 200 chars of error message; click opens inspector (Stage 5).
   - Test: 100% — tooltip present; click dispatches `openInspector`.
