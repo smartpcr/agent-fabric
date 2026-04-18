@@ -1,10 +1,11 @@
 # Phase 7 — Stage 1: Repository Adapter
+
 > HTTP-backed `IWorkflowRepository` with ETag concurrency, plus an in-memory fake.
 > Status: `[ ]` not started · **Effort**: 12h
 
 ## Steps
 
-- [ ] **Step 1**: `HttpWorkflowRepository`
+- [x] **Step 1**: `HttpWorkflowRepository`
   - File(s): `src/adapters/HttpWorkflowRepository.ts`, `tests/unit/adapters/HttpWorkflowRepository.test.ts`
   - Contents: `list()`, `get(id)`, `save(id, graph, etag?)`, `create(graph)`; returns `Result<T, E>`; parses 200 / 404 / 409 / network errors.
   - Test: 100% — MSW-mocked for each status code.
@@ -35,5 +36,6 @@
   - Effort: 2h
 
 ## Acceptance for Stage 1
+
 - All 5 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/adapters/*Repository*`.
