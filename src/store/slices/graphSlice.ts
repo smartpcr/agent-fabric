@@ -12,6 +12,8 @@ import {
 } from "@/domain/validation/connectionRules";
 import { validateNodeData, type ValidationError } from "@/domain/validation/validators";
 import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
+import type { LayoutStrategy } from "@/domain/layout/layoutOptions";
+import { layoutGraph } from "@/domain/layout/layoutGraph";
 
 export interface ConnectPortsParams {
   readonly source: ConnectionEndpoint;
@@ -47,6 +49,7 @@ export interface TryConnectParams {
 export interface GraphSlice {
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];
+  layoutRunning: boolean;
   addNode: (spec: NodeSpec, position?: Position) => WorkflowNode;
   removeNode: (id: string) => void;
   /** Batch-remove all currently selected nodes and their connected edges in a single undo step */
@@ -59,6 +62,8 @@ export interface GraphSlice {
   updateEdgeLabel: (id: string, label: string) => void;
   applyNodeChanges: (changes: NodeChange[]) => void;
   applyEdgeChanges: (changes: EdgeChange[]) => void;
+  /** Run ELK auto-layout and update node positions in a single undo step. */
+  applyLayout: (strategy?: LayoutStrategy) => Promise<void>;
 }
 
 export function createGraphSlice(
@@ -68,6 +73,7 @@ export function createGraphSlice(
   return {
     nodes: [],
     edges: [],
+    layoutRunning: false,
     addNode: (spec: NodeSpec, position?: Position) => {
       const node = makeNode({
         kind: spec.kind,
@@ -232,6 +238,25 @@ export function createGraphSlice(
 
         return { edges };
       });
+    },
+    applyLayout: async (strategy?: LayoutStrategy) => {
+      const state = get();
+      if (state.layoutRunning) return;
+      set({ layoutRunning: true });
+      try {
+        const graph = {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          id: "store",
+          name: "store",
+          nodes: state.nodes,
+          edges: state.edges,
+        };
+        const result = await layoutGraph(graph, state.registry, strategy);
+        // Batch position update + layoutRunning reset for one undo step
+        set({ nodes: result.nodes as WorkflowNode[], layoutRunning: false });
+      } catch {
+        set({ layoutRunning: false });
+      }
     },
   };
 }

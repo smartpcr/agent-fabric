@@ -35,7 +35,7 @@
   - Test: 100% — options include loop-relevant keys.
   - Effort: 3h
 
-- [ ] **Step 6**: "Auto-layout" toolbar button; undoable
+- [x] **Step 6**: "Auto-layout" toolbar button; undoable
   - File(s): `src/features/editor/Toolbar.tsx` (extend), `src/store/slices/graphSlice.ts` (add `applyLayout` action), `tests/integration/layout.toolbar.test.tsx`
   - Contents: Click triggers `layoutGraph(strategy)`; wraps in a single undo step; disabled while running.
   - Test: Integration — click → positions change; one undo restores prior.

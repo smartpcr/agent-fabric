@@ -1,9 +1,11 @@
-import { Grid3X3 } from "lucide-react";
+import { Grid3X3, LayoutGrid } from "lucide-react";
 import { useWorkflowStore } from "@/store/hooks";
 
 export function Toolbar() {
   const snapEnabled = useWorkflowStore((s) => s.snapEnabled);
   const toggleSnap = useWorkflowStore((s) => s.toggleSnap);
+  const layoutRunning = useWorkflowStore((s) => s.layoutRunning);
+  const applyLayout = useWorkflowStore((s) => s.applyLayout);
 
   return (
     <div data-testid="editor-toolbar" role="toolbar" aria-label="Editor toolbar">
@@ -16,6 +18,18 @@ export function Toolbar() {
         onClick={toggleSnap}
       >
         <Grid3X3 size={14} aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        data-testid="auto-layout-button"
+        aria-label="Auto-layout"
+        title="Auto-layout"
+        disabled={layoutRunning}
+        onClick={() => {
+          void applyLayout();
+        }}
+      >
+        <LayoutGrid size={14} aria-hidden="true" />
       </button>
     </div>
   );
