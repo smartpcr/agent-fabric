@@ -1,10 +1,11 @@
 # Phase 8 — Stage 2: Theming & i18n
+
 > Light/dark theme, i18n framework, string extraction, locale switcher.
 > Status: `[ ]` not started · **Effort**: 12h
 
 ## Steps
 
-- [ ] **Step 1**: Light + dark themes
+- [x] **Step 1**: Light + dark themes
   - File(s): `src/styles/tokens.css` (extend), `src/providers/ThemeProvider.tsx`, `tests/unit/providers/ThemeProvider.test.tsx`
   - Contents: `data-theme="dark"` on `<html>`; persist to localStorage; respects `prefers-color-scheme` as default.
   - Test: 100% — toggle; persists; system-pref fallback.
@@ -29,6 +30,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 2
+
 - All 4 steps `[x]` with score ≥ 90.
 - 100% unit coverage on i18n + theme.
 - ESLint rule preventing new hard-coded strings.

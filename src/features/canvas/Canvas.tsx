@@ -102,8 +102,10 @@ export function Canvas() {
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
   const rfNodes = useMemo(() => nodes.map((n) => ({ ...n, type: n.kind })), [nodes]);
 
-  // Forward position & dimensions changes so ReactFlow can track handle
-  // positions (required for connections) and allow node dragging.
+  // Forward position changes to allow node dragging. Dimensions are tracked
+  // internally by ReactFlow (do NOT forward them — re-setting width/height on
+  // controlled nodes causes ReactFlow to treat them as fixed-size, which
+  // interferes with internal handle-bounds measurement).
   // Selection and removal are handled by our own handlers.
   const handleNodesChange = useCallback(
     (changes: RFNodeChange[]) => {
@@ -111,8 +113,6 @@ export function Canvas() {
       for (const c of changes) {
         if (c.type === "position" && c.position) {
           mapped.push({ type: "position", id: c.id, position: c.position });
-        } else if (c.type === "dimensions" && c.dimensions) {
-          mapped.push({ type: "dimensions", id: c.id, dimensions: c.dimensions });
         }
       }
       if (mapped.length > 0) {

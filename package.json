@@ -20,6 +20,7 @@
     "e2e": "playwright test",
     "e2e:install": "playwright install",
     "check:bundle": "node scripts/check-bundle-size.mjs",
+    "i18n:extract": "node scripts/i18n-extract.mjs",
     "prepare": "husky"
   },
   "dependencies": {
@@ -40,12 +41,14 @@
     "elkjs": "^0.11.1",
     "eventsource-parser": "^3.0.7",
     "fast-equals": "^6.0.0",
+    "i18next": "^26.0.6",
     "immer": "^11.1.4",
     "lucide-react": "^1.8.0",
     "nanoid": "^5.1.9",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.72.1",
+    "react-i18next": "^17.0.4",
     "react-resizable-panels": "^4.10.0",
     "reconnecting-websocket": "^4.4.0",
     "zod": "^4.3.6",
