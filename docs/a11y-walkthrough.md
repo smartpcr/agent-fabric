@@ -37,12 +37,14 @@ npm run build && npm run preview   # production preview
 
 ### 1.2 Toolbar
 
-| Action               | Keys                   | Expected announcement                                                                                                                     |
-| -------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Tab to toolbar       | **Tab** from page top  | "Editor toolbar, toolbar"                                                                                                                 |
-| Move between buttons | **Left / Right Arrow** | "Undo, button, disabled" → "Redo, button, disabled" → "Snap to grid, toggle button, not pressed" → "Auto-layout, button" → "Save, button" |
-| Activate Snap toggle | **Enter** or **Space** | "Snap to grid, toggle button, pressed"                                                                                                    |
-| Save (with errors)   | Focus Save, **Enter**  | "Save, button, disabled" — `title` attribute read: describes validation errors                                                            |
+> The toolbar does **not** implement roving-tabindex. Move between buttons with **Tab / Shift+Tab**, not arrow keys.
+
+| Action               | Keys                       | Expected announcement                                                                                                                         |
+| -------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tab to toolbar       | **Tab** from page top      | "Editor toolbar, toolbar"                                                                                                                     |
+| Move between buttons | **Tab** / **Shift+Tab**    | "Undo, button, disabled" → "Redo, button, disabled" → "Disable snap to grid, toggle button, pressed" → "Auto-layout, button" → "Save, button" |
+| Activate Snap toggle | **Enter** or **Space**     | "Enable snap to grid, toggle button, not pressed" (label reflects new state)                                                                  |
+| Save (with errors)   | **Tab** to Save, **Enter** | "Save, button, disabled" — `title` attribute read: describes validation errors                                                                |
 
 ### 1.3 Node Palette
 
@@ -74,14 +76,20 @@ npm run build && npm run preview   # production preview
 
 ### 1.5 Keyboard-driven connection
 
-| Action                   | Keys                        | Expected announcement                                                                                        |
-| ------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Focus source output port | **Tab** to output handle    | "output, button" (port label)                                                                                |
-| Enter connect mode       | **Enter**                   | Assertive live region: "Connect mode: press arrow keys to choose target, Enter to connect, Escape to cancel" |
-| Navigate targets         | **Arrow Up / Down**         | Assertive live region: "Target: label (input)"                                                               |
-| Confirm connection       | **Enter**                   | Polite live region: "Connection added"                                                                       |
-| Cancel connection        | **Escape**                  | Assertive live region: "Connect mode cancelled"                                                              |
-| Rejected connection      | **Enter** on invalid target | Polite live region: "Connection rejected: reason"                                                            |
+> Connect-mode announcements use the **assertive** live region on the canvas (`data-testid="connect-announcement"`).
+> Successful/rejected connection results are also mirrored to the **polite** app-root live region via `useAnnounce`.
+
+| Action                   | Keys                         | Expected announcement                                                              |
+| ------------------------ | ---------------------------- | ---------------------------------------------------------------------------------- |
+| Focus source output port | **Tab** to output handle     | "output, button" (port label via `aria-label`)                                     |
+| Enter connect mode       | **Enter**                    | Assertive: "Connect mode: N targets. label (1 of N)"                               |
+| No targets available     | **Enter** (no valid targets) | Assertive: "No compatible targets available"                                       |
+| Navigate targets         | **Arrow Down / Up**          | Assertive: "label (2 of N)" — cycles through compatible input ports                |
+| Confirm connection       | **Enter**                    | Assertive: "Connected to label"; polite: "Connection added" (from store announcer) |
+| Cancel connection        | **Escape**                   | Assertive: "Connection cancelled"                                                  |
+| Rejected connection      | **Enter** on invalid target  | Assertive: "Connection to label rejected"                                          |
+| Drag-connect success     | Mouse drag to port           | Polite: "Connection created" + "Connection added"                                  |
+| Drag-connect rejected    | Mouse drag to invalid port   | Polite: "Connection rejected: reason"                                              |
 
 ### 1.6 Property Grid
 
@@ -101,12 +109,13 @@ npm run build && npm run preview   # production preview
 
 | Action         | Keys                           | Expected announcement                                                |
 | -------------- | ------------------------------ | -------------------------------------------------------------------- |
-| Start run      | Activate Run button in toolbar | Live region: "Run run-id started"                                    |
+| Start run      | Activate Run button in toolbar | Polite: "Workflow run started"                                       |
 | Node running   | (Automatic)                    | Status badge: "Running, status"                                      |
 | Node succeeded | (Automatic)                    | Status badge: "Succeeded, status"                                    |
 | Node failed    | (Automatic)                    | Status badge: "Failed, status"; Enter/Space on badge opens inspector |
-| Run completed  | (Automatic)                    | Live region: "Run run-id completed"                                  |
-| Run failed     | (Automatic)                    | Live region: "Run run-id failed"                                     |
+| Run completed  | (Automatic)                    | Polite: "Workflow run completed"                                     |
+| Run failed     | (Automatic)                    | Polite: "Workflow run failed"                                        |
+| Run cancelled  | (Automatic)                    | Polite: "Workflow run cancelled"                                     |
 
 ### 1.8 Undo / Redo & History
 
@@ -142,13 +151,15 @@ npm run build && npm run preview   # production preview
 
 ### 2.2 Toolbar
 
-| Action                | Keys                        | Expected announcement                                                                                                    |
-| --------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Navigate to toolbar   | **VO+Right Arrow** or Rotor | "Editor toolbar, toolbar"                                                                                                |
-| Interact with toolbar | **VO+Shift+Down Arrow**     | Enters toolbar interaction                                                                                               |
-| Move between buttons  | **VO+Right / Left Arrow**   | "Undo, dimmed, button" → "Redo, dimmed, button" → "Snap to grid, toggle button" → "Auto-layout, button" → "Save, button" |
-| Activate              | **VO+Space**                | Button activates                                                                                                         |
-| Stop interacting      | **VO+Shift+Up Arrow**       | Exits toolbar                                                                                                            |
+> No roving-tabindex — buttons are reached with **Tab / Shift+Tab** (or **VO+Right / Left Arrow** while interacting).
+
+| Action                | Keys                          | Expected announcement                                                                                                            |
+| --------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Navigate to toolbar   | **VO+Right Arrow** or Rotor   | "Editor toolbar, toolbar"                                                                                                        |
+| Interact with toolbar | **VO+Shift+Down Arrow**       | Enters toolbar interaction                                                                                                       |
+| Move between buttons  | **Tab** or **VO+Right Arrow** | "Undo, dimmed, button" → "Redo, dimmed, button" → "Disable snap to grid, toggle button" → "Auto-layout, button" → "Save, button" |
+| Activate              | **VO+Space**                  | Button activates                                                                                                                 |
+| Stop interacting      | **VO+Shift+Up Arrow**         | Exits toolbar                                                                                                                    |
 
 ### 2.3 Node Palette
 
@@ -213,31 +224,41 @@ Below is a consolidated list of all live-region announcements emitted by the app
 | Multiple nodes       | "`N` nodes selected"    |
 | Selection cleared    | "Selection cleared"     |
 
-### Connection announcements (polite)
+### Connection announcements
 
-| Event               | Message                          |
-| ------------------- | -------------------------------- |
-| Edge created        | "Connection added"               |
-| Edge removed        | "Connection removed"             |
-| Connection success  | "Connected `source` to `target`" |
-| Connection rejected | "Connection rejected: `reason`"  |
+> Multiple sources emit connection messages. The table notes which code path produces each.
+
+| Event                     | Message                          | Source                                      | Region                         |
+| ------------------------- | -------------------------------- | ------------------------------------------- | ------------------------------ |
+| Edge count increased      | "Connection added"               | `useStoreAnnouncer`                         | polite                         |
+| Edge count decreased      | "Connection removed"             | `useStoreAnnouncer`                         | polite                         |
+| Drag-connect success      | "Connection created"             | `Canvas.handleConnect`                      | polite                         |
+| Drag-connect rejected     | "Connection rejected: `reason`"  | `Canvas.handleConnect` / `handleConnectEnd` | polite                         |
+| Keyboard-connect success  | "Connected to `label`"           | `useKeyboardConnect.confirm`                | assertive (mirrored to polite) |
+| Keyboard-connect rejected | "Connection to `label` rejected" | `useKeyboardConnect.confirm`                | assertive (mirrored to polite) |
 
 ### Run-state announcements (polite)
 
-| Event         | Message                 |
-| ------------- | ----------------------- |
-| Run started   | "Run `runId` started"   |
-| Run completed | "Run `runId` completed" |
-| Run failed    | "Run `runId` failed"    |
-| Run cancelled | "Run `runId` cancelled" |
+| Event         | Message                  |
+| ------------- | ------------------------ |
+| Run started   | "Workflow run started"   |
+| Run completed | "Workflow run completed" |
+| Run failed    | "Workflow run failed"    |
+| Run cancelled | "Workflow run cancelled" |
 
-### Canvas connect mode (assertive)
+### Canvas connect mode (assertive, mirrored to polite)
 
-| Event                | Message                                                                               |
-| -------------------- | ------------------------------------------------------------------------------------- |
-| Enter connect mode   | "Connect mode: press arrow keys to choose target, Enter to connect, Escape to cancel" |
-| Target navigation    | "Target: `label` (`portName`)"                                                        |
-| Connection cancelled | "Connect mode cancelled"                                                              |
+> These messages appear in the assertive live region on the canvas (`data-testid="connect-announcement"`)
+> and are also mirrored to the polite app-root live region via `useAnnounce`.
+
+| Event                 | Message                                         |
+| --------------------- | ----------------------------------------------- |
+| Enter connect mode    | "Connect mode: `N` targets. `label` (1 of `N`)" |
+| No compatible targets | "No compatible targets available"               |
+| Target navigation     | "`label` (`index` of `total`)"                  |
+| Connection confirmed  | "Connected to `label`"                          |
+| Connection rejected   | "Connection to `label` rejected"                |
+| Connection cancelled  | "Connection cancelled"                          |
 
 ### Property validation (polite)
 
