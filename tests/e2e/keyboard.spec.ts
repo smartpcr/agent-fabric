@@ -323,12 +323,27 @@ test.describe("Keyboard navigation — author + run workflow without mouse", () 
     const runBtn = page.locator('[data-testid="run-btn"]');
     await expect(runBtn).toBeVisible({ timeout: 5000 });
 
-    // 9. Start a run via keyboard — click the Start button via focus+Enter
+    // 9. Start a run via keyboard — focus Start button and press Enter
+    //    The testCommandSink wired in main.tsx auto-creates a run when
+    //    RunControls dispatches { type: "run" }, so this keyboard action
+    //    alone triggers a real run in the execution store.
     await runBtn.focus();
     await page.keyboard.press("Enter");
 
-    // 10. Start a run via the test harness and emit execution events
-    const RUN_ID = "keyboard-run-1";
+    // 10. Verify the run was actually started by the keyboard action
+    //     (not programmatically via __TEST_HARNESS__.startRun)
+    await page.waitForTimeout(200);
+    const autoRunId = await page.evaluate(() => {
+      const harness = (
+        window as unknown as {
+          __TEST_HARNESS__: { getLastAutoRunId: () => string | null };
+        }
+      ).__TEST_HARNESS__;
+      return harness.getLastAutoRunId();
+    });
+    expect(autoRunId).not.toBeNull();
+    // The run button should now be disabled (running state)
+    await expect(runBtn).toBeDisabled({ timeout: 3000 });
 
     // Collect node IDs for event emission
     const nodeIds = await page.evaluate(() => {
@@ -337,15 +352,7 @@ test.describe("Keyboard navigation — author + run workflow without mouse", () 
     });
     expect(nodeIds).toHaveLength(3);
 
-    // Use the test harness to start the run (wires up the execution store)
-    await page.evaluate((rid) => {
-      const harness = (
-        window as unknown as { __TEST_HARNESS__: { startRun: (id: string) => void } }
-      ).__TEST_HARNESS__;
-      harness.startRun(rid);
-    }, RUN_ID);
-
-    // Emit node.started for each node
+    // 11. Emit node.started events using the auto-generated run ID
     for (let i = 0; i < nodeIds.length; i++) {
       await page.evaluate(
         (ev) => {
@@ -358,7 +365,7 @@ test.describe("Keyboard navigation — author + run workflow without mouse", () 
         },
         {
           type: "node.started",
-          runId: RUN_ID,
+          runId: autoRunId,
           nodeId: nodeIds[i],
           at: 1000 + i * 100,
         },
@@ -371,7 +378,7 @@ test.describe("Keyboard navigation — author + run workflow without mouse", () 
     const runningBadge = page.locator('[data-testid="status-badge"][data-status="running"]');
     await expect(runningBadge.first()).toBeVisible({ timeout: 5000 });
 
-    // Emit node.succeeded for each node
+    // 12. Emit node.succeeded for each node
     for (let i = 0; i < nodeIds.length; i++) {
       await page.evaluate(
         (ev) => {
@@ -384,7 +391,7 @@ test.describe("Keyboard navigation — author + run workflow without mouse", () 
         },
         {
           type: "node.succeeded",
-          runId: RUN_ID,
+          runId: autoRunId,
           nodeId: nodeIds[i],
           at: 2000 + i * 100,
         },
