@@ -48,6 +48,11 @@ export interface IExecutionEventSource {
   /**
    * Permanently close the event source and release all resources.
    * After calling `close()`, no further events are delivered.
+   *
+   * **Contract guarantees:**
+   * - Calling `close()` multiple times is safe (idempotent).
+   * - Calling `subscribe()` after `close()` must not throw; the returned
+   *   unsubscribe is a no-op and no events will be delivered.
    */
   close(): void;
 }

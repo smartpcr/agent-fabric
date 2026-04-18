@@ -48,6 +48,10 @@ function makeEvent(
  * @param factory - Creates a fresh source for each test. Also returns an
  *   `emit` helper to push events into the source and an optional
  *   `setConnectionState` helper for adapters that support it.
+ * @param options - Optional configuration.
+ * @param options.supportsConnectionStateControl - Set to `true` if the adapter's
+ *   factory returns `setConnectionState`. This avoids calling `factory()` at
+ *   test-definition time, which could open sockets/timers before lifecycle hooks.
  */
 export function runExecutionEventSourceContractTests(
   name: string,
@@ -56,18 +60,20 @@ export function runExecutionEventSourceContractTests(
     emit: (event: ExecutionEvent) => void;
     setConnectionState?: (state: ConnectionState) => void;
   },
+  options: { supportsConnectionStateControl?: boolean } = {},
 ) {
+  const { supportsConnectionStateControl = false } = options;
+
   describe(`IExecutionEventSource contract — ${name}`, () => {
     let source: IExecutionEventSource;
     let emit: (event: ExecutionEvent) => void;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used conditionally below
-    let _setConnectionState: ((state: ConnectionState) => void) | undefined;
+    let setConnectionState: ((state: ConnectionState) => void) | undefined;
 
     beforeEach(() => {
       const created = factory();
       source = created.source;
       emit = created.emit;
-      _setConnectionState = created.setConnectionState;
+      setConnectionState = created.setConnectionState;
     });
 
     afterEach(() => {
@@ -203,44 +209,40 @@ export function runExecutionEventSourceContractTests(
         unsub();
       });
 
-      if (factory().setConnectionState) {
+      // Tests that require setConnectionState are gated by the capability flag
+      // to avoid calling factory() at test-definition time.
+      if (supportsConnectionStateControl) {
         it("notifies listeners when connection state changes", () => {
           const listener = vi.fn();
-          const fresh = factory();
-          fresh.source.connectionState$.subscribe(listener);
+          source.connectionState$.subscribe(listener);
 
-          const setState = fresh.setConnectionState;
-          if (!setState) throw new Error("setConnectionState expected");
+          if (!setConnectionState) throw new Error("setConnectionState expected");
 
-          setState("reconnecting");
+          setConnectionState("reconnecting");
           expect(listener).toHaveBeenCalledWith("reconnecting");
 
-          setState("disconnected");
+          setConnectionState("disconnected");
           expect(listener).toHaveBeenCalledWith("disconnected");
 
-          setState("connected");
+          setConnectionState("connected");
           expect(listener).toHaveBeenCalledWith("connected");
 
           expect(listener).toHaveBeenCalledTimes(3);
-          fresh.source.close();
         });
 
         it("unsubscribing from connectionState$ stops notifications", () => {
           const listener = vi.fn();
-          const fresh = factory();
-          const unsub = fresh.source.connectionState$.subscribe(listener);
+          const unsub = source.connectionState$.subscribe(listener);
 
-          const setState = fresh.setConnectionState;
-          if (!setState) throw new Error("setConnectionState expected");
+          if (!setConnectionState) throw new Error("setConnectionState expected");
 
-          setState("reconnecting");
+          setConnectionState("reconnecting");
           expect(listener).toHaveBeenCalledTimes(1);
 
           unsub();
 
-          setState("disconnected");
+          setConnectionState("disconnected");
           expect(listener).toHaveBeenCalledTimes(1);
-          fresh.source.close();
         });
       }
     });
@@ -275,11 +277,10 @@ export function runExecutionEventSourceContractTests(
         expect(handler).not.toHaveBeenCalled();
       });
 
-      if (factory().setConnectionState) {
+      if (supportsConnectionStateControl) {
         it("sets connection state to disconnected on close", () => {
-          const fresh = factory();
-          fresh.source.close();
-          expect(fresh.source.connectionState$.current()).toBe("disconnected");
+          source.close();
+          expect(source.connectionState$.current()).toBe("disconnected");
         });
       }
     });
@@ -351,4 +352,6 @@ function createInlineAdapter() {
   return { source, emit, setConnectionState };
 }
 
-runExecutionEventSourceContractTests("InlineAdapter (self-test)", createInlineAdapter);
+runExecutionEventSourceContractTests("InlineAdapter (self-test)", createInlineAdapter, {
+  supportsConnectionStateControl: true,
+});
