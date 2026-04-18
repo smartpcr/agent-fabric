@@ -30,7 +30,16 @@
     "editNodeLabel": "Edit node label",
     "copyNodeId": "Copy node ID",
     "mixed": "mixed",
-    "selectPlaceholder": "Select..."
+    "selectPlaceholder": "Select...",
+    "expand": "Expand {{name}}",
+    "collapse": "Collapse {{name}}",
+    "nestedErrors_one": "{{count}} nested error",
+    "nestedErrors_other": "{{count}} nested errors",
+    "errorCount_one": "{{count}} error",
+    "errorCount_other": "{{count}} errors",
+    "validationErrors_one": "{{count}} validation error",
+    "validationErrors_other": "{{count}} validation errors",
+    "fields": "{{name}} fields"
   },
   "palette": {
     "ariaLabel": "Node Palette",

@@ -93,10 +93,10 @@ export function ObjectField({
   const displayError = useMemo(() => {
     if (error) return error;
     if (nestedErrorCount > 0) {
-      return `${String(nestedErrorCount)} nested error${nestedErrorCount > 1 ? "s" : ""}`;
+      return t("propertyGrid.nestedErrors", { count: nestedErrorCount });
     }
     return undefined;
-  }, [error, nestedErrorCount]);
+  }, [error, nestedErrorCount, t]);
 
   const errorId = `error-${descriptor.name}`;
 
@@ -109,7 +109,11 @@ export function ObjectField({
           aria-expanded={!collapsed}
           aria-controls={`object-content-${descriptor.name}`}
           data-testid={`object-toggle-${descriptor.name}`}
-          aria-label={`${collapsed ? "Expand" : "Collapse"} ${descriptor.name}`}
+          aria-label={
+            collapsed
+              ? t("propertyGrid.expand", { name: descriptor.name })
+              : t("propertyGrid.collapse", { name: descriptor.name })
+          }
         >
           <span aria-hidden="true">{collapsed ? "▶" : "▼"}</span>
           {descriptor.name}
@@ -124,7 +128,7 @@ export function ObjectField({
         {nestedErrorCount > 0 && !error && (
           <span
             data-testid={`error-count-${descriptor.name}`}
-            aria-label={`${String(nestedErrorCount)} error${nestedErrorCount > 1 ? "s" : ""}`}
+            aria-label={t("propertyGrid.errorCount", { count: nestedErrorCount })}
           >
             {nestedErrorCount}
           </span>
@@ -136,7 +140,7 @@ export function ObjectField({
           id={`object-content-${descriptor.name}`}
           data-testid={`object-content-${descriptor.name}`}
           role="group"
-          aria-label={`${descriptor.name} fields`}
+          aria-label={t("propertyGrid.fields", { name: descriptor.name })}
         >
           {objectSchema ? (
             <SchemaFormFields
@@ -148,7 +152,9 @@ export function ObjectField({
               fieldRegistry={fieldRegistry}
             />
           ) : (
-            <span data-testid={`object-no-schema-${descriptor.name}`}>{t("propertyGrid.noSchema")}</span>
+            <span data-testid={`object-no-schema-${descriptor.name}`}>
+              {t("propertyGrid.noSchema")}
+            </span>
           )}
         </div>
       )}

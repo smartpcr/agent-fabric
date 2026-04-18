@@ -68,11 +68,7 @@ function PropertyGridContent({
 }) {
   const { t } = useTranslation();
   if (isMultiSelect && !multiSelectKind) {
-    return (
-      <p data-testid="property-grid-mixed-kinds">
-        {t("propertyGrid.differentKinds")}
-      </p>
-    );
+    return <p data-testid="property-grid-mixed-kinds">{t("propertyGrid.differentKinds")}</p>;
   }
 
   if (hasActiveForm && spec && formValue) {
@@ -258,7 +254,7 @@ export function PropertyGrid() {
               fontSize: "0.75rem",
               fontWeight: 600,
             }}
-            aria-label={`${String(errorCount)} validation error${errorCount === 1 ? "" : "s"}`}
+            aria-label={t("propertyGrid.validationErrors", { count: errorCount })}
           >
             {errorCount}
           </span>
