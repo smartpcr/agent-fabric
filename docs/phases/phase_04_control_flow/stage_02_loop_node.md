@@ -11,7 +11,7 @@
   - Test: 100%.
   - Effort: 2h
 
-- [ ] **Step 2**: `LoopNode` spec (for-each)
+- [x] **Step 2**: `LoopNode` spec (for-each)
   - File(s): `src/registry/builtins/LoopForEachNode.spec.ts`, `tests/unit/registry/builtins/LoopForEachNode.test.ts`
   - Contents: kind `'loop-foreach'`; adds `break` port; `propertySchema = z.object({ iterable: z.string().min(1), item: z.string() })`.
   - Test: 100%.
