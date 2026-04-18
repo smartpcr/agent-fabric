@@ -56,10 +56,11 @@ describe("TaskNodeSpec", () => {
   });
 
   describe("defaultData", () => {
-    it("has name 'Task', retries 3, empty params, and empty apiKey", () => {
+    it("has name 'Task', retries 3, empty tags, empty params, and empty apiKey", () => {
       expect(TaskNodeSpec.defaultData).toEqual({
         name: "Task",
         retries: 3,
+        tags: [],
         params: {},
         apiKey: "",
       });

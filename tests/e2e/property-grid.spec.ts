@@ -189,3 +189,102 @@ test.describe("Property Grid — invalid number field; Save disabled; correct re
     await expect(saveBtn).not.toHaveAttribute("aria-disabled", "true");
   });
 });
+
+test.describe("Property Grid — array field (add, remove, reorder)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page["goto"]("/");
+    await page.evaluate(() => {
+      localStorage.removeItem("agent-fabric:graph");
+      localStorage.removeItem("agent-fabric:viewport");
+    });
+    await page.reload();
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+  });
+
+  test("add 3 items, remove middle, drag to reorder, verify order", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    await expect(canvas).toBeVisible();
+    const canvasBox = await getBox(canvas);
+    const dropX = canvasBox.x + canvasBox.width / 2;
+    const dropY = canvasBox.y + canvasBox.height / 2;
+
+    // 1. Drag a TaskNode onto the canvas
+    const taskItem = page.locator('[role="option"][data-kind="task"]');
+    await dragPaletteToCanvas(taskItem, canvas, dropX, dropY);
+
+    const newNode = page.locator(".react-flow__node[data-id]");
+    await expect(newNode).toHaveCount(1, { timeout: 5000 });
+
+    // 2. Click to select
+    await newNode.click();
+
+    // 3. Wait for property grid
+    const propertyGrid = page.locator('[role="complementary"][aria-label="Property Grid"]');
+    await expect(propertyGrid).toBeVisible({ timeout: 10000 });
+
+    // 4. Find the tags array field
+    const tagsField = propertyGrid.locator('[data-testid="array-field-tags"]');
+    await expect(tagsField).toBeVisible({ timeout: 10000 });
+
+    const addBtn = tagsField.locator('[data-testid="add-tags"]');
+
+    // 5. Add 3 items
+    await addBtn.click();
+    await page.waitForTimeout(200);
+    await addBtn.click();
+    await page.waitForTimeout(200);
+    await addBtn.click();
+    await page.waitForTimeout(200);
+
+    // Verify 3 items exist
+    const items = tagsField.locator('[role="listitem"]');
+    await expect(items).toHaveCount(3, { timeout: 5000 });
+
+    // 6. Type values into each item
+    const input0 = tagsField.locator('[data-testid="array-input-tags-0"]');
+    const input1 = tagsField.locator('[data-testid="array-input-tags-1"]');
+    const input2 = tagsField.locator('[data-testid="array-input-tags-2"]');
+
+    await input0.fill("alpha");
+    await input1.fill("beta");
+    await input2.fill("gamma");
+
+    // 7. Remove the middle item (index 1 = "beta")
+    const removeBtn1 = tagsField.locator('[data-testid="remove-tags-1"]');
+    await removeBtn1.click();
+    await page.waitForTimeout(300);
+
+    // Verify 2 items remain
+    await expect(items).toHaveCount(2, { timeout: 5000 });
+
+    // After removing "beta", items should be: ["alpha", "gamma"]
+    const updatedInput0 = tagsField.locator('[data-testid="array-input-tags-0"]');
+    const updatedInput1 = tagsField.locator('[data-testid="array-input-tags-1"]');
+    await expect(updatedInput0).toHaveValue("alpha");
+    await expect(updatedInput1).toHaveValue("gamma");
+
+    // 8. Reorder: drag item 1 ("gamma") above item 0 ("alpha")
+    const dragHandle1 = tagsField.locator('[data-testid="drag-handle-tags-1"]');
+    const dragHandle0 = tagsField.locator('[data-testid="drag-handle-tags-0"]');
+
+    const handle1Box = await getBox(dragHandle1);
+    const handle0Box = await getBox(dragHandle0);
+
+    // Perform drag: pick up handle1, drag to handle0's position
+    await page.mouse.move(
+      handle1Box.x + handle1Box.width / 2,
+      handle1Box.y + handle1Box.height / 2,
+    );
+    await page.mouse.down();
+    // Move to above handle0 position to trigger reorder
+    await page.mouse.move(handle0Box.x + handle0Box.width / 2, handle0Box.y - 5, { steps: 10 });
+    await page.mouse.up();
+    await page.waitForTimeout(500);
+
+    // 9. Verify final order: should now be ["gamma", "alpha"]
+    const finalInput0 = tagsField.locator('[data-testid="array-input-tags-0"]');
+    const finalInput1 = tagsField.locator('[data-testid="array-input-tags-1"]');
+    await expect(finalInput0).toHaveValue("gamma");
+    await expect(finalInput1).toHaveValue("alpha");
+  });
+});
