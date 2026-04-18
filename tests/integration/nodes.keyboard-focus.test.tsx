@@ -157,8 +157,9 @@ describe("Accessible node focus (keyboard)", () => {
     const allNodes = screen.getAllByTestId("base-node");
     expect(allNodes).toHaveLength(2);
 
-    // Tab into the first focusable node
-    await user.tab();
+    // Tab into the canvas wrapper (tabIndex=0), then to the first focusable node
+    await user.tab(); // → canvas wrapper
+    await user.tab(); // → first node
     expect(document.activeElement).toBe(allNodes[0]);
     expect(allNodes[0].getAttribute("data-node-id")).toBe(id1);
 
@@ -184,8 +185,9 @@ describe("Accessible node focus (keyboard)", () => {
     const allNodes = screen.getAllByTestId("base-node");
     expect(allNodes).toHaveLength(3);
 
-    // Tab to first node
-    await user.tab();
+    // Tab to first node (via canvas wrapper → first node → second node)
+    await user.tab(); // → canvas wrapper
+    await user.tab(); // → first node
     expect(document.activeElement).toBe(allNodes[0]);
 
     // Tab to second node
