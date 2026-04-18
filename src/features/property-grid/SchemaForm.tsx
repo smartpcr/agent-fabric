@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useMemo, useState } from "react";
 import { useForm, Controller, type Control, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -132,6 +132,65 @@ defaultFieldRegistry.registerField("number", NumberField);
 defaultFieldRegistry.registerField("boolean", BooleanField);
 defaultFieldRegistry.registerField("enum", EnumField);
 
+// ─── Mixed-field input component ─────────────────────────────────────
+
+/** Sentinel value for mixed fields – must match PropertyGrid.MIXED_SENTINEL */
+const MIXED_VALUE = "__mixed__";
+
+/**
+ * Input for fields with mixed values across multi-selected nodes.
+ * Shows "mixed" placeholder while the sentinel is active; once the user
+ * types, the input binds to form state so keystrokes are reflected.
+ */
+function MixedFieldInput({
+  descriptor,
+  field,
+}: {
+  readonly descriptor: FieldDescriptor;
+  readonly field: {
+    value: unknown;
+    onChange: (v: unknown) => void;
+    onBlur: () => void;
+    name: string;
+  };
+}) {
+  const isMixed = field.value === MIXED_VALUE;
+  const [editing, setEditing] = useState(false);
+
+  // Show mixed placeholder when the sentinel is active and user hasn't started typing
+  const showMixed = isMixed && !editing;
+
+  const displayValue = showMixed
+    ? ""
+    : typeof field.value === "string" || typeof field.value === "number"
+      ? String(field.value)
+      : "";
+
+  return (
+    <input
+      type="text"
+      placeholder={showMixed ? "mixed" : undefined}
+      value={displayValue}
+      onChange={(e) => {
+        if (!editing) setEditing(true);
+        field.onChange(e.target.value);
+      }}
+      onBlur={() => {
+        field.onBlur();
+        // Restore mixed presentation if the value is still the sentinel or was cleared
+        if (field.value === MIXED_VALUE || field.value === "" || field.value === undefined) {
+          setEditing(false);
+        }
+      }}
+      name={field.name}
+      aria-label={descriptor.name}
+      data-testid={`field-${descriptor.name}`}
+      data-mixed={showMixed ? "true" : undefined}
+      style={showMixed ? { fontStyle: "italic", color: "#999" } : undefined}
+    />
+  );
+}
+
 // ─── Recursive field tree renderer ───────────────────────────────────
 
 interface FieldTreeProps {
@@ -140,6 +199,7 @@ interface FieldTreeProps {
   readonly registry: FieldResolver;
   readonly errors: FieldErrors;
   readonly prefix?: string;
+  readonly mixedFields?: ReadonlySet<string>;
 }
 
 /**
@@ -165,7 +225,14 @@ function getFieldError(errors: FieldErrors, fieldPath: string): string | undefin
 }
 
 /** Renders a tree of fields, recursing into nested object descriptors. */
-function FieldTree({ descriptors, control, registry, errors, prefix = "" }: FieldTreeProps) {
+function FieldTree({
+  descriptors,
+  control,
+  registry,
+  errors,
+  prefix = "",
+  mixedFields,
+}: FieldTreeProps) {
   return (
     <>
       {descriptors.map((descriptor) => {
@@ -185,8 +252,23 @@ function FieldTree({ descriptors, control, registry, errors, prefix = "" }: Fiel
                 registry={registry}
                 errors={errors}
                 prefix={fieldPath}
+                mixedFields={mixedFields}
               />
             </fieldset>
+          );
+        }
+
+        // Show "mixed" placeholder for fields with differing values in multi-select
+        if (mixedFields?.has(descriptor.name)) {
+          return (
+            <div key={descriptor.name} data-testid={`field-wrapper-${descriptor.name}`}>
+              <label htmlFor={`field-${descriptor.name}`}>{descriptor.name}</label>
+              <Controller
+                name={fieldPath}
+                control={control}
+                render={({ field }) => <MixedFieldInput descriptor={descriptor} field={field} />}
+              />
+            </div>
           );
         }
 
@@ -238,6 +320,8 @@ export interface SchemaFormProps {
   readonly fieldRegistry?: FieldResolver;
   /** Called when validation error count changes. Receives count and messages. */
   readonly onValidationChange?: (errorCount: number, errorMessages: string[]) => void;
+  /** List of field names that have mixed values across multi-selected nodes. */
+  readonly mixedFields?: readonly string[];
 }
 
 /**
@@ -256,6 +340,7 @@ export function SchemaFormFields({
   onChange,
   fieldRegistry,
   onValidationChange,
+  mixedFields,
 }: SchemaFormProps) {
   const fields = introspect(schema);
   const registry = fieldRegistry ?? defaultFieldRegistry;
@@ -330,7 +415,20 @@ export function SchemaFormFields({
     }
   }, [errors, onValidationChange]);
 
-  return <FieldTree descriptors={fields} control={control} registry={registry} errors={errors} />;
+  const mixedFieldSet = useMemo(
+    () => (mixedFields ? new Set(mixedFields) : undefined),
+    [mixedFields],
+  );
+
+  return (
+    <FieldTree
+      descriptors={fields}
+      control={control}
+      registry={registry}
+      errors={errors}
+      mixedFields={mixedFieldSet}
+    />
+  );
 }
 /* eslint-enable react-hooks/incompatible-library */
 
