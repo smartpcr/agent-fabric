@@ -11,7 +11,7 @@
   - Test: 100% — loader caches; mock returns a stub for jsdom.
   - Effort: 3h
 
-- [ ] **Step 2**: `toElkGraph(graph)` adapter
+- [x] **Step 2**: `toElkGraph(graph)` adapter
   - File(s): `src/domain/layout/elkAdapter.ts`, `tests/unit/domain/layout/elkAdapter.toElk.test.ts`
   - Contents: Transform `WorkflowGraph` → ELK JSON (id, children, ports, edges, labels); maps port spec to ELK port constraints.
   - Test: 100% — nodes / edges / ports transformed; roundtrip safety.
