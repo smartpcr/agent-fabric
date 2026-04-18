@@ -9,11 +9,17 @@ export type GraphValidationErrorCode =
   | "UNREACHABLE_NODE"
   | "REQUIRED_PORT_UNCONNECTED"
   | "LOOP_NODE_MISSING_BACK_EDGE"
-  | "LOOP_NODE_MULTIPLE_BACK_EDGES";
+  | "LOOP_NODE_MULTIPLE_BACK_EDGES"
+  | "DECISION_ORPHAN_EDGE"
+  | "DECISION_DUPLICATE_BRANCH"
+  | "DECISION_MISSING_DEFAULT";
+
+export type GraphValidationSeverity = "error" | "warning";
 
 export interface GraphValidationError {
   readonly code: GraphValidationErrorCode;
   readonly message: string;
+  readonly severity?: GraphValidationSeverity;
 }
 
 function isEntryKind(kind: string, registry: NodeSpecRegistry): boolean {
@@ -172,24 +178,128 @@ function checkLoopNodes(graph: WorkflowGraph, registry: NodeSpecRegistry): Graph
   return errors;
 }
 
-export function validateGraph(
+function branchPortId(label: string): string {
+  return `branch-${label.toLowerCase().replace(/\s+/g, "-")}`;
+}
+
+/**
+ * Extract allowed output port IDs for a decision node.
+ * For if-else: uses static spec ports.
+ * For switch: derives from node data.branches + implicit `default`.
+ */
+function getDeclaredOutputPortIds(
+  node: WorkflowNode,
+  variant: string,
+  specOutputPortIds: readonly string[],
+): Set<string> {
+  if (variant === "switch") {
+    const data = node.data as Record<string, unknown> | null | undefined;
+    const raw = data && typeof data === "object" ? data.branches : undefined;
+    if (Array.isArray(raw)) {
+      const ids: string[] = [];
+      for (const b of raw) {
+        if (
+          b &&
+          typeof b === "object" &&
+          typeof (b as Record<string, unknown>).label === "string"
+        ) {
+          ids.push(branchPortId((b as Record<string, unknown>).label as string));
+        }
+      }
+      ids.push("default");
+      return new Set(ids);
+    }
+  }
+  return new Set(specOutputPortIds);
+}
+
+function checkDecisionNodes(
   graph: WorkflowGraph,
   registry: NodeSpecRegistry,
-): Result<void, GraphValidationError[]> {
-  const { entryNodes, errors: entryErrors } = checkEntryNodes(graph.nodes, registry);
-  const errors: GraphValidationError[] = [...entryErrors];
+): GraphValidationError[] {
+  const diagnostics: GraphValidationError[] = [];
 
-  if (entryNodes.length === 1) {
-    for (const entry of entryNodes) {
-      errors.push(...checkReachability(graph, entry.id, registry));
+  for (const node of graph.nodes) {
+    const spec = registry.get(node.kind);
+    if (!spec) {
+      continue;
+    }
+    const variant = spec.variant;
+    if (variant !== "if-else" && variant !== "switch") {
+      continue;
+    }
+
+    const specOutputPortIds = spec.ports.filter((p) => p.kind === "out").map((p) => p.id);
+    const declaredPortIds = getDeclaredOutputPortIds(node, variant, specOutputPortIds);
+    // `default` is always accepted even if not in declared ports
+    const allowedPortIds = new Set([...declaredPortIds, "default"]);
+
+    const outgoingEdges = graph.edges.filter((e) => e.source === node.id);
+
+    // Orphan edge: sourcePort not in allowed set
+    for (const edge of outgoingEdges) {
+      if (!allowedPortIds.has(edge.sourcePort)) {
+        diagnostics.push({
+          code: "DECISION_ORPHAN_EDGE",
+          message: `Outgoing edge "${edge.id}" from decision node "${node.id}" (kind: ${node.kind}) uses sourcePort "${edge.sourcePort}" which is not a declared branch or "default"`,
+        });
+      }
+    }
+
+    // Duplicate branches: multiple edges from same sourcePort
+    const portUsage = new Map<string, string[]>();
+    for (const edge of outgoingEdges) {
+      const existing = portUsage.get(edge.sourcePort) ?? [];
+      existing.push(edge.id);
+      portUsage.set(edge.sourcePort, existing);
+    }
+    for (const [portId, edgeIds] of portUsage) {
+      if (edgeIds.length > 1) {
+        diagnostics.push({
+          code: "DECISION_DUPLICATE_BRANCH",
+          message: `Decision node "${node.id}" (kind: ${node.kind}) has ${String(edgeIds.length)} outgoing edges from sourcePort "${portId}"; each branch should have at most one edge`,
+        });
+      }
+    }
+
+    // Missing default: only warn when `default` is a declared port
+    if (declaredPortIds.has("default")) {
+      const hasDefault = outgoingEdges.some((e) => e.sourcePort === "default");
+      if (!hasDefault) {
+        diagnostics.push({
+          code: "DECISION_MISSING_DEFAULT",
+          message: `Decision node "${node.id}" (kind: ${node.kind}) has no outgoing edge from the "default" port`,
+          severity: "warning",
+        });
+      }
     }
   }
 
-  errors.push(...checkRequiredPorts(graph, registry));
-  errors.push(...checkLoopNodes(graph, registry));
+  return diagnostics;
+}
+
+export function validateGraph(
+  graph: WorkflowGraph,
+  registry: NodeSpecRegistry,
+): Result<GraphValidationError[], GraphValidationError[]> {
+  const { entryNodes, errors: entryErrors } = checkEntryNodes(graph.nodes, registry);
+  const allDiagnostics: GraphValidationError[] = [...entryErrors];
+
+  if (entryNodes.length === 1) {
+    for (const entry of entryNodes) {
+      allDiagnostics.push(...checkReachability(graph, entry.id, registry));
+    }
+  }
+
+  allDiagnostics.push(...checkRequiredPorts(graph, registry));
+  allDiagnostics.push(...checkLoopNodes(graph, registry));
+  allDiagnostics.push(...checkDecisionNodes(graph, registry));
+
+  const errors = allDiagnostics.filter((d) => (d.severity ?? "error") === "error");
+  const warnings = allDiagnostics.filter((d) => d.severity === "warning");
 
   if (errors.length > 0) {
-    return { ok: false, error: errors };
+    return { ok: false, error: allDiagnostics };
   }
-  return { ok: true, value: undefined };
+  return { ok: true, value: warnings };
 }
