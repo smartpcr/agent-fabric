@@ -31,6 +31,7 @@ export interface EdgeExecutionState {
   readonly status: EdgeExecutionStatus;
   readonly activatedAt?: number;
   readonly takenAt?: number;
+  readonly iteration?: number;
 }
 
 // ─── Run state ───────────────────────────────────────────────────────

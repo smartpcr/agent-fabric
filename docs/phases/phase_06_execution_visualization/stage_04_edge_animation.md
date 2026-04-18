@@ -23,7 +23,7 @@
   - Test: 100% — class applied on state transition; removed after animation.
   - Effort: 2h
 
-- [ ] **Step 4**: "Not taken" edges dim
+- [x] **Step 4**: "Not taken" edges dim
   - File(s): `src/features/edges/DefaultEdge.tsx` (extend), `tests/unit/features/edges/DefaultEdge.notTaken.test.tsx`
   - Contents: On `state.status === 'not-taken'`, reduce opacity and desaturate.
   - Test: 100% — opacity + filter applied.
