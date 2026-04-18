@@ -11,7 +11,7 @@
   - Test: 100% — each variant; exhaustive match via `assertNever`; Zod accepts/rejects.
   - Effort: 3h
 
-- [ ] **Step 2**: `IExecutionEventSource` interface
+- [x] **Step 2**: `IExecutionEventSource` interface
   - File(s): `src/ports/IExecutionEventSource.ts`, `tests/unit/ports/IExecutionEventSource.contract.test.ts`
   - Contents: `subscribe(runId, handler): Unsubscribe`; `connectionState$`: observable-like; `close()` ends source; contract test suite reusable by all adapters.
   - Test: 100% — contract tests structured as a reusable function that any adapter can import and run.
