@@ -2,7 +2,11 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@/styles/tokens.css";
 import "@/styles/tailwind.css";
+import { initI18n } from "@/i18n/index";
 import { App } from "@/App";
+
+// Initialise i18next before rendering so translations are available immediately.
+initI18n();
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
