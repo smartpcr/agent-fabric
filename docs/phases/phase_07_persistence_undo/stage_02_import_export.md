@@ -17,7 +17,7 @@
   - Test: 100% — invalid JSON → error toast; valid → confirmation → load.
   - Effort: 3h
 
-- [ ] **Step 3**: Drag-to-drop file onto canvas
+- [x] **Step 3**: Drag-to-drop file onto canvas
   - File(s): `src/features/canvas/Canvas.tsx` (extend), `tests/integration/canvas.file-drop.test.tsx`
   - Contents: `dragenter`/`dragover` preventDefault + overlay highlight; `drop` reads first file as JSON and triggers import.
   - Test: Integration — simulated `DragEvent` with a `DataTransfer` file; import flow runs.
