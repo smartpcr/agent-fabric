@@ -29,7 +29,7 @@
   - Test: Integration — invalid field → Save disabled; correction re-enables.
   - Effort: 3h
 
-- [ ] **Step 5**: Multi-select — common fields; "mixed" indicator
+- [x] **Step 5**: Multi-select — common fields; "mixed" indicator
   - File(s): `src/features/property-grid/PropertyGrid.tsx` (extend), `tests/integration/property-grid.multiselect.test.tsx`
   - Contents: When multiple nodes of same kind selected, compute common field values; differing fields render with "mixed" placeholder; edits apply to all.
   - Test: Integration — two TaskNodes selected; edit name applies to both.
