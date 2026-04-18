@@ -391,4 +391,67 @@ describe("introspect", () => {
       expect(params?.valueType?.type).toBe("unknown");
     });
   });
+
+  // ─── Secret detection ───────────────────────────────────────────
+
+  describe("secret field detection", () => {
+    it("marks field as secret when description is JSON with secret: true", () => {
+      const schema = z.object({
+        apiKey: z.string().describe('{ "secret": true }'),
+        name: z.string(),
+      });
+      const fields = introspect(schema);
+
+      const apiKey = fields.find((f) => f.name === "apiKey");
+      expect(apiKey?.secret).toBe(true);
+
+      const name = fields.find((f) => f.name === "name");
+      expect(name?.secret).toBeUndefined();
+    });
+
+    it("marks field as secret from single-quote JSON-like description", () => {
+      const schema = z.object({
+        token: z.string().describe("{ secret: true }"),
+      });
+      const fields = introspect(schema);
+
+      expect(fields[0]?.secret).toBe(true);
+    });
+
+    it("marks field as secret when description is plain 'secret'", () => {
+      const schema = z.object({
+        password: z.string().describe("secret"),
+      });
+      const fields = introspect(schema);
+
+      expect(fields[0]?.secret).toBe(true);
+    });
+
+    it("does not mark field as secret for unrelated descriptions", () => {
+      const schema = z.object({
+        label: z.string().describe("User-visible label"),
+      });
+      const fields = introspect(schema);
+
+      expect(fields[0]?.secret).toBeUndefined();
+    });
+
+    it("detects secret on optional fields", () => {
+      const schema = z.object({
+        key: z.string().describe("{ secret: true }").optional(),
+      });
+      const fields = introspect(schema);
+
+      expect(fields[0]?.secret).toBe(true);
+    });
+
+    it("detects secret on defaulted fields", () => {
+      const schema = z.object({
+        key: z.string()["default"]("").describe("{ secret: true }"),
+      });
+      const fields = introspect(schema);
+
+      expect(fields[0]?.secret).toBe(true);
+    });
+  });
 });
