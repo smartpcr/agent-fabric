@@ -1,5 +1,6 @@
 import { Grid3X3, LayoutGrid, Save } from "lucide-react";
 import { useWorkflowStore } from "@/store/hooks";
+import { UndoRedoButtons } from "@/features/history/UndoRedoButtons";
 import { useValidation } from "@/features/property-grid/ValidationContext";
 
 export function Toolbar() {
@@ -14,6 +15,7 @@ export function Toolbar() {
 
   return (
     <div data-testid="editor-toolbar" role="toolbar" aria-label="Editor toolbar">
+      <UndoRedoButtons />
       <button
         type="button"
         data-testid="snap-grid-toggle"

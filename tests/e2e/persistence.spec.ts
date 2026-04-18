@@ -329,6 +329,89 @@ test.describe("Persistence E2E — build → save → reload → identical", () 
     assertGraphsEqual(before, after);
   });
 
+  test("50 undo + 50 redo — ends at identical state", async ({ page }) => {
+    // Increase timeout for this test — 50 mutations + 50 undo + 50 redo
+    test.setTimeout(120_000);
+
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    const canvasBox = await getBox(canvas);
+
+    // ── Capture initial empty state ──────────────────────────────────
+
+    const initialNodeCount = await page.locator(".react-flow__node[data-id]").count();
+    expect(initialNodeCount).toBe(0);
+
+    // ── Perform 50 mutations: drop 50 task nodes ─────────────────────
+    // Each palette drag-drop creates a distinct node and a single history
+    // entry (non-position mutation), so 50 drops = 50 undo steps.
+
+    const taskItem = page.locator('[role="option"][data-kind="task"]');
+    const MUTATION_COUNT = 50;
+
+    for (let i = 0; i < MUTATION_COUNT; i++) {
+      // Spread nodes across the canvas in a grid pattern
+      const col = i % 10;
+      const row = Math.floor(i / 10);
+      const dropX = canvasBox.x + 60 + col * 80;
+      const dropY = canvasBox.y + 60 + row * 80;
+
+      await dragPaletteToCanvas(taskItem, canvas, dropX, dropY);
+
+      // Wait for the node to appear in the DOM
+      await expect(page.locator(".react-flow__node[data-id]")).toHaveCount(i + 1, {
+        timeout: 3000,
+      });
+    }
+
+    // Verify final graph has 50 nodes
+    await expect(page.locator(".react-flow__node[data-id]")).toHaveCount(MUTATION_COUNT, {
+      timeout: 5000,
+    });
+
+    // Snapshot the 50-node state via localStorage for later comparison
+    const finalGraph = await readPersistedGraph(page);
+    if (finalGraph === null) throw new Error("finalGraph is null after 50 drops");
+    expect(finalGraph.nodes).toHaveLength(MUTATION_COUNT);
+
+    // ── Undo 50 times → should return to empty canvas ────────────────
+
+    const undoBtn = page.locator('[data-testid="undo-button"]');
+    await expect(undoBtn).toBeVisible({ timeout: 5000 });
+
+    for (let i = 0; i < MUTATION_COUNT; i++) {
+      await undoBtn.click();
+    }
+
+    // Wait for the undo operations to settle
+    await page.waitForTimeout(500);
+
+    // Verify we're back to the initial empty state
+    await expect(page.locator(".react-flow__node[data-id]")).toHaveCount(0, {
+      timeout: 10000,
+    });
+
+    // ── Redo 50 times → should return to the 50-node state ───────────
+
+    const redoBtn = page.locator('[data-testid="redo-button"]');
+    for (let i = 0; i < MUTATION_COUNT; i++) {
+      await redoBtn.click();
+    }
+
+    // Wait for the redo animations to settle
+    await page.waitForTimeout(500);
+
+    // Verify all 50 nodes are restored
+    await expect(page.locator(".react-flow__node[data-id]")).toHaveCount(MUTATION_COUNT, {
+      timeout: 10000,
+    });
+
+    // Deep-compare: the restored graph must match the snapshot taken after 50 drops
+    await page.waitForTimeout(500);
+    const restoredGraph = await readPersistedGraph(page);
+    if (restoredGraph === null) throw new Error("restoredGraph is null after 50 redos");
+    assertGraphsEqual(finalGraph, restoredGraph);
+  });
+
   test("empty canvas persists as empty and restores empty", async ({ page }) => {
     // No nodes added — verify localStorage reflects empty state
     await page.waitForTimeout(500);

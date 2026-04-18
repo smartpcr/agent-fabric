@@ -4,7 +4,7 @@
 
 **Goal**: Save/load to a backend via `IWorkflowRepository`; import/export JSON files; schema versioning with migrations; undo/redo ≥50 steps; auto-save with conflict detection.
 
-**Status**: `[ ]` in progress · **Effort**: 50h · **Completed**: 46h · **Progress**: 92%
+**Status**: `[x]` done · **Effort**: 50h · **Completed**: 50h · **Progress**: 100%
 
 ## Exit Criteria
 
@@ -16,14 +16,14 @@
 
 ## Stages
 
-| #         | Stage                  | Document                                                                                       |  Steps | Effort (h) | Status    |
-| --------- | ---------------------- | ---------------------------------------------------------------------------------------------- | -----: | ---------: | --------- |
-| 1         | Repository Adapter     | [stage_01_repository_adapter.md](phase_07_persistence_undo/stage_01_repository_adapter.md)     |      5 |         12 | `[x]`     |
-| 2         | Import / Export        | [stage_02_import_export.md](phase_07_persistence_undo/stage_02_import_export.md)               |      4 |         10 | `[x]`     |
-| 3         | Undo / Redo            | [stage_03_undo_redo.md](phase_07_persistence_undo/stage_03_undo_redo.md)                       |      6 |         14 | `[x]`     |
-| 4         | Versioning & Migration | [stage_04_versioning_migration.md](phase_07_persistence_undo/stage_04_versioning_migration.md) |      5 |         10 | `[x]`     |
-| 5         | Phase 7 E2E            | [stage_05_e2e.md](phase_07_persistence_undo/stage_05_e2e.md)                                   |      2 |          4 | `[ ]`     |
-| **Total** |                        |                                                                                                | **22** |     **50** | `[ ]` 92% |
+| #         | Stage                  | Document                                                                                       |  Steps | Effort (h) | Status     |
+| --------- | ---------------------- | ---------------------------------------------------------------------------------------------- | -----: | ---------: | ---------- |
+| 1         | Repository Adapter     | [stage_01_repository_adapter.md](phase_07_persistence_undo/stage_01_repository_adapter.md)     |      5 |         12 | `[x]`      |
+| 2         | Import / Export        | [stage_02_import_export.md](phase_07_persistence_undo/stage_02_import_export.md)               |      4 |         10 | `[x]`      |
+| 3         | Undo / Redo            | [stage_03_undo_redo.md](phase_07_persistence_undo/stage_03_undo_redo.md)                       |      6 |         14 | `[x]`      |
+| 4         | Versioning & Migration | [stage_04_versioning_migration.md](phase_07_persistence_undo/stage_04_versioning_migration.md) |      5 |         10 | `[x]`      |
+| 5         | Phase 7 E2E            | [stage_05_e2e.md](phase_07_persistence_undo/stage_05_e2e.md)                                   |      2 |          4 | `[x]`      |
+| **Total** |                        |                                                                                                | **22** |     **50** | `[x]` 100% |
 
 ## Architectural Notes
 
