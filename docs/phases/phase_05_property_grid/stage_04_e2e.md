@@ -23,7 +23,7 @@
   - Test: Green.
   - Effort: 3h
 
-- [ ] **Step 4**: E2E — multi-select editing
+- [x] **Step 4**: E2E — multi-select editing
   - File(s): `tests/e2e/property-grid.spec.ts` (extend)
   - Contents: Select 2 TaskNodes; edit common field; both update.
   - Test: Green.

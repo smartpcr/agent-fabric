@@ -288,3 +288,86 @@ test.describe("Property Grid — array field (add, remove, reorder)", () => {
     await expect(finalInput1).toHaveValue("alpha");
   });
 });
+
+test.describe("Property Grid — multi-select editing", () => {
+  test.beforeEach(async ({ page }) => {
+    await page["goto"]("/");
+    await page.evaluate(() => {
+      localStorage.removeItem("agent-fabric:graph");
+      localStorage.removeItem("agent-fabric:viewport");
+    });
+    await page.reload();
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+  });
+
+  test("select 2 TaskNodes, edit common field, both update", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    await expect(canvas).toBeVisible();
+    const canvasBox = await getBox(canvas);
+
+    // 1. Drop first TaskNode on the left side
+    const taskItem = page.locator('[role="option"][data-kind="task"]');
+    const dropX1 = canvasBox.x + canvasBox.width / 3;
+    const dropY1 = canvasBox.y + canvasBox.height / 2;
+    await dragPaletteToCanvas(taskItem, canvas, dropX1, dropY1);
+
+    // 2. Drop second TaskNode on the right side
+    const dropX2 = canvasBox.x + (canvasBox.width * 2) / 3;
+    const dropY2 = canvasBox.y + canvasBox.height / 2;
+    await dragPaletteToCanvas(taskItem, canvas, dropX2, dropY2);
+
+    // 3. Wait for both nodes
+    const nodes = page.locator(".react-flow__node[data-id]");
+    await expect(nodes).toHaveCount(2, { timeout: 5000 });
+
+    // 4. Click first node to select it
+    await nodes.nth(0).click();
+    await page.waitForTimeout(200);
+
+    // 5. Shift-click second node to add to selection
+    await nodes.nth(1).click({ modifiers: ["Shift"] });
+    await page.waitForTimeout(200);
+
+    // 6. Wait for property grid to show multi-select indicator
+    const propertyGrid = page.locator('[role="complementary"][aria-label="Property Grid"]');
+    await expect(propertyGrid).toBeVisible({ timeout: 10000 });
+
+    const multiIndicator = propertyGrid.locator('[data-testid="multi-select-indicator"]');
+    await expect(multiIndicator).toBeVisible({ timeout: 10000 });
+    await expect(multiIndicator).toContainText("2 nodes");
+
+    // 7. The name field should show common value "Task" (both have same default)
+    const nameInput = propertyGrid.locator('[data-testid="field-name"]');
+    await expect(nameInput).toBeVisible({ timeout: 10000 });
+    await expect(nameInput).toHaveValue("Task");
+
+    // 8. Edit the name field to a new shared value
+    const sharedName = `Shared-${String(Date.now())}`;
+    await nameInput.focus();
+    await nameInput.fill(sharedName);
+    await nameInput.blur();
+
+    // 9. Wait for debounce + store update
+    await page.waitForTimeout(1500);
+
+    // 10. Click on empty canvas area to deselect all
+    await canvas.click({ position: { x: 20, y: 20 } });
+    await page.waitForTimeout(300);
+
+    // 11. Click first node and verify its name updated
+    await nodes.nth(0).click();
+    await page.waitForTimeout(500);
+
+    const nameInput1 = propertyGrid.locator('[data-testid="field-name"]');
+    await expect(nameInput1).toBeVisible({ timeout: 10000 });
+    await expect(nameInput1).toHaveValue(sharedName);
+
+    // 12. Click second node and verify its name also updated
+    await nodes.nth(1).click();
+    await page.waitForTimeout(500);
+
+    const nameInput2 = propertyGrid.locator('[data-testid="field-name"]');
+    await expect(nameInput2).toBeVisible({ timeout: 10000 });
+    await expect(nameInput2).toHaveValue(sharedName);
+  });
+});
