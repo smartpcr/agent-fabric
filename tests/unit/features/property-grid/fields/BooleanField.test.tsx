@@ -117,7 +117,7 @@ describe("BooleanField", () => {
   });
 
   describe("keyboard activation (Space)", () => {
-    it("toggles on Space key press", () => {
+    it("toggles from false to true on Space key press", () => {
       const onChange = vi.fn();
       render(
         <BooleanField
@@ -127,17 +127,10 @@ describe("BooleanField", () => {
       );
 
       const switchEl = screen.getByTestId("field-testField");
-      // Radix Switch handles Space via keydown → click internally.
-      // In jsdom, simulate the full sequence.
       fireEvent.focus(switchEl);
       fireEvent.keyDown(switchEl, { key: " ", code: "Space" });
-      fireEvent.keyUp(switchEl, { key: " ", code: "Space" });
 
-      // If Radix didn't toggle via synthetic keydown, fall back to click
-      // which is the accessible activation path.
-      if (!onChange.mock.calls.length) {
-        fireEvent.click(switchEl);
-      }
+      expect(onChange).toHaveBeenCalledTimes(1);
       expect(onChange).toHaveBeenCalledWith(true);
     });
 
@@ -150,12 +143,25 @@ describe("BooleanField", () => {
       const switchEl = screen.getByTestId("field-testField");
       fireEvent.focus(switchEl);
       fireEvent.keyDown(switchEl, { key: " ", code: "Space" });
-      fireEvent.keyUp(switchEl, { key: " ", code: "Space" });
 
-      if (!onChange.mock.calls.length) {
-        fireEvent.click(switchEl);
-      }
+      expect(onChange).toHaveBeenCalledTimes(1);
       expect(onChange).toHaveBeenCalledWith(false);
+    });
+
+    it("does not toggle on non-Space keys", () => {
+      const onChange = vi.fn();
+      render(
+        <BooleanField
+          descriptor={makeDescriptor()}
+          field={makeField({ onChange, value: false })}
+        />,
+      );
+
+      const switchEl = screen.getByTestId("field-testField");
+      fireEvent.keyDown(switchEl, { key: "Enter" });
+      fireEvent.keyDown(switchEl, { key: "a" });
+
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 
