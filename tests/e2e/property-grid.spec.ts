@@ -114,3 +114,78 @@ test.describe("Property Grid — edit string field, reload, value persists", () 
     await expect(restoredNameInput).toHaveValue(uniqueName);
   });
 });
+
+test.describe("Property Grid — invalid number field; Save disabled; correct re-enables", () => {
+  test.beforeEach(async ({ page }) => {
+    await page["goto"]("/");
+    await page.evaluate(() => {
+      localStorage.removeItem("agent-fabric:graph");
+      localStorage.removeItem("agent-fabric:viewport");
+    });
+    await page.reload();
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+  });
+
+  test("force invalid number, error visible, Save disabled; correct clears error", async ({
+    page,
+  }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    await expect(canvas).toBeVisible();
+    const canvasBox = await getBox(canvas);
+    const dropX = canvasBox.x + canvasBox.width / 2;
+    const dropY = canvasBox.y + canvasBox.height / 2;
+
+    // 1. Drag a TaskNode onto the canvas
+    const taskItem = page.locator('[role="option"][data-kind="task"]');
+    await dragPaletteToCanvas(taskItem, canvas, dropX, dropY);
+
+    const newNode = page.locator(".react-flow__node[data-id]");
+    await expect(newNode).toHaveCount(1, { timeout: 5000 });
+
+    // 2. Click to select the node
+    await newNode.click();
+
+    // 3. Wait for property grid to show fields
+    const propertyGrid = page.locator('[role="complementary"][aria-label="Property Grid"]');
+    await expect(propertyGrid).toBeVisible({ timeout: 10000 });
+
+    const retriesInput = propertyGrid.locator('[data-testid="field-retries"]');
+    await expect(retriesInput).toBeVisible({ timeout: 10000 });
+
+    // Verify default value
+    await expect(retriesInput).toHaveValue("3");
+
+    // 4. Save button should be enabled initially (no errors)
+    const saveBtn = page.locator('[data-testid="save-button"]').first();
+    await expect(saveBtn).not.toHaveAttribute("aria-disabled", "true");
+
+    // 5. Force invalid: enter a negative number (fails min(0) constraint)
+    await retriesInput.focus();
+    await retriesInput.fill("-1");
+    await retriesInput.blur();
+
+    // 6. Wait for validation to propagate
+    await page.waitForTimeout(1000);
+
+    // 7. Assert error is visible
+    const errorEl = propertyGrid.locator('[data-testid="error-retries"]');
+    await expect(errorEl).toBeVisible({ timeout: 5000 });
+
+    // 8. Assert Save button has aria-disabled="true"
+    await expect(saveBtn).toHaveAttribute("aria-disabled", "true");
+
+    // 9. Correct the value: enter a valid number
+    await retriesInput.focus();
+    await retriesInput.fill("5");
+    await retriesInput.blur();
+
+    // 10. Wait for validation to clear
+    await page.waitForTimeout(500);
+
+    // 11. Assert error is gone
+    await expect(errorEl).not.toBeVisible();
+
+    // 12. Assert Save button is re-enabled (no aria-disabled)
+    await expect(saveBtn).not.toHaveAttribute("aria-disabled", "true");
+  });
+});

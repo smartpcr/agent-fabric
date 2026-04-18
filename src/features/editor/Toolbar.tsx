@@ -41,6 +41,7 @@ export function Toolbar() {
         data-testid="save-button"
         aria-label="Save"
         title={hasErrors ? errorSummary : "Save"}
+        aria-disabled={hasErrors || undefined}
         disabled={hasErrors}
       >
         <Save size={14} aria-hidden="true" />

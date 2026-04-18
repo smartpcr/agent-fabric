@@ -4,6 +4,7 @@ import type { NodeSpec } from "@/domain/models/nodeSpec";
 
 const taskPropertySchema = z.object({
   name: z.string().min(1),
+  retries: z.number()["int"]().min(0)["default"](3),
   params: z.record(z.string(), z.unknown())["default"]({}),
   apiKey: z.string()["default"]("").describe("{ secret: true }"),
 });
@@ -20,6 +21,6 @@ export const TaskNodeSpec: NodeSpec<TaskData> = {
     makeOutputPort({ id: "out", label: "Out", dataType: "any" }),
   ],
   propertySchema: taskPropertySchema,
-  defaultData: { name: "Task", params: {}, apiKey: "" },
+  defaultData: { name: "Task", retries: 3, params: {}, apiKey: "" },
   capabilities: [],
 };

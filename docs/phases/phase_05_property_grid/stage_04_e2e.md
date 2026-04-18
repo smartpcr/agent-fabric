@@ -11,7 +11,7 @@
   - Test: Green.
   - Effort: 3h
 
-- [ ] **Step 2**: E2E — invalid number field; Save disabled; correct re-enables
+- [x] **Step 2**: E2E — invalid number field; Save disabled; correct re-enables
   - File(s): `tests/e2e/property-grid.spec.ts` (extend)
   - Contents: Force invalid; assert error visible; Save button `aria-disabled="true"`; correction clears error.
   - Test: Green.
