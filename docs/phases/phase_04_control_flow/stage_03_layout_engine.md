@@ -23,7 +23,7 @@
   - Test: 100% — positions applied; empty graph is a no-op.
   - Effort: 2h
 
-- [ ] **Step 4**: Layout options per strategy (`layered`, `force`, `radial`)
+- [x] **Step 4**: Layout options per strategy (`layered`, `force`, `radial`)
   - File(s): `src/domain/layout/layoutOptions.ts`, `tests/unit/domain/layout/layoutOptions.test.ts`
   - Contents: Map each strategy → ELK options object; default is `layered`.
   - Test: 100% — correct keys for each strategy.
