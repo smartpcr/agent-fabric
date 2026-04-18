@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   DndContext,
   closestCenter,
@@ -295,6 +296,7 @@ function SortableItem({
   itemError,
 }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const { t } = useTranslation();
   const indexStr = String(index);
 
   const style: React.CSSProperties = {
@@ -339,7 +341,7 @@ function SortableItem({
       <button
         type="button"
         data-testid={`drag-handle-${fieldName}-${indexStr}`}
-        aria-label={`Drag ${itemLabel(value, index)}`}
+        aria-label={t("propertyGrid.dragItem", { label: itemLabel(value, index) })}
         {...attributes}
         {...listeners}
       >
@@ -361,7 +363,7 @@ function SortableItem({
           onRemove(index);
         }}
         data-testid={`remove-${fieldName}-${indexStr}`}
-        aria-label={`Remove item ${indexStr}`}
+        aria-label={t("propertyGrid.removeItem", { index: indexStr })}
       >
         ×
       </button>
@@ -405,6 +407,7 @@ export function ArrayField({
   elementSchema,
   itemErrors,
 }: ArrayFieldProps) {
+  const { t } = useTranslation();
   const errorId = `error-${descriptor.name}`;
 
   // Resolve the element descriptor for rendering
@@ -495,8 +498,8 @@ export function ArrayField({
     if (!itemErrors) return undefined;
     const errorCount = itemErrors.filter(Boolean).length;
     if (errorCount === 0) return undefined;
-    return `${String(errorCount)} item${errorCount > 1 ? "s" : ""} with errors`;
-  }, [error, itemErrors]);
+    return t("propertyGrid.itemsWithErrors", { count: errorCount });
+  }, [error, itemErrors, t]);
 
   return (
     <div data-testid={`array-field-${descriptor.name}`}>
@@ -527,7 +530,7 @@ export function ArrayField({
         type="button"
         onClick={handleAdd}
         data-testid={`add-${descriptor.name}`}
-        aria-label={`Add ${descriptor.name} item`}
+        aria-label={t("propertyGrid.addItem", { name: descriptor.name })}
       >
         +
       </button>

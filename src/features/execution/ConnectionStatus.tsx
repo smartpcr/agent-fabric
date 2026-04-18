@@ -1,12 +1,20 @@
 import { useCallback, useSyncExternalStore } from "react";
+import { useTranslation } from "react-i18next";
 import { useExecutionEventSource } from "@/hooks/useExecutionEventSource";
 import type { ConnectionState } from "@/ports/IExecutionEventSource";
 
-/** Visual configuration for each connection state. */
-const STATE_CONFIG: Record<ConnectionState, { label: string; className: string }> = {
-  connected: { label: "Connected", className: "connection-status--connected" },
-  reconnecting: { label: "Reconnecting", className: "connection-status--reconnecting" },
-  disconnected: { label: "Disconnected", className: "connection-status--disconnected" },
+/** CSS class for each connection state. */
+const STATE_CLASS: Record<ConnectionState, string> = {
+  connected: "connection-status--connected",
+  reconnecting: "connection-status--reconnecting",
+  disconnected: "connection-status--disconnected",
+};
+
+/** i18n key suffix for each connection state label. */
+const STATE_KEY: Record<ConnectionState, string> = {
+  connected: "execution.connected",
+  reconnecting: "execution.reconnecting",
+  disconnected: "execution.disconnected",
 };
 
 /**
@@ -19,6 +27,7 @@ const STATE_CONFIG: Record<ConnectionState, { label: string; className: string }
  */
 export function ConnectionStatus() {
   const eventSource = useExecutionEventSource();
+  const { t } = useTranslation();
 
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
@@ -33,16 +42,16 @@ export function ConnectionStatus() {
   const getSnapshot = useCallback(() => eventSource.connectionState$.current(), [eventSource]);
 
   const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  const config = STATE_CONFIG[state];
+  const label = t(STATE_KEY[state]);
 
   return (
     <span
       data-testid="connection-status"
-      className={`connection-status ${config.className}`}
+      className={`connection-status ${STATE_CLASS[state]}`}
       role="status"
-      aria-label={`Connection status: ${config.label}`}
+      aria-label={t("execution.connectionStatus", { state: label })}
     >
-      {config.label}
+      {label}
     </span>
   );
 }

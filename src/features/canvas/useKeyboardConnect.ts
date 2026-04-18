@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import i18next from "i18next";
 import { validateConnection, type NodeSpecRegistry } from "@/domain/validation/connectionRules";
 import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
 import type { WorkflowNode } from "@/domain/models/node";
@@ -85,7 +86,7 @@ export function useKeyboardConnect(
       if (targets.length === 0) {
         setState({
           ...INITIAL_STATE,
-          announcement: "No compatible targets available",
+          announcement: i18next.t("canvas.noCompatibleTargets"),
         });
         return;
       }
@@ -96,7 +97,12 @@ export function useKeyboardConnect(
         sourcePortId,
         targets,
         currentIndex: 0,
-        announcement: `Connect mode: ${String(targets.length)} targets. ${targets[0]?.label ?? ""} (1 of ${String(targets.length)})`,
+        announcement: i18next.t("canvas.connectMode", {
+          count: targets.length,
+          label: targets[0]?.label ?? "",
+          current: 1,
+          total: targets.length,
+        }),
       });
     },
     [findCompatibleTargets],
@@ -105,7 +111,7 @@ export function useKeyboardConnect(
   const cancel = useCallback(() => {
     setState({
       ...INITIAL_STATE,
-      announcement: "Connection cancelled",
+      announcement: i18next.t("canvas.connectionCancelled"),
     });
   }, []);
 
@@ -117,7 +123,11 @@ export function useKeyboardConnect(
       return {
         ...s,
         currentIndex: nextIndex,
-        announcement: `${target?.label ?? ""} (${String(nextIndex + 1)} of ${String(s.targets.length)})`,
+        announcement: i18next.t("canvas.targetPosition", {
+          label: target?.label ?? "",
+          current: nextIndex + 1,
+          total: s.targets.length,
+        }),
       };
     });
   }, []);
@@ -130,7 +140,11 @@ export function useKeyboardConnect(
       return {
         ...s,
         currentIndex: prevIndex,
-        announcement: `${target?.label ?? ""} (${String(prevIndex + 1)} of ${String(s.targets.length)})`,
+        announcement: i18next.t("canvas.targetPosition", {
+          label: target?.label ?? "",
+          current: prevIndex + 1,
+          total: s.targets.length,
+        }),
       };
     });
   }, []);
@@ -152,8 +166,8 @@ export function useKeyboardConnect(
     setState({
       ...INITIAL_STATE,
       announcement: result.ok
-        ? `Connected to ${target.label}`
-        : `Connection to ${target.label} rejected`,
+        ? i18next.t("canvas.connectedTo", { label: target.label })
+        : i18next.t("canvas.connectionToRejected", { label: target.label }),
     });
   }, [state, tryConnect]);
 

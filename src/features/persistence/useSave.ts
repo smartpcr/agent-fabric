@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import i18next from "i18next";
 import { useWorkflowRepo } from "@/hooks/useWorkflowRepo";
 import { useToast } from "@/hooks/useToast";
 import type { WorkflowGraph } from "@/domain/models/graph";
@@ -60,13 +61,12 @@ export function useSave(options: UseSaveOptions = {}): UseSaveReturn {
 
           // Show actionable conflict toast
           toast.show({
-            title: "Workflow changed elsewhere",
-            description:
-              "Another user saved this workflow. Reload the latest version or force your save.",
+            title: i18next.t("persistence.conflictTitle"),
+            description: i18next.t("persistence.conflictDescription"),
             variant: "error",
             actions: [
               {
-                label: "Reload",
+                label: i18next.t("persistence.reload"),
                 onClick: () => {
                   void (async () => {
                     const loaded = await repo.load(conflictId);
@@ -78,7 +78,7 @@ export function useSave(options: UseSaveOptions = {}): UseSaveReturn {
                 },
               },
               {
-                label: "Force save",
+                label: i18next.t("persistence.forceSave"),
                 onClick: () => {
                   void (async () => {
                     setSaving(true);

@@ -39,7 +39,12 @@
     "errorCount_other": "{{count}} errors",
     "validationErrors_one": "{{count}} validation error",
     "validationErrors_other": "{{count}} validation errors",
-    "fields": "{{name}} fields"
+    "fields": "{{name}} fields",
+    "dragItem": "Drag {{label}}",
+    "removeItem": "Remove item {{index}}",
+    "addItem": "Add {{name}} item",
+    "itemsWithErrors_one": "{{count}} item with errors",
+    "itemsWithErrors_other": "{{count}} items with errors"
   },
   "palette": {
     "ariaLabel": "Node Palette",
@@ -62,7 +67,11 @@
     "copyPayload": "Copy payload for {{type}}",
     "noEvents": "No events recorded for this node.",
     "copied": "Copied!",
-    "copyAction": "Copy"
+    "copyAction": "Copy",
+    "connectionStatus": "Connection status: {{state}}",
+    "connected": "Connected",
+    "reconnecting": "Reconnecting",
+    "disconnected": "Disconnected"
   },
   "persistence": {
     "saving": "Saving\u2026",
@@ -80,7 +89,11 @@
     "importConfirm": "Import \"{{name}}\"? This will replace the current workflow.",
     "invalidJson": "File is not valid JSON.",
     "migrationFailed": "Migration failed: {{error}}",
-    "invalidWorkflow": "Invalid workflow: {{errors}}"
+    "invalidWorkflow": "Invalid workflow: {{errors}}",
+    "conflictTitle": "Workflow changed elsewhere",
+    "conflictDescription": "Another user saved this workflow. Reload the latest version or force your save.",
+    "reload": "Reload",
+    "forceSave": "Force save"
   },
   "canvas": {
     "ariaLabel": "Workflow Canvas",
@@ -88,7 +101,13 @@
     "dropToImport": "Drop workflow JSON to import",
     "connectionCreated": "Connection created",
     "connectionRejected": "Connection rejected",
-    "connectionRejectedReason": "Connection rejected: {{reason}}"
+    "connectionRejectedReason": "Connection rejected: {{reason}}",
+    "noCompatibleTargets": "No compatible targets available",
+    "connectMode": "Connect mode: {{count}} targets. {{label}} ({{current}} of {{total}})",
+    "connectionCancelled": "Connection cancelled",
+    "targetPosition": "{{label}} ({{current}} of {{total}})",
+    "connectedTo": "Connected to {{label}}",
+    "connectionToRejected": "Connection to {{label}} rejected"
   },
   "canvasControls": {
     "ariaLabel": "Canvas controls",
