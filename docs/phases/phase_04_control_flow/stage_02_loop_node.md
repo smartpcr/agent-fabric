@@ -23,7 +23,7 @@
   - Test: 100% — handles rendered; icon visible; counter slot empty in authoring mode.
   - Effort: 3h
 
-- [ ] **Step 4**: `LoopBackEdge` component (dashed, curved, arrow back)
+- [x] **Step 4**: `LoopBackEdge` component (dashed, curved, arrow back)
   - File(s): `src/features/edges/LoopBackEdge.tsx`, `src/features/edges/edgeAnimations.css` (base), `tests/unit/features/edges/LoopBackEdge.test.tsx`
   - Contents: `stroke-dasharray: 6 4`; curved path that routes around the loop body; arrow-head pointing back to `body-in`.
   - Test: 100% — visually distinct from `DefaultEdge`; default label "loop".
