@@ -17,7 +17,7 @@
   - Test: 100%.
   - Effort: 2h
 
-- [ ] **Step 3**: `LoopNode` React component
+- [x] **Step 3**: `LoopNode` React component
   - File(s): `src/features/nodes/LoopNode.tsx`, `tests/unit/features/nodes/LoopNode.test.tsx`
   - Contents: Rounded rectangle with "↻" badge; handles placed per spec; iteration counter slot (populated by Phase 6).
   - Test: 100% — handles rendered; icon visible; counter slot empty in authoring mode.

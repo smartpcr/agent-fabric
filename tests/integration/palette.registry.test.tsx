@@ -53,17 +53,17 @@ describe("Integration: builtins appear in palette with correct labels", () => {
     setupBuiltinsOnly();
   });
 
-  it("renders exactly 5 items from registered builtins", () => {
+  it("renders exactly 7 items from registered builtins", () => {
     render(
       <DragProvider>
         <Palette />
       </DragProvider>,
     );
     const options = screen.getAllByRole("option");
-    expect(options).toHaveLength(5);
+    expect(options).toHaveLength(7);
   });
 
-  it("renders builtin labels: Start, Task, End, Decision, Switch", () => {
+  it("renders builtin labels: Start, Task, End, Decision, Switch, While Loop, For Each", () => {
     render(
       <DragProvider>
         <Palette />
@@ -154,7 +154,9 @@ describe("Integration: multi-category grouping", () => {
         kind === "task" ||
         kind === "end" ||
         kind === "decision" ||
-        kind === "decision-switch"
+        kind === "decision-switch" ||
+        kind === "loop-while" ||
+        kind === "loop-foreach"
       ) {
         flowIndices.push(idx);
       }
@@ -163,7 +165,7 @@ describe("Integration: multi-category grouping", () => {
       }
     });
 
-    expect(flowIndices).toHaveLength(5);
+    expect(flowIndices).toHaveLength(7);
     expect(flowIndices[flowIndices.length - 1] - flowIndices[0]).toBe(flowIndices.length - 1);
 
     expect(actionsIndices).toHaveLength(1);

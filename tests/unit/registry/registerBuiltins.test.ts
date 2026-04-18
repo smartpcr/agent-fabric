@@ -3,7 +3,7 @@ import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 
 describe("registerBuiltins", () => {
-  it("registers start, end, task, decision, and decision-switch kinds", () => {
+  it("registers start, end, task, decision, decision-switch, loop-while, and loop-foreach kinds", () => {
     const registry = new NodeRegistry();
     registerBuiltins(registry);
 
@@ -13,7 +13,9 @@ describe("registerBuiltins", () => {
     expect(kinds).toContain("task");
     expect(kinds).toContain("decision");
     expect(kinds).toContain("decision-switch");
-    expect(kinds).toHaveLength(5);
+    expect(kinds).toContain("loop-while");
+    expect(kinds).toContain("loop-foreach");
+    expect(kinds).toHaveLength(7);
   });
 
   it("second call is a no-op (idempotent)", () => {
@@ -21,7 +23,7 @@ describe("registerBuiltins", () => {
     registerBuiltins(registry);
     registerBuiltins(registry);
 
-    expect(registry.list()).toHaveLength(5);
+    expect(registry.list()).toHaveLength(7);
   });
 
   it("does not throw on second call", () => {
@@ -60,6 +62,8 @@ describe("registerBuiltins", () => {
     expect(kinds).toContain("task");
     expect(kinds).toContain("decision");
     expect(kinds).toContain("decision-switch");
-    expect(kinds).toHaveLength(5);
+    expect(kinds).toContain("loop-while");
+    expect(kinds).toContain("loop-foreach");
+    expect(kinds).toHaveLength(7);
   });
 });

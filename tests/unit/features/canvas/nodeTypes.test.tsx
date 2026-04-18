@@ -178,13 +178,15 @@ function setupStore() {
 }
 
 describe("nodeTypes", () => {
-  it("exports start, end, task, decision, and decision-switch entries", () => {
+  it("exports start, end, task, decision, decision-switch, loop-while, and loop-foreach entries", () => {
     expect(nodeTypes).toHaveProperty("start");
     expect(nodeTypes).toHaveProperty("end");
     expect(nodeTypes).toHaveProperty("task");
     expect(nodeTypes).toHaveProperty("decision");
     expect(nodeTypes).toHaveProperty("decision-switch");
-    expect(Object.keys(nodeTypes)).toHaveLength(5);
+    expect(nodeTypes).toHaveProperty("loop-while");
+    expect(nodeTypes).toHaveProperty("loop-foreach");
+    expect(Object.keys(nodeTypes)).toHaveLength(7);
   });
 });
 
