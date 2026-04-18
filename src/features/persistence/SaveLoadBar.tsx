@@ -92,7 +92,7 @@ export function SaveLoadBar({
       <input
         data-testid="workflow-name-input"
         type="text"
-        aria-label="Workflow name"
+        aria-label={t("persistence.workflowName")}
         value={name}
         onChange={handleNameChange}
         style={NAME_INPUT_STYLE}
@@ -101,18 +101,18 @@ export function SaveLoadBar({
       <button
         type="button"
         data-testid="save-button"
-        aria-label="Save"
+        aria-label={t("persistence.save")}
         onClick={onSave}
         disabled={saving}
       >
         {saving ? t("persistence.saving") : t("persistence.save")}
       </button>
 
-      <button type="button" data-testid="load-button" aria-label="Load" onClick={onLoad}>
+      <button type="button" data-testid="load-button" aria-label={t("persistence.load")} onClick={onLoad}>
         {t("persistence.load")}
       </button>
 
-      <button type="button" data-testid="new-button" aria-label="New" onClick={onNew}>
+      <button type="button" data-testid="new-button" aria-label={t("persistence.new")} onClick={onNew}>
         {t("persistence.new")}
       </button>
 
@@ -120,8 +120,8 @@ export function SaveLoadBar({
         <span
           data-testid="dirty-indicator"
           role="status"
-          aria-label="Unsaved changes"
-          title="Unsaved changes"
+          aria-label={t("persistence.unsavedChanges")}
+          title={t("persistence.unsavedChanges")}
           style={DIRTY_DOT_STYLE}
         />
       )}

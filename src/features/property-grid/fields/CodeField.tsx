@@ -43,7 +43,7 @@ export function CodeFieldSkeleton({ name, height }: CodeFieldSkeletonProps) {
     <div
       data-testid={`code-skeleton-${name}`}
       role="status"
-      aria-label="Loading code editor"
+      aria-label={t("propertyGrid.loadingEditor")}
       style={{
         height: `${String(height)}px`,
         backgroundColor: "#f0f0f0",

@@ -310,17 +310,17 @@ export function Canvas() {
         targetPort: targetPortId,
       });
       if (result.ok) {
-        announce("Connection created");
+        announce(t("canvas.connectionCreated"));
       } else {
-        announce(`Connection rejected: ${result.error.message}`);
+        announce(t("canvas.connectionRejectedReason", { reason: result.error.message }));
         showToast({
-          title: "Connection rejected",
+          title: t("canvas.connectionRejected"),
           description: result.error.message,
           variant: "error",
         });
       }
     },
-    [tryConnect, showToast, announce, nodes, edges, registry],
+    [tryConnect, showToast, announce, nodes, edges, registry, t],
   );
 
   const handleConnectStart = useCallback(
@@ -416,7 +416,7 @@ export function Canvas() {
 
         if (!result.ok) {
           showToast({
-            title: "Import failed",
+            title: t("persistence.importFailed"),
             description: result.message,
             variant: "error",
           });
@@ -425,7 +425,7 @@ export function Canvas() {
 
         // eslint-disable-next-line no-alert -- intentional confirmation dialog
         const proceed = window.confirm(
-          `Import "${result.graph.name}"? This will replace the current workflow.`,
+          t("persistence.importConfirm", { name: result.graph.name }),
         );
         if (!proceed) return;
 
@@ -433,7 +433,7 @@ export function Canvas() {
       };
       reader.readAsText(file);
     },
-    [showToast, restoreGraph],
+    [showToast, restoreGraph, t],
   );
 
   const isValidConnection = useCallback(
@@ -462,7 +462,7 @@ export function Canvas() {
     <div
       ref={canvasRef}
       role="application"
-      aria-label="Workflow Canvas"
+      aria-label={t("canvas.ariaLabel")}
       style={{ width: "100%", height: "100%", position: "relative" }}
       tabIndex={0}
       onPointerUp={handlePointerUp}
@@ -508,7 +508,7 @@ export function Canvas() {
             <button
               type="button"
               data-testid="snap-toggle"
-              aria-label={snapEnabled ? "Disable snap to grid" : "Enable snap to grid"}
+              aria-label={snapEnabled ? t("toolbar.disableSnap") : t("toolbar.enableSnap")}
               aria-pressed={snapEnabled}
               onClick={toggleSnap}
               style={{

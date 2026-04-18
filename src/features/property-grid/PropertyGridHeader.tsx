@@ -81,12 +81,12 @@ export function PropertyGridHeader({
       if (onCopyId) {
         onCopyId();
       } else if (toastCtx) {
-        toastCtx.show({ title: "Node ID copied", variant: "success" });
+        toastCtx.show({ title: t("propertyGrid.nodeIdCopied"), variant: "success" });
       }
     } catch {
       // Clipboard write failed
     }
-  }, [nodeId, onCopyId, toastCtx]);
+  }, [nodeId, onCopyId, toastCtx, t]);
 
   return (
     <div data-testid="property-grid-header">
@@ -118,7 +118,7 @@ export function PropertyGridHeader({
           }}
           onBlur={commitEdit}
           onKeyDown={handleKeyDown}
-          aria-label="Node label"
+          aria-label={t("propertyGrid.nodeLabel")}
           data-testid="header-label-input"
           style={{ fontWeight: 600, fontSize: "1rem" }}
         />
@@ -134,7 +134,7 @@ export function PropertyGridHeader({
               startEditing();
             }
           }}
-          aria-label="Edit node label"
+          aria-label={t("propertyGrid.editNodeLabel")}
           style={{ fontWeight: 600, fontSize: "1rem", cursor: "pointer" }}
         >
           {label}
@@ -154,7 +154,7 @@ export function PropertyGridHeader({
           onClick={() => {
             void handleCopyId();
           }}
-          aria-label="Copy node ID"
+          aria-label={t("propertyGrid.copyNodeId")}
           data-testid="header-copy-id"
           style={{
             fontSize: "0.65rem",

@@ -171,7 +171,7 @@ export function SecretField({ descriptor, field, error, onCopyToast }: SecretFie
       <button
         type="button"
         onClick={toggleReveal}
-        aria-label={revealed ? "Hide secret" : "Reveal secret"}
+        aria-label={revealed ? t("secretField.hideSecret") : t("secretField.revealSecret")}
         data-testid={`reveal-${descriptor.name}`}
       >
         {revealed ? t("secretField.hide") : t("secretField.reveal")}
@@ -181,7 +181,7 @@ export function SecretField({ descriptor, field, error, onCopyToast }: SecretFie
         onClick={() => {
           void handleCopy();
         }}
-        aria-label="Copy to clipboard"
+        aria-label={t("secretField.copyToClipboard")}
         data-testid={`copy-${descriptor.name}`}
       >
         {t("secretField.copy")}

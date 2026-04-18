@@ -75,7 +75,7 @@ export function EventTimeline({ events, onCopy }: EventTimelineProps) {
   return (
     <ol
       data-testid="event-timeline"
-      aria-label="Event timeline"
+      aria-label={t("execution.eventTimeline")}
       style={{ listStyle: "none", padding: 0, margin: 0 }}
     >
       {sorted.map((event, idx) => {
@@ -123,7 +123,7 @@ export function EventTimeline({ events, onCopy }: EventTimelineProps) {
                 </pre>
                 <button
                   data-testid="event-copy-btn"
-                  aria-label={`Copy payload for ${event.type}`}
+                  aria-label={t("execution.copyPayload", { type: event.type })}
                   onClick={() => {
                     void handleCopy((event as { payload?: unknown }).payload, idx);
                   }}

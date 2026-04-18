@@ -52,7 +52,7 @@ export function RunInspector({ open, onClose, children }: RunInspectorProps) {
         <Dialog.Content
           data-testid="run-inspector"
           role="dialog"
-          aria-label="Run Inspector"
+          aria-label={t("execution.runInspector")}
           aria-describedby={undefined}
           style={{
             position: "fixed",
@@ -89,7 +89,7 @@ export function RunInspector({ open, onClose, children }: RunInspectorProps) {
               <button
                 ref={closeButtonRef}
                 data-testid="run-inspector-close"
-                aria-label="Close inspector"
+                aria-label={t("execution.closeInspector")}
                 style={{
                   background: "transparent",
                   border: "none",

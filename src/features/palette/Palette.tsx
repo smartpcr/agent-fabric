@@ -147,14 +147,14 @@ export function Palette({ getViewportCenter }: PaletteProps = {}) {
   return (
     <div
       role="complementary"
-      aria-label="Node Palette"
+      aria-label={t("palette.ariaLabel")}
       style={{ height: "100%", display: "flex", flexDirection: "column" }}
     >
       <div style={{ padding: "8px" }}>
         <input
           type="search"
-          placeholder="Search nodes…"
-          aria-label="Search palette"
+          placeholder={t("palette.searchPlaceholder")}
+          aria-label={t("palette.searchAriaLabel")}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -170,7 +170,7 @@ export function Palette({ getViewportCenter }: PaletteProps = {}) {
         <div
           ref={parentRef}
           role="listbox"
-          aria-label="Node types"
+          aria-label={t("palette.nodeTypes")}
           tabIndex={0}
           onKeyDown={handleKeyDown}
           style={{

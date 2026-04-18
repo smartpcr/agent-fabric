@@ -33,15 +33,15 @@ export function Toolbar() {
   const errorSummary = hasErrors ? errorMessages.join("; ") : undefined;
 
   return (
-    <div data-testid="editor-toolbar" role="toolbar" aria-label="Editor toolbar">
+    <div data-testid="editor-toolbar" role="toolbar" aria-label={t("toolbar.ariaLabel")}>
       <UndoRedoButtons />
       {executionCtx !== null && <RunControls runStatus={runStatus} />}
       <button
         type="button"
         data-testid="snap-grid-toggle"
-        aria-label={snapEnabled ? "Disable snap to grid" : "Enable snap to grid"}
+        aria-label={snapEnabled ? t("toolbar.disableSnap") : t("toolbar.enableSnap")}
         aria-pressed={snapEnabled}
-        title={snapEnabled ? "Disable snap to grid" : "Enable snap to grid"}
+        title={snapEnabled ? t("toolbar.disableSnap") : t("toolbar.enableSnap")}
         onClick={toggleSnap}
       >
         <Grid3X3 size={14} aria-hidden="true" />
@@ -49,8 +49,8 @@ export function Toolbar() {
       <button
         type="button"
         data-testid="auto-layout-button"
-        aria-label="Auto-layout"
-        title="Auto-layout"
+        aria-label={t("toolbar.autoLayout")}
+        title={t("toolbar.autoLayout")}
         disabled={layoutRunning}
         onClick={() => {
           void applyLayout();
@@ -61,9 +61,9 @@ export function Toolbar() {
       <button
         type="button"
         data-testid="theme-toggle"
-        aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+        aria-label={theme === "light" ? t("toolbar.switchToDark") : t("toolbar.switchToLight")}
         aria-pressed={theme === "dark"}
-        title={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+        title={theme === "light" ? t("toolbar.switchToDark") : t("toolbar.switchToLight")}
         onClick={toggleTheme}
       >
         {theme === "light" ? (
@@ -75,8 +75,8 @@ export function Toolbar() {
       <button
         type="button"
         data-testid="save-button"
-        aria-label="Save"
-        title={hasErrors ? errorSummary : "Save"}
+        aria-label={t("toolbar.save")}
+        title={hasErrors ? errorSummary : t("toolbar.save")}
         aria-disabled={hasErrors || undefined}
         disabled={hasErrors}
       >

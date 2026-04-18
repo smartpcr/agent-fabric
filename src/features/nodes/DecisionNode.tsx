@@ -127,7 +127,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
         </svg>
 
         <BaseNode
-          title="Switch"
+          title={t("nodes.switch")}
           icon={icon}
           selected={selected}
           nodeId={id}
@@ -220,7 +220,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
       </svg>
 
       <BaseNode
-        title="Decision"
+        title={t("nodes.decision")}
         icon={icon}
         selected={selected}
         nodeId={id}

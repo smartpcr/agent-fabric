@@ -83,7 +83,7 @@ export function ExportButton({ graph, onDownload = downloadBlob }: ExportButtonP
     <button
       type="button"
       data-testid="export-button"
-      aria-label="Export workflow"
+      aria-label={t("persistence.exportWorkflow")}
       onClick={handleExport}
     >
       {t("persistence.export")}
@@ -220,7 +220,7 @@ export function ImportButton({
 
         if (!result.ok) {
           toast.show({
-            title: "Import failed",
+            title: t("persistence.importFailed"),
             description: result.message,
             variant: "error",
           });
@@ -229,7 +229,7 @@ export function ImportButton({
         }
 
         const proceed = confirmFn(
-          `Import "${result.graph.name}"? This will replace the current workflow.`,
+          t("persistence.importConfirm", { name: result.graph.name }),
         );
         if (!proceed) return;
 
@@ -240,7 +240,7 @@ export function ImportButton({
       // Reset the input so the same file can be re-selected
       e.target.value = "";
     },
-    [onImport, onError, confirmFn, toast],
+    [onImport, onError, confirmFn, toast, t],
   );
 
   return (
@@ -248,7 +248,7 @@ export function ImportButton({
       <button
         type="button"
         data-testid="import-button"
-        aria-label="Import workflow"
+        aria-label={t("persistence.importWorkflow")}
         onClick={handleClick}
       >
         {t("persistence.import")}

@@ -139,7 +139,7 @@ export function LoopNode({ id, data, type, selected }: NodeProps) {
       data-testid="loop-node-wrapper"
     >
       {/* ↻ badge */}
-      <div data-testid="loop-badge" style={BADGE_STYLE} aria-label="loop indicator">
+      <div data-testid="loop-badge" style={BADGE_STYLE} aria-label={t("loop.indicator")}>
         ↻
       </div>
 

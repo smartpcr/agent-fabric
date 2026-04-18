@@ -240,7 +240,7 @@ export function PropertyGrid() {
   return (
     <div
       role="complementary"
-      aria-label="Property Grid"
+      aria-label={t("propertyGrid.ariaLabel")}
       style={{ height: "100%", padding: "8px" }}
       data-testid="property-grid"
     >

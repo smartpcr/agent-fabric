@@ -3,25 +3,52 @@
     "title": "Workflow Editor"
   },
   "toolbar": {
-    "save": "Save"
+    "ariaLabel": "Editor toolbar",
+    "save": "Save",
+    "autoLayout": "Auto-layout",
+    "disableSnap": "Disable snap to grid",
+    "enableSnap": "Enable snap to grid",
+    "switchToDark": "Switch to dark theme",
+    "switchToLight": "Switch to light theme"
+  },
+  "undoRedo": {
+    "ariaLabel": "Undo / Redo",
+    "undo": "Undo",
+    "redo": "Redo"
   },
   "propertyGrid": {
+    "ariaLabel": "Property Grid",
     "title": "Properties",
     "selectNode": "Select a node",
     "differentKinds": "Selected nodes have different kinds. Select nodes of the same kind to edit shared properties.",
     "editingNodes": "Editing {{count}} nodes",
     "copy": "Copy",
-    "loadingEditor": "Loading editor\u2026",
-    "noSchema": "No schema provided"
+    "loadingEditor": "Loading code editor",
+    "noSchema": "No schema provided",
+    "nodeIdCopied": "Node ID copied",
+    "nodeLabel": "Node label",
+    "editNodeLabel": "Edit node label",
+    "copyNodeId": "Copy node ID"
   },
   "palette": {
+    "ariaLabel": "Node Palette",
+    "searchPlaceholder": "Search nodes\u2026",
+    "searchAriaLabel": "Search palette",
+    "nodeTypes": "Node types",
     "noMatching": "No matching nodes"
   },
   "execution": {
     "start": "Start",
     "pause": "Pause",
     "cancel": "Cancel",
+    "startRun": "Start run",
+    "pauseRun": "Pause run",
+    "cancelRun": "Cancel run",
+    "runControlsLabel": "Run controls",
     "runInspector": "Run Inspector",
+    "closeInspector": "Close inspector",
+    "eventTimeline": "Event timeline",
+    "copyPayload": "Copy payload for {{type}}",
     "noEvents": "No events recorded for this node.",
     "copied": "Copied!",
     "copyAction": "Copy"
@@ -33,22 +60,54 @@
     "new": "New",
     "export": "Export",
     "import": "Import",
-    "saved": "Saved {{timestamp}}"
+    "saved": "Saved {{timestamp}}",
+    "workflowName": "Workflow name",
+    "unsavedChanges": "Unsaved changes",
+    "exportWorkflow": "Export workflow",
+    "importWorkflow": "Import workflow",
+    "importFailed": "Import failed",
+    "importConfirm": "Import \"{{name}}\"? This will replace the current workflow."
   },
   "canvas": {
-    "dropToImport": "Drop workflow JSON to import"
+    "ariaLabel": "Workflow Canvas",
+    "miniMap": "Mini map",
+    "dropToImport": "Drop workflow JSON to import",
+    "connectionCreated": "Connection created",
+    "connectionRejected": "Connection rejected",
+    "connectionRejectedReason": "Connection rejected: {{reason}}"
+  },
+  "canvasControls": {
+    "ariaLabel": "Canvas controls",
+    "zoomIn": "Zoom in (+)",
+    "zoomOut": "Zoom out (-)",
+    "fitView": "Fit view (f)",
+    "lockCanvas": "Lock canvas (l)",
+    "unlockCanvas": "Unlock canvas (l)"
+  },
+  "toast": {
+    "dismiss": "Dismiss"
+  },
+  "nodes": {
+    "start": "Start",
+    "end": "End",
+    "decision": "Decision",
+    "switch": "Switch"
   },
   "secretField": {
     "hide": "Hide",
     "reveal": "Reveal",
-    "copy": "Copy"
+    "copy": "Copy",
+    "hideSecret": "Hide secret",
+    "revealSecret": "Reveal secret",
+    "copyToClipboard": "Copy to clipboard"
   },
   "loop": {
     "iteration": "iteration {{count}}",
     "body": "body",
     "back": "back",
     "done": "done",
-    "break": "break"
+    "break": "break",
+    "indicator": "loop indicator"
   },
   "decision": {
     "branchCount": "{{count}} branches"
