@@ -17,7 +17,7 @@
   - Test: 100% — nodes / edges / ports transformed; roundtrip safety.
   - Effort: 3h
 
-- [ ] **Step 3**: `fromElkLayout(result, graph)` — back to positions
+- [x] **Step 3**: `fromElkLayout(result, graph)` — back to positions
   - File(s): `src/domain/layout/elkAdapter.ts` (extend), `tests/unit/domain/layout/elkAdapter.fromElk.test.ts`
   - Contents: Apply ELK-produced `x, y` to each node; leave edges untouched.
   - Test: 100% — positions applied; empty graph is a no-op.
