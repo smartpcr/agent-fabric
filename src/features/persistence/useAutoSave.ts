@@ -146,13 +146,17 @@ export function useDebouncedAutoSave(
           edges: [...edges],
         };
 
-        const result = validateGraph(graph, registry);
-        if (!result.ok) {
+        const validationResult = validateGraph(graph, registry);
+        if (!validationResult.ok) {
           return;
         }
 
-        void repoRef.current.save(workflowId, graph);
-        setDirty(false);
+        void (async () => {
+          const saveResult = await repoRef.current.save(workflowId, graph);
+          if (saveResult.ok) {
+            setDirty(false);
+          }
+        })();
       }, debounceMs);
     });
 

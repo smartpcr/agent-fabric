@@ -4,7 +4,7 @@ import { createElement, type ReactNode } from "react";
 import { z } from "zod";
 import { RepositoryProvider } from "@/providers/RepositoryProvider";
 import type { IWorkflowRepository } from "@/ports/IWorkflowRepository";
-import { ok } from "@/domain/result";
+import { ok, err } from "@/domain/result";
 import { makeInputPort, makeOutputPort } from "@/domain/models/port";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
 import { HISTORY_GROUP_DELAY } from "@/store/historyGroup";
@@ -56,14 +56,12 @@ const taskSpec: NodeSpec<{ name: string }> = {
 
 function stubRepo(overrides: Partial<IWorkflowRepository> = {}): IWorkflowRepository {
   return {
-    get: vi
-      .fn()
-      .mockResolvedValue(
-        ok({
-          graph: { schemaVersion: 1, id: "w-1", name: "Test", nodes: [], edges: [] },
-          etag: '"v1"',
-        }),
-      ),
+    get: vi.fn().mockResolvedValue(
+      ok({
+        graph: { schemaVersion: 1, id: "w-1", name: "Test", nodes: [], edges: [] },
+        etag: '"v1"',
+      }),
+    ),
     save: vi.fn().mockResolvedValue(ok({ id: "w-1", etag: '"v2"' })),
     create: vi.fn().mockResolvedValue(ok({ id: "w-1", etag: '"v1"' })),
     list: vi.fn().mockResolvedValue(ok([])),
@@ -214,8 +212,42 @@ describe("useDebouncedAutoSave", () => {
     expect(Array.isArray(firstCall[1].edges)).toBe(true);
   });
 
-  it("clears dirty flag after save fires", () => {
+  it("clears dirty flag after successful save", async () => {
     const save = vi.fn().mockResolvedValue(ok({ id: "w-1", etag: '"v2"' }));
+    const repo = stubRepo({ save });
+    setupValidGraph();
+
+    const { result } = renderHook(
+      () => useDebouncedAutoSave({ workflowId: "w-1", debounceMs: 2000 }),
+      { wrapper: repoWrapper(repo) },
+    );
+
+    act(() => {
+      getStoreInstance()
+        .getState()
+        .updateNodePosition(getStoreInstance().getState().nodes[0].id, { x: 50, y: 50 });
+      flushHistoryGroup();
+    });
+
+    expect(result.current.dirty).toBe(true);
+
+    // Advance past debounce to fire the timer
+    act(() => {
+      vi.advanceTimersByTime(2100);
+    });
+
+    expect(save).toHaveBeenCalledTimes(1);
+
+    // Flush the async save promise so setDirty(false) is called
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.dirty).toBe(false);
+  });
+
+  it("keeps dirty flag true when save fails", async () => {
+    const save = vi.fn().mockResolvedValue(err({ code: "NETWORK" as const, message: "offline" }));
     const repo = stubRepo({ save });
     setupValidGraph();
 
@@ -238,7 +270,14 @@ describe("useDebouncedAutoSave", () => {
     });
 
     expect(save).toHaveBeenCalledTimes(1);
-    expect(result.current.dirty).toBe(false);
+
+    // Flush the async save promise
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // dirty should remain true because save failed
+    expect(result.current.dirty).toBe(true);
   });
 
   // ── skip on invalid graph ─────────────────────────────────────────
