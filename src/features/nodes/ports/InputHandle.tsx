@@ -28,6 +28,7 @@ export function InputHandle({
       data-testid={testId}
       data-port-id={portSpec.id}
       data-missing={isMissing ? "true" : undefined}
+      role="button"
       aria-label={portSpec.label}
       className={`port-handle port-type-${portSpec.dataType}`}
       tabIndex={0}

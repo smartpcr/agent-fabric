@@ -27,6 +27,7 @@ export function OutputHandle({
       id={portSpec.id}
       data-testid={testId}
       data-port-id={portSpec.id}
+      role="button"
       aria-label={portSpec.label}
       className={`port-handle port-type-${portSpec.dataType}`}
       tabIndex={0}

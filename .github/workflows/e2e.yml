@@ -53,6 +53,13 @@ jobs:
           CI: "true"
           PW_BROWSERS: ${{ matrix.browser }}
 
+      - name: Accessibility gate (axe-core)
+        if: matrix.browser == 'chromium'
+        run: npx playwright test tests/e2e/accessibility.spec.ts --project=chromium
+        env:
+          CI: "true"
+          PW_BROWSERS: chromium
+
       - name: Upload test results on failure
         if: failure()
         uses: actions/upload-artifact@v4
