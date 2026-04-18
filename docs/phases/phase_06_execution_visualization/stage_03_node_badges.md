@@ -17,7 +17,7 @@
   - Test: 100% — simulate reduced-motion via CSSOM; assert no `animation` class.
   - Effort: 2h
 
-- [ ] **Step 3**: `IterationBadge` for loops
+- [x] **Step 3**: `IterationBadge` for loops
   - File(s): `src/features/nodes/badges/IterationBadge.tsx`, `tests/unit/features/nodes/badges/IterationBadge.test.tsx`
   - Contents: Shows `N / total?`; live-updates from `NodeExecutionState.iteration`.
   - Test: 100% — increments; absent when not a loop.
