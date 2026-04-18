@@ -54,3 +54,10 @@
 .edge-flash-error {
   animation: edge-flash-error 500ms ease-out forwards;
 }
+
+/* ─── Not-taken edge dim ─────────────────────────────────────────── */
+
+.edge-not-taken {
+  opacity: 0.35;
+  filter: saturate(0);
+}

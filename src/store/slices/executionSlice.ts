@@ -18,7 +18,13 @@ export interface NodeExecutionState {
 }
 
 /** Possible execution status values for a single edge. */
-export type EdgeExecutionStatus = "idle" | "active" | "taken" | "succeeded" | "failed";
+export type EdgeExecutionStatus =
+  | "idle"
+  | "active"
+  | "taken"
+  | "succeeded"
+  | "failed"
+  | "not-taken";
 
 /** Per-edge execution state within a run. */
 export interface EdgeExecutionState {
