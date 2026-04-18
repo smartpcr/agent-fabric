@@ -23,7 +23,7 @@
   - Test: 100% — illegal transitions ignored; state unchanged; warning logged (spied).
   - Effort: 2h
 
-- [ ] **Step 4**: RAF coalescing batcher
+- [x] **Step 4**: RAF coalescing batcher
   - File(s): `src/utils/rafBatcher.ts`, `tests/unit/utils/rafBatcher.test.ts`
   - Contents: `createRafBatcher<T>(apply: (batch: T[]) => void)` queues items; flushes once per animation frame via `requestAnimationFrame`; cleanup on flush.
   - Test: 100% — 100 queued items in one frame → 1 `apply` call; cancel on teardown.
