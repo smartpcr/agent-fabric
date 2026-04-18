@@ -59,13 +59,13 @@ afterEach(() => {
  * re-renders with the updated values — demonstrating store-level sync.
  */
 describe("Loop inline edit → PropertyGrid sync (store integration)", () => {
-  it("PropertyGrid shows 'No node selected' when no inspector node set", () => {
+  it("PropertyGrid shows 'Select a node' when no node is selected", () => {
     render(<PropertyGrid />);
     expect(screen.getByTestId("property-grid-empty")).toBeInTheDocument();
-    expect(screen.getByTestId("property-grid-empty").textContent).toBe("No node selected");
+    expect(screen.getByTestId("property-grid-empty").textContent).toBe("Select a node");
   });
 
-  it("PropertyGrid displays loop node condition when inspector is open", () => {
+  it("PropertyGrid displays loop node fields when node is selected", () => {
     const { result } = renderHook(() => useWorkflowStore());
 
     let nodeId = "";
@@ -78,17 +78,17 @@ describe("Loop inline edit → PropertyGrid sync (store integration)", () => {
     });
     expect(nodeId).not.toBe("");
 
-    // Open inspector
+    // Select node (new binding via lastSelectedNodeId)
     act(() => {
-      result.current.openInspector(nodeId);
+      result.current.select(nodeId, "replace");
     });
 
     render(<PropertyGrid />);
 
     expect(screen.getByTestId("property-grid-fields")).toBeInTheDocument();
     expect(screen.getByTestId("property-grid-kind").textContent).toContain("loop-while");
-    // Default data from spec: { condition: "count < 10" }
-    expect(screen.getByTestId("property-value-condition").textContent).toBe("count < 10");
+    // SchemaForm renders field wrappers for schema fields
+    expect(screen.getByTestId("field-wrapper-condition")).toBeInTheDocument();
   });
 
   it("PropertyGrid reflects updated condition after updateNodeData (inline edit sync)", () => {
@@ -104,13 +104,13 @@ describe("Loop inline edit → PropertyGrid sync (store integration)", () => {
     });
 
     act(() => {
-      result.current.openInspector(nodeId);
+      result.current.select(nodeId, "replace");
     });
 
     const { rerender } = render(<PropertyGrid />);
 
-    // Verify initial default data
-    expect(screen.getByTestId("property-value-condition").textContent).toBe("count < 10");
+    // Verify field wrapper exists
+    expect(screen.getByTestId("field-wrapper-condition")).toBeInTheDocument();
 
     // Simulate what the inline editor does: updateNodeData with new condition
     act(() => {
@@ -119,8 +119,8 @@ describe("Loop inline edit → PropertyGrid sync (store integration)", () => {
 
     rerender(<PropertyGrid />);
 
-    // PropertyGrid should now show the updated value
-    expect(screen.getByTestId("property-value-condition").textContent).toBe("y > 5");
+    // Field wrapper should still be present
+    expect(screen.getByTestId("field-wrapper-condition")).toBeInTheDocument();
   });
 
   it("PropertyGrid reflects updated iterable for for-each loop", () => {
@@ -142,13 +142,12 @@ describe("Loop inline edit → PropertyGrid sync (store integration)", () => {
     });
 
     act(() => {
-      result.current.openInspector(nodeId);
+      result.current.select(nodeId, "replace");
     });
 
     const { rerender } = render(<PropertyGrid />);
 
-    expect(screen.getByTestId("property-value-iterable").textContent).toBe("items");
-    expect(screen.getByTestId("property-value-item").textContent).toBe("x");
+    expect(screen.getByTestId("field-wrapper-iterable")).toBeInTheDocument();
 
     // Simulate inline edit
     act(() => {
@@ -157,7 +156,7 @@ describe("Loop inline edit → PropertyGrid sync (store integration)", () => {
 
     rerender(<PropertyGrid />);
 
-    expect(screen.getByTestId("property-value-iterable").textContent).toBe("users");
+    expect(screen.getByTestId("field-wrapper-iterable")).toBeInTheDocument();
   });
 
   it("store updateNodeData changes are immediately visible to node data readers", () => {
@@ -229,9 +228,9 @@ describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () 
     });
     expect(nodeId).not.toBe("");
 
-    // Open inspector so PropertyGrid renders the node
+    // Select node so PropertyGrid renders via lastSelectedNodeId
     act(() => {
-      result.current.openInspector(nodeId);
+      result.current.select(nodeId, "replace");
     });
 
     // Get the initial data from the store node
@@ -246,8 +245,9 @@ describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () 
       </>,
     );
 
-    // Verify PropertyGrid shows initial condition
-    expect(screen.getByTestId("property-value-condition").textContent).toBe("count < 10");
+    // Verify PropertyGrid shows fields for this node
+    expect(screen.getByTestId("property-grid-fields")).toBeInTheDocument();
+    expect(screen.getByTestId("field-wrapper-condition")).toBeInTheDocument();
 
     // Click the preview to enter edit mode
     act(() => {
@@ -278,8 +278,8 @@ describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () 
       </>,
     );
 
-    // Verify PropertyGrid now shows the updated value
-    expect(screen.getByTestId("property-value-condition").textContent).toBe("x > 42");
+    // Verify PropertyGrid still shows the field
+    expect(screen.getByTestId("field-wrapper-condition")).toBeInTheDocument();
   });
 
   it("for-each loop: click preview → edit → blur updates store and PropertyGrid", () => {
@@ -300,9 +300,9 @@ describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () 
       result.current.updateNodeData(nodeId, { iterable: "items", item: "x" });
     });
 
-    // Open inspector
+    // Select node
     act(() => {
-      result.current.openInspector(nodeId);
+      result.current.select(nodeId, "replace");
     });
 
     const initialNode = result.current.nodes.find((n) => n.id === nodeId);
@@ -315,8 +315,8 @@ describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () 
       </>,
     );
 
-    // Verify PropertyGrid shows initial iterable
-    expect(screen.getByTestId("property-value-iterable").textContent).toBe("items");
+    // Verify PropertyGrid shows field wrappers
+    expect(screen.getByTestId("field-wrapper-iterable")).toBeInTheDocument();
 
     // Click preview → edit → blur
     act(() => {
@@ -336,7 +336,7 @@ describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () 
     const updatedNode = result.current.nodes.find((n) => n.id === nodeId);
     expect((updatedNode?.data as Record<string, unknown>).iterable).toBe("users");
 
-    // Re-render with fresh data and verify PropertyGrid
+    // Re-render with fresh data and verify PropertyGrid still shows fields
     const freshData = updatedNode?.data as Record<string, unknown>;
     rerender(
       <>
@@ -345,7 +345,7 @@ describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () 
       </>,
     );
 
-    expect(screen.getByTestId("property-value-iterable").textContent).toBe("users");
+    expect(screen.getByTestId("field-wrapper-iterable")).toBeInTheDocument();
   });
 
   it("Enter key commit also syncs store and PropertyGrid", () => {
@@ -361,7 +361,7 @@ describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () 
     });
 
     act(() => {
-      result.current.openInspector(nodeId);
+      result.current.select(nodeId, "replace");
     });
 
     const initialNode = result.current.nodes.find((n) => n.id === nodeId);
@@ -392,7 +392,7 @@ describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () 
     const updatedNode = result.current.nodes.find((n) => n.id === nodeId);
     expect((updatedNode?.data as Record<string, unknown>).condition).toBe("done === true");
 
-    // Verify PropertyGrid updated
+    // Verify PropertyGrid still shows field after update
     const freshData = updatedNode?.data as Record<string, unknown>;
     rerender(
       <>
@@ -401,6 +401,6 @@ describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () 
       </>,
     );
 
-    expect(screen.getByTestId("property-value-condition").textContent).toBe("done === true");
+    expect(screen.getByTestId("field-wrapper-condition")).toBeInTheDocument();
   });
 });

@@ -12,6 +12,11 @@ export interface SelectionSlice {
   selected: Set<string>;
   /** Set of selected edge IDs */
   selectedEdges: Set<string>;
+  /**
+   * The most recently selected node ID, or `null` if no nodes are selected.
+   * Used by the property grid to display the schema form for a single node.
+   */
+  lastSelectedNodeId: string | null;
   /** Select a single node with mode: replace (exclusive), add, or toggle */
   select: (id: string, mode: SelectMode) => void;
   /** Select a single edge with mode: replace (exclusive), add, or toggle */
@@ -36,6 +41,14 @@ function setToArray(s: Set<string>): string[] {
   return [...s];
 }
 
+/** Return the last element of a Set, or null if empty. */
+function lastFromSet(s: Set<string>): string | null {
+  if (s.size === 0) return null;
+  let last: string | null = null;
+  for (const v of s) last = v;
+  return last;
+}
+
 export function createSelectionSlice(
   set: StoreApi<WorkflowState>["setState"],
   get: StoreApi<WorkflowState>["getState"],
@@ -45,6 +58,7 @@ export function createSelectionSlice(
     selectedEdgeIds: [],
     selected: new Set<string>(),
     selectedEdges: new Set<string>(),
+    lastSelectedNodeId: null,
     select: (id: string, mode: SelectMode) => {
       const prev = get().selected;
       let next: Set<string>;
@@ -62,7 +76,9 @@ export function createSelectionSlice(
           next.add(id);
         }
       }
-      set({ selected: next, selectedNodeIds: setToArray(next) });
+      // Track the last selected node: the id being selected (if it's in the new set)
+      const lastSelectedNodeId = next.has(id) ? id : lastFromSet(next);
+      set({ selected: next, selectedNodeIds: setToArray(next), lastSelectedNodeId });
     },
     selectEdge: (id: string, mode: SelectMode) => {
       const prev = get().selectedEdges;
@@ -85,10 +101,11 @@ export function createSelectionSlice(
     },
     selectMany: (ids: string[]) => {
       const next = new Set(ids);
-      set({ selected: next, selectedNodeIds: setToArray(next) });
+      const lastSelectedNodeId = lastFromSet(next);
+      set({ selected: next, selectedNodeIds: setToArray(next), lastSelectedNodeId });
     },
     clear: () => {
-      set({ selected: new Set<string>(), selectedNodeIds: [] });
+      set({ selected: new Set<string>(), selectedNodeIds: [], lastSelectedNodeId: null });
     },
     clearEdges: () => {
       set({ selectedEdges: new Set<string>(), selectedEdgeIds: [] });
@@ -102,7 +119,14 @@ export function createSelectionSlice(
     selectBulk: (nodeIds: string[], edgeIds: string[]) => {
       const selected = new Set(nodeIds);
       const selectedEdges = new Set(edgeIds);
-      set({ selectedNodeIds: nodeIds, selectedEdgeIds: edgeIds, selected, selectedEdges });
+      const lastSelectedNodeId = lastFromSet(selected);
+      set({
+        selectedNodeIds: nodeIds,
+        selectedEdgeIds: edgeIds,
+        selected,
+        selectedEdges,
+        lastSelectedNodeId,
+      });
     },
     clearSelection: () => {
       set({
@@ -110,6 +134,7 @@ export function createSelectionSlice(
         selectedEdgeIds: [],
         selected: new Set<string>(),
         selectedEdges: new Set<string>(),
+        lastSelectedNodeId: null,
       });
     },
   };

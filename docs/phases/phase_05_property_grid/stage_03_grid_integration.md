@@ -1,10 +1,11 @@
 # Phase 5 — Stage 3: Property Grid Integration
+
 > Wire the SchemaForm to the selected node, handle undo/redo re-hydration, multi-select editing, and validation gating.
 > Status: `[ ]` not started · **Effort**: 20h
 
 ## Steps
 
-- [ ] **Step 1**: `PropertyGrid` binds to `selectionSlice.lastSelectedNodeId`
+- [x] **Step 1**: `PropertyGrid` binds to `selectionSlice.lastSelectedNodeId`
   - File(s): `src/features/property-grid/PropertyGrid.tsx` (upgrade placeholder), `tests/unit/features/property-grid/PropertyGrid.test.tsx`
   - Contents: Reads selection → resolves spec → renders `SchemaForm` for `node.data`; empty state "Select a node".
   - Test: 100% — empty state; switches on selection change.
@@ -47,6 +48,7 @@
   - Effort: 3h
 
 ## Acceptance for Stage 3
+
 - All 7 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/features/property-grid/**`.
 - Undo/redo + multi-select integration tests green.
