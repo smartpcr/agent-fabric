@@ -1,10 +1,11 @@
 # Phase 6 — Stage 2: Execution State Store
+
 > Store slice + reducer that accepts event streams, enforces transitions, batches by animation frame.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: `executionSlice` state shape
+- [x] **Step 1**: `executionSlice` state shape
   - File(s): `src/store/slices/executionSlice.ts` (extend), `tests/unit/store/slices/executionSlice.init.test.ts`
   - Contents: `runs: Map<runId, { nodes: Map<nodeId, NodeExecutionState>, edges: Map<edgeId, EdgeExecutionState>, status, startedAt, finishedAt? }>`; `activeRunId?: string`.
   - Test: 100% — initial empty; `setActiveRun` / `clearRun`.
@@ -41,6 +42,7 @@
   - Effort: 1h
 
 ## Acceptance for Stage 2
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on execution store + batcher.
 - Property test: 10k random event sequences never corrupt state.
