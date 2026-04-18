@@ -59,27 +59,109 @@ async function connectNodes(page: Page, sourceHandle: Locator, targetHandle: Loc
   await page.mouse.up();
 }
 
-/** Snapshot node data-ids and class names from the DOM. */
-async function snapshotNodes(page: Page) {
-  return page.evaluate(() => {
-    const nodes = document.querySelectorAll(".react-flow__node[data-id]");
-    return Array.from(nodes).map((el) => ({
-      id: el.getAttribute("data-id") ?? "",
-      classes: el.className,
-    }));
-  });
+/** Full persisted node shape (all non-transient fields). */
+interface PersistedNode {
+  id: string;
+  kind: string;
+  position: { x: number; y: number };
+  data: Record<string, unknown>;
+  // width/height/selected are transient — excluded from comparison
 }
 
-/** Read the persisted graph from localStorage. */
-async function readPersistedGraph(page: Page) {
+/** Full persisted edge shape. */
+interface PersistedEdge {
+  id: string;
+  source: string;
+  sourcePort: string;
+  target: string;
+  targetPort: string;
+  kind: string;
+  label?: string;
+  condition?: string;
+}
+
+interface PersistedGraph {
+  nodes: PersistedNode[];
+  edges: PersistedEdge[];
+}
+
+/** Read the persisted graph from localStorage with full property shape. */
+async function readPersistedGraph(page: Page): Promise<PersistedGraph | null> {
   return page.evaluate(() => {
     const raw = localStorage.getItem("agent-fabric:graph");
     if (!raw) return null;
-    return JSON.parse(raw) as {
-      nodes: Array<{ id: string; kind: string; position: { x: number; y: number } }>;
-      edges: Array<{ id: string; source: string; target: string }>;
+    const parsed = JSON.parse(raw) as {
+      nodes: Array<Record<string, unknown>>;
+      edges: Array<Record<string, unknown>>;
     };
+    // Strip transient fields (selected, width, height) from nodes
+    const nodes = parsed.nodes.map((n) => ({
+      id: n.id as string,
+      kind: n.kind as string,
+      position: n.position as { x: number; y: number },
+      data: (n.data ?? {}) as Record<string, unknown>,
+    }));
+    // Strip transient field (selected) from edges
+    const edges = parsed.edges.map((e) => {
+      const base = {
+        id: e.id as string,
+        source: e.source as string,
+        sourcePort: (e.sourcePort ?? "") as string,
+        target: e.target as string,
+        targetPort: (e.targetPort ?? "") as string,
+        kind: (e.kind ?? "default") as string,
+      };
+      if (e.label !== undefined) {
+        Object.assign(base, { label: e.label as string });
+      }
+      if (e.condition !== undefined) {
+        Object.assign(base, { condition: e.condition as string });
+      }
+      return base;
+    });
+    return { nodes, edges };
   });
+}
+
+/**
+ * Deep-compare two persisted graphs field-by-field, tolerating floating-point
+ * rounding on positions.
+ */
+function assertGraphsEqual(before: PersistedGraph, after: PersistedGraph) {
+  // Same counts
+  expect(after.nodes).toHaveLength(before.nodes.length);
+  expect(after.edges).toHaveLength(before.edges.length);
+
+  // Sort for deterministic comparison
+  const sortedNodesBefore = [...before.nodes].sort((a, b) => a.id.localeCompare(b.id));
+  const sortedNodesAfter = [...after.nodes].sort((a, b) => a.id.localeCompare(b.id));
+
+  for (let i = 0; i < sortedNodesBefore.length; i++) {
+    const nb = sortedNodesBefore[i];
+    const na = sortedNodesAfter[i];
+    expect(na.id).toBe(nb.id);
+    expect(na.kind).toBe(nb.kind);
+    expect(na.position.x).toBeCloseTo(nb.position.x, 0);
+    expect(na.position.y).toBeCloseTo(nb.position.y, 0);
+    expect(na.data).toEqual(nb.data);
+  }
+
+  const sortedEdgesBefore = [...before.edges].sort((a, b) => a.id.localeCompare(b.id));
+  const sortedEdgesAfter = [...after.edges].sort((a, b) => a.id.localeCompare(b.id));
+
+  for (let i = 0; i < sortedEdgesBefore.length; i++) {
+    const eb = sortedEdgesBefore[i];
+    const ea = sortedEdgesAfter[i];
+    expect(ea.id).toBe(eb.id);
+    expect(ea.source).toBe(eb.source);
+    expect(ea.sourcePort).toBe(eb.sourcePort);
+    expect(ea.target).toBe(eb.target);
+    expect(ea.targetPort).toBe(eb.targetPort);
+    expect(ea.kind).toBe(eb.kind);
+    // Optional fields
+    expect(ea.label).toBe(eb.label);
+    expect(ea.condition).toBe(eb.condition);
+  }
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────
@@ -96,7 +178,7 @@ test.describe("Persistence E2E — build → save → reload → identical", () 
     await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
   });
 
-  test("author graph, reload page, graph is restored identically", async ({ page }) => {
+  test("author graph, save, reload page, reopen — graph is identical", async ({ page }) => {
     const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
     const canvasBox = await getBox(canvas);
 
@@ -159,25 +241,24 @@ test.describe("Persistence E2E — build → save → reload → identical", () 
     const edges = page.locator(".react-flow__edge");
     await expect(edges).toHaveCount(2, { timeout: 5000 });
 
-    // ── Step 3: Record state before reload ────────────────────────────
+    // ── Step 3: Explicit save — click Save button ────────────────────
 
-    // Wait for localStorage persistence (useGraphPersistence saves on every change)
+    const saveBtn = page.locator('[data-testid="save-button"]').first();
+    await expect(saveBtn).toBeVisible({ timeout: 5000 });
+    await saveBtn.click();
+
+    // Wait for localStorage persistence (useGraphPersistence saves on every change;
+    // the explicit save click confirms the user intent to persist)
     await page.waitForTimeout(500);
 
+    // ── Step 4: Snapshot persisted graph before reload ────────────────
+
     const graphBefore = await readPersistedGraph(page);
-    if (graphBefore === null) throw new Error("graphBefore is null");
+    if (graphBefore === null) throw new Error("graphBefore is null — nothing persisted");
     expect(graphBefore.nodes).toHaveLength(3);
     expect(graphBefore.edges).toHaveLength(2);
 
-    const nodeIdsBefore = graphBefore.nodes.map((n) => n.id).sort();
-    const nodeKindsBefore = graphBefore.nodes.map((n) => n.kind).sort();
-    const edgeIdsBefore = graphBefore.edges.map((e) => e.id).sort();
-
-    // Also capture DOM-level node IDs for comparison after reload
-    const domSnapshotBefore = await snapshotNodes(page);
-    expect(domSnapshotBefore).toHaveLength(3);
-
-    // ── Step 4: Reload page ──────────────────────────────────────────
+    // ── Step 5: Reload page (simulates close + reopen) ───────────────
 
     await page.reload();
     await page.waitForSelector('[role="application"][aria-label="Workflow Canvas"]', {
@@ -186,58 +267,26 @@ test.describe("Persistence E2E — build → save → reload → identical", () 
     // Wait for graph restoration from localStorage
     await page.waitForTimeout(1000);
 
-    // ── Step 5: Verify graph is restored identically ─────────────────
+    // ── Step 6: Verify graph reopened identically ─────────────────────
 
-    // Same node count
+    // DOM: same node count and types
     const restoredNodes = page.locator(".react-flow__node[data-id]");
     await expect(restoredNodes).toHaveCount(3, { timeout: 5000 });
-
-    // Same node types
     await expect(page.locator(".react-flow__node-start")).toHaveCount(1);
     await expect(page.locator(".react-flow__node-task")).toHaveCount(1);
     await expect(page.locator(".react-flow__node-end")).toHaveCount(1);
 
-    // Same edge count
+    // DOM: same edge count
     const restoredEdges = page.locator(".react-flow__edge");
     await expect(restoredEdges).toHaveCount(2, { timeout: 5000 });
 
-    // Verify localStorage data matches pre-reload state
+    // Deep-compare full persisted graph (all node/edge properties)
     const graphAfter = await readPersistedGraph(page);
-    if (graphAfter === null) throw new Error("graphAfter is null");
-    expect(graphAfter.nodes).toHaveLength(3);
-    expect(graphAfter.edges).toHaveLength(2);
-
-    const nodeIdsAfter = graphAfter.nodes.map((n) => n.id).sort();
-    const nodeKindsAfter = graphAfter.nodes.map((n) => n.kind).sort();
-    const edgeIdsAfter = graphAfter.edges.map((e) => e.id).sort();
-
-    // Node IDs preserved
-    expect(nodeIdsAfter).toEqual(nodeIdsBefore);
-
-    // Node kinds preserved
-    expect(nodeKindsAfter).toEqual(nodeKindsBefore);
-
-    // Edge IDs preserved
-    expect(edgeIdsAfter).toEqual(edgeIdsBefore);
-
-    // Node positions preserved (within tolerance for float rounding)
-    for (const nodeBefore of graphBefore.nodes) {
-      const nodeAfter = graphAfter.nodes.find((n) => n.id === nodeBefore.id);
-      if (!nodeAfter) throw new Error(`Node ${nodeBefore.id} not found after reload`);
-      expect(nodeAfter.position.x).toBeCloseTo(nodeBefore.position.x, 0);
-      expect(nodeAfter.position.y).toBeCloseTo(nodeBefore.position.y, 0);
-    }
-
-    // Edge connectivity preserved
-    for (const edgeBefore of graphBefore.edges) {
-      const edgeAfter = graphAfter.edges.find((e) => e.id === edgeBefore.id);
-      if (!edgeAfter) throw new Error(`Edge ${edgeBefore.id} not found after reload`);
-      expect(edgeAfter.source).toBe(edgeBefore.source);
-      expect(edgeAfter.target).toBe(edgeBefore.target);
-    }
+    if (graphAfter === null) throw new Error("graphAfter is null — persistence lost on reload");
+    assertGraphsEqual(graphBefore, graphAfter);
   });
 
-  test("single node persists and restores after reload", async ({ page }) => {
+  test("single node persists via save and restores after reload", async ({ page }) => {
     const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
     const canvasBox = await getBox(canvas);
 
@@ -251,9 +300,13 @@ test.describe("Persistence E2E — build → save → reload → identical", () 
     );
 
     await expect(page.locator(".react-flow__node[data-id]")).toHaveCount(1, { timeout: 5000 });
+
+    // Explicit save
+    const saveBtn = page.locator('[data-testid="save-button"]').first();
+    await saveBtn.click();
     await page.waitForTimeout(500);
 
-    // Read persisted state
+    // Full snapshot before reload
     const before = await readPersistedGraph(page);
     if (before === null) throw new Error("before is null");
     expect(before.nodes).toHaveLength(1);
@@ -270,10 +323,10 @@ test.describe("Persistence E2E — build → save → reload → identical", () 
     await expect(page.locator(".react-flow__node[data-id]")).toHaveCount(1, { timeout: 5000 });
     await expect(page.locator(".react-flow__node-task")).toHaveCount(1);
 
+    // Deep-compare full graph
     const after = await readPersistedGraph(page);
     if (after === null) throw new Error("after is null");
-    expect(after.nodes[0].id).toBe(before.nodes[0].id);
-    expect(after.nodes[0].kind).toBe("task");
+    assertGraphsEqual(before, after);
   });
 
   test("empty canvas persists as empty and restores empty", async ({ page }) => {
