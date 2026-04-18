@@ -285,6 +285,17 @@ describe("HttpWorkflowRepository — save()", () => {
 
     expect(capturedBody).toEqual(graph);
   });
+
+  it("returns empty ETag when save response has no ETag header", async () => {
+    server.use(http.put(`${BASE_URL}/w-1`, () => HttpResponse.json({})));
+
+    const result = await repo().save("w-1", makeGraph());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.etag).toBe("");
+    }
+  });
 });
 
 // ─── create(graph) ───────────────────────────────────────────────────
@@ -364,6 +375,18 @@ describe("HttpWorkflowRepository — create()", () => {
       expect(result.error.status).toBe(400);
     }
   });
+
+  it("returns empty ETag when create response has no ETag header", async () => {
+    server.use(http.post(BASE_URL, () => HttpResponse.json({ id: "w-no-etag" })));
+
+    const result = await repo().create(makeGraph());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.id).toBe("w-no-etag");
+      expect(result.value.etag).toBe("");
+    }
+  });
 });
 
 // ─── Constructor ─────────────────────────────────────────────────────
@@ -388,7 +411,7 @@ describe("HttpWorkflowRepository — constructor", () => {
 // ─── Non-Error network failure edge case ─────────────────────────────
 
 describe("HttpWorkflowRepository — non-Error throw", () => {
-  it("handles non-Error thrown objects in network catch", async () => {
+  it("handles non-Error thrown objects in list() catch", async () => {
     const r = new HttpWorkflowRepository({
       baseUrl: BASE_URL,
       fetch: () => {
@@ -403,6 +426,89 @@ describe("HttpWorkflowRepository — non-Error throw", () => {
     if (!result.ok) {
       expect(result.error.code).toBe("NETWORK");
       expect(result.error.message).toBe("Network error");
+    }
+  });
+
+  it("handles non-Error thrown objects in get() catch", async () => {
+    const r = new HttpWorkflowRepository({
+      baseUrl: BASE_URL,
+      fetch: () => {
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw 42;
+      },
+    });
+
+    const result = await r.get("w-1");
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("NETWORK");
+      expect(result.error.message).toBe("Network error");
+    }
+  });
+
+  it("handles non-Error thrown objects in save() catch", async () => {
+    const r = new HttpWorkflowRepository({
+      baseUrl: BASE_URL,
+      fetch: () => {
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw null;
+      },
+    });
+
+    const result = await r.save("w-1", makeGraph());
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("NETWORK");
+      expect(result.error.message).toBe("Network error");
+    }
+  });
+
+  it("handles non-Error thrown objects in create() catch", async () => {
+    const r = new HttpWorkflowRepository({
+      baseUrl: BASE_URL,
+      fetch: () => {
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw undefined;
+      },
+    });
+
+    const result = await r.create(makeGraph());
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("NETWORK");
+      expect(result.error.message).toBe("Network error");
+    }
+  });
+});
+
+// ─── safeText fallback path ──────────────────────────────────────────
+
+describe("HttpWorkflowRepository — safeText fallback", () => {
+  it("returns empty string when res.text() throws during error handling", async () => {
+    const r = new HttpWorkflowRepository({
+      baseUrl: BASE_URL,
+      fetch: () =>
+        Promise.resolve({
+          ok: false,
+          status: 503,
+          headers: new Headers(),
+          text: () => {
+            throw new Error("body stream already read");
+          },
+        } as unknown as Response),
+    });
+
+    const result = await r.list();
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("UNKNOWN");
+      expect(result.error.status).toBe(503);
+      // Body should be empty string since safeText caught the error
+      expect(result.error.message).toContain("503");
     }
   });
 });
