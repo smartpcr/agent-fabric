@@ -29,7 +29,7 @@
   - Test: 100% — 100 queued items in one frame → 1 `apply` call; cancel on teardown.
   - Effort: 3h
 
-- [ ] **Step 5**: Selectors for node/edge state
+- [x] **Step 5**: Selectors for node/edge state
   - File(s): `src/store/selectors/executionSelectors.ts`, `tests/unit/store/selectors/executionSelectors.test.ts`
   - Contents: `selectNodeExecutionState(runId, nodeId)`, `selectEdgeExecutionState(runId, edgeId)`; memoize via `fast-equals`.
   - Test: 100% — stable reference across unrelated state changes.
