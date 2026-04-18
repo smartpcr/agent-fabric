@@ -35,7 +35,7 @@
   - Test: 100% — add appends; remove by index; reorder; errors aggregate to array.
   - Effort: 4h
 
-- [ ] **Step 6**: `ObjectField` (nested, collapsible)
+- [x] **Step 6**: `ObjectField` (nested, collapsible)
   - File(s): `src/features/property-grid/fields/ObjectField.tsx`, `tests/unit/features/property-grid/fields/ObjectField.test.tsx`
   - Contents: `<details>`-like disclosure; nested `SchemaForm`; nested errors aggregate to parent with count.
   - Test: 100% — collapse persists (session-storage); nested validation.
