@@ -308,7 +308,8 @@ describe("SchemaForm", () => {
     render(<SchemaForm schema={schema} value={{}} onChange={vi.fn()} />);
 
     const form = screen.getByTestId("schema-form");
-    expect(form.children).toHaveLength(0);
+    // Only the validation live region (visually hidden) should be present
+    expect(form.querySelectorAll("[data-testid^='field-wrapper-']")).toHaveLength(0);
   });
 
   it("updates form values when external value changes", () => {
