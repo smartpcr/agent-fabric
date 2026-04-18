@@ -295,12 +295,12 @@ test.describe("Ports & Edges — keyboard-only connection path", () => {
     const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
     const canvasBox = await getBox(canvas);
 
-    // Drop a Start node and a Task node
+    // Drop a Start node and two Task nodes to have multiple targets for arrow navigation
     const startItem = page.locator('[role="option"][data-kind="start"]');
     await dragPaletteToCanvas(
       startItem,
       canvas,
-      canvasBox.x + canvasBox.width / 3,
+      canvasBox.x + canvasBox.width / 4,
       canvasBox.y + canvasBox.height / 2,
     );
 
@@ -308,12 +308,19 @@ test.describe("Ports & Edges — keyboard-only connection path", () => {
     await dragPaletteToCanvas(
       taskItem,
       canvas,
-      canvasBox.x + (canvasBox.width * 2) / 3,
-      canvasBox.y + canvasBox.height / 2,
+      canvasBox.x + canvasBox.width / 2,
+      canvasBox.y + canvasBox.height / 3,
+    );
+
+    await dragPaletteToCanvas(
+      taskItem,
+      canvas,
+      canvasBox.x + (canvasBox.width * 3) / 4,
+      canvasBox.y + (canvasBox.height * 2) / 3,
     );
 
     const allNodes = page.locator(".react-flow__node[data-id]");
-    await expect(allNodes).toHaveCount(2, { timeout: 5000 });
+    await expect(allNodes).toHaveCount(3, { timeout: 5000 });
 
     // Verify no edges exist yet
     await expect(page.locator(".react-flow__edge")).toHaveCount(0);
@@ -346,15 +353,35 @@ test.describe("Ports & Edges — keyboard-only connection path", () => {
     // Wait for connect mode
     await page.waitForTimeout(500);
 
-    // Check announcement
+    // Check announcement shows connect mode with targets
     const announcement = page.locator('[data-testid="connect-announcement"]');
     await expect(announcement).toContainText(/Connect mode/i, { timeout: 5000 });
+    // Should show "1 of" indicating first target is selected
+    await expect(announcement).toContainText(/1 of/i, { timeout: 5000 });
 
-    // Focus the canvas so the second Enter goes through canvas's handleKeyDown
-    // (not through xyflow's handle onClick which might conflict)
+    // Focus the canvas for arrow-key navigation
     await canvas.focus();
 
-    // Press Enter to confirm connection to the first target
+    // ArrowDown to navigate to the second target
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+
+    // Verify announcement updated to show "2 of" (second target)
+    await expect(announcement).toContainText(/2 of/i, { timeout: 5000 });
+
+    // ArrowUp to go back to the first target
+    await page.keyboard.press("ArrowUp");
+    await page.waitForTimeout(200);
+
+    // Verify announcement shows "1 of" again
+    await expect(announcement).toContainText(/1 of/i, { timeout: 5000 });
+
+    // Navigate to second target again with ArrowDown
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    await expect(announcement).toContainText(/2 of/i, { timeout: 5000 });
+
+    // Press Enter to confirm connection to the second target
     await page.keyboard.press("Enter");
 
     // Verify a new edge was created
