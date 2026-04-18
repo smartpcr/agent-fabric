@@ -29,6 +29,7 @@
     "@testing-library/dom": "^10.4.1",
     "@testing-library/user-event": "^14.6.1",
     "@xyflow/react": "^12.10.2",
+    "elkjs": "^0.11.1",
     "fast-equals": "^6.0.0",
     "lucide-react": "^1.8.0",
     "nanoid": "^5.1.9",
