@@ -5,6 +5,7 @@ import { selectNodeSpec } from "@/store/selectors/graphSelectors";
 import { SchemaForm } from "@/features/property-grid/SchemaForm";
 import { PropertyGridHeader } from "@/features/property-grid/PropertyGridHeader";
 import { useValidation } from "@/features/property-grid/ValidationContext";
+import { useDebouncedCommit } from "@/features/property-grid/useDebouncedCommit";
 
 /** Sentinel value used as placeholder for fields with differing values across selected nodes. */
 export const MIXED_SENTINEL = "__mixed__";
@@ -170,8 +171,8 @@ export function PropertyGrid() {
     }
   }, [hasActiveForm, setValidation]);
 
-  // For multi-select: apply change to all selected nodes
-  const handleChange = useCallback(
+  // Commit function that applies the value to the store
+  const commitChange = useCallback(
     (value: Record<string, unknown>) => {
       if (isMultiSelect && multiSelectKind) {
         // Only apply fields that are not mixed
@@ -191,6 +192,12 @@ export function PropertyGrid() {
     },
     [isMultiSelect, multiSelectKind, selectedNodes, node, updateNodeData],
   );
+
+  // Debounced commit: stages changes and commits after 300ms of inactivity
+  const { stage: handleChange } = useDebouncedCommit<Record<string, unknown>>({
+    onCommit: commitChange,
+    delay: 300,
+  });
 
   const handleLabelChange = useCallback(
     (newLabel: string) => {

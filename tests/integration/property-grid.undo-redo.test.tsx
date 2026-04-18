@@ -342,6 +342,11 @@ describe("PropertyGrid undo/redo integration", () => {
       expect(screen.getByTestId("field-name").value).toBe("User Typed");
     });
 
+    // Wait for the 300ms debounce to commit to the store
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 350));
+    });
+
     // Undo returns to original
     act(() => {
       temporal.current.undo();
