@@ -90,6 +90,12 @@ test.describe("Property Grid — edit string field, reload, value persists", () 
     expect(saved).toBeTruthy();
     expect(saved).toContain(uniqueName);
 
+    // 7b. Verify secret fields (e.g. apiKey) are scrubbed in the persisted payload
+    // The apiKey value should be the "<secret>" sentinel, not a raw string
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const parsed = JSON.parse(saved!) as { nodes: Array<{ data: { apiKey: string } }> };
+    expect(parsed.nodes[0].data.apiKey).toBe("<secret>");
+
     // 8. Reload the page
     await page.reload();
     await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });

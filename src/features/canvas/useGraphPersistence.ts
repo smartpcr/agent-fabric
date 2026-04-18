@@ -2,8 +2,9 @@ import { useEffect, useRef } from "react";
 import { useWorkflowStore } from "@/store/hooks";
 import type { WorkflowNode } from "@/domain/models/node";
 import type { WorkflowEdge } from "@/domain/models/edge";
+import { scrubSecrets } from "@/features/property-grid/fields/SecretField";
 
-const STORAGE_KEY = "agent-fabric:graph";
+export const GRAPH_STORAGE_KEY = "agent-fabric:graph";
 
 interface PersistedGraph {
   nodes: WorkflowNode[];
@@ -19,6 +20,7 @@ function isPersistedGraph(val: unknown): val is PersistedGraph {
 /**
  * Persist workflow graph (nodes + edges) to localStorage and restore on mount.
  * Saves after every change so edits survive a page reload.
+ * Secret field values are scrubbed before writing to avoid storing raw secrets.
  * Only restores when the store starts empty (avoids overwriting test fixtures).
  */
 export function useGraphPersistence() {
@@ -41,7 +43,7 @@ export function useGraphPersistence() {
     if (initialCountRef.current > 0) return;
 
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(GRAPH_STORAGE_KEY);
       if (raw) {
         const saved: unknown = JSON.parse(raw);
         if (isPersistedGraph(saved) && saved.nodes.length > 0) {
@@ -53,12 +55,14 @@ export function useGraphPersistence() {
     }
   }, [restoreGraph]);
 
-  // Save graph to localStorage on every change
+  // Save graph to localStorage on every change, scrubbing secret fields
   useEffect(() => {
     if (!restoredRef.current) return;
     try {
-      const payload: PersistedGraph = { nodes, edges };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      const scrubbedNodes = scrubSecrets([...nodes]) as WorkflowNode[];
+      const scrubbedEdges = scrubSecrets([...edges]) as WorkflowEdge[];
+      const payload: PersistedGraph = { nodes: scrubbedNodes, edges: scrubbedEdges };
+      localStorage.setItem(GRAPH_STORAGE_KEY, JSON.stringify(payload));
     } catch {
       // Storage full or unavailable — silently ignore
     }
