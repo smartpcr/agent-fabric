@@ -73,3 +73,38 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
 }
+
+/*
+ * High-contrast theme — WCAG AAA compliant (7:1+ contrast ratios).
+ * Black background, bright white text, vivid accent colors.
+ * All foreground-on-background combos target ≥ 7:1 contrast.
+ */
+[data-theme="high-contrast"] {
+  --color-bg: #000000;
+  --color-fg: #ffffff;
+  --color-primary: #5ebaff;
+  --color-primary-fg: #000000;
+  --color-secondary: #d08aff;
+  --color-secondary-fg: #000000;
+  --color-muted: #c0c0c0;
+  --color-border: #ffffff;
+  --color-surface: #1a1a1a;
+  --color-danger: #ff6b6b;
+  --color-danger-fg: #000000;
+  --color-success: #5ef88f;
+  --color-success-fg: #000000;
+  --color-warning: #ffd93d;
+  --color-warning-fg: #000000;
+
+  /* Port colors — high-contrast theme (vivid, high-contrast on black) */
+  --color-port-string: #5ebaff;
+  --color-port-json: #d08aff;
+  --color-port-number: #ffd93d;
+  --color-port-boolean: #5ef88f;
+  --color-port-any: #c0c0c0;
+  --color-port-neutral: #e0e0e0;
+
+  --shadow-sm: 0 0 0 1px #ffffff;
+  --shadow-md: 0 0 0 2px #ffffff;
+  --shadow-lg: 0 0 0 3px #ffffff;
+}
