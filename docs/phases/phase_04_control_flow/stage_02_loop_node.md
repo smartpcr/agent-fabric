@@ -35,7 +35,7 @@
   - Test: 100% — 0 fails; 2 fails; wrong target fails.
   - Effort: 3h
 
-- [ ] **Step 6**: Validator — no back-edges on non-loop nodes
+- [x] **Step 6**: Validator — no back-edges on non-loop nodes
   - File(s): `src/domain/validation/graphRules.ts` (extend), `tests/unit/domain/validation/graphRules.noBackEdge.test.ts`
   - Contents: Cycle detection via DFS; any cycle not involving a loop node fails with `UnexpectedCycleError`.
   - Test: 100% — direct cycle via non-loop nodes fails; loop-based cycle passes.

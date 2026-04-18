@@ -11,6 +11,7 @@ export type GraphValidationErrorCode =
   | "LOOP_NODE_MISSING_BACK_EDGE"
   | "LOOP_NODE_MULTIPLE_BACK_EDGES"
   | "LOOP_BACK_EDGE_WRONG_TARGET"
+  | "UNEXPECTED_CYCLE"
   | "DECISION_ORPHAN_EDGE"
   | "DECISION_DUPLICATE_BRANCH"
   | "DECISION_MISSING_DEFAULT";
@@ -290,6 +291,90 @@ function checkDecisionNodes(
   return diagnostics;
 }
 
+/**
+ * Detect unexpected cycles via DFS.
+ * Cycles that pass through a loop node (canHaveBackEdge) via a loop-back edge
+ * are expected and excluded. Any other cycle is flagged as UNEXPECTED_CYCLE.
+ */
+function checkUnexpectedCycles(
+  graph: WorkflowGraph,
+  _registry: NodeSpecRegistry,
+): GraphValidationError[] {
+  const errors: GraphValidationError[] = [];
+
+  // Build adjacency excluding loop-back edges (kind === "loop-back")
+  // because those represent intentional cycles through loop nodes.
+  const adj = new Map<string, string[]>();
+  for (const node of graph.nodes) {
+    adj.set(node.id, []);
+  }
+  for (const edge of graph.edges) {
+    if (edge.kind === "loop-back") {
+      continue;
+    }
+    const successors = adj.get(edge.source);
+    if (successors) {
+      successors.push(edge.target);
+    }
+  }
+
+  // Standard DFS-based cycle detection using white/gray/black coloring
+  const WHITE = 0;
+  const GRAY = 1;
+  const BLACK = 2;
+  const color = new Map<string, number>();
+  const parent = new Map<string, string | null>();
+  for (const node of graph.nodes) {
+    color.set(node.id, WHITE);
+  }
+
+  const nodeMap = new Map(graph.nodes.map((n) => [n.id, n]));
+  const reportedCycles = new Set<string>();
+
+  function dfs(nodeId: string): void {
+    color.set(nodeId, GRAY);
+    const neighbors = adj.get(nodeId) ?? [];
+    for (const neighbor of neighbors) {
+      const neighborColor = color.get(neighbor) ?? BLACK;
+      if (neighborColor === GRAY) {
+        // Found a back-edge → cycle detected
+        // Collect cycle members by walking the parent chain
+        const cycleNodeIds: string[] = [neighbor];
+        let cur: string | null | undefined = nodeId;
+        while (cur !== null && cur !== undefined && cur !== neighbor) {
+          cycleNodeIds.push(cur);
+          cur = parent.get(cur);
+        }
+        const sortedKey = [...cycleNodeIds].sort().join(",");
+        if (!reportedCycles.has(sortedKey)) {
+          reportedCycles.add(sortedKey);
+          const labels = cycleNodeIds.map((id) => {
+            const n = nodeMap.get(id);
+            return n ? `"${id}" (${n.kind})` : `"${id}"`;
+          });
+          errors.push({
+            code: "UNEXPECTED_CYCLE",
+            message: `Unexpected cycle detected among non-loop nodes: ${labels.join(" → ")}`,
+          });
+        }
+      } else if (neighborColor === WHITE) {
+        parent.set(neighbor, nodeId);
+        dfs(neighbor);
+      }
+    }
+    color.set(nodeId, BLACK);
+  }
+
+  for (const node of graph.nodes) {
+    if (color.get(node.id) === WHITE) {
+      parent.set(node.id, null);
+      dfs(node.id);
+    }
+  }
+
+  return errors;
+}
+
 export function validateGraph(
   graph: WorkflowGraph,
   registry: NodeSpecRegistry,
@@ -306,6 +391,7 @@ export function validateGraph(
   allDiagnostics.push(...checkRequiredPorts(graph, registry));
   allDiagnostics.push(...checkLoopNodes(graph, registry));
   allDiagnostics.push(...checkDecisionNodes(graph, registry));
+  allDiagnostics.push(...checkUnexpectedCycles(graph, registry));
 
   const errors = allDiagnostics.filter((d) => (d.severity ?? "error") === "error");
   const warnings = allDiagnostics.filter((d) => d.severity === "warning");

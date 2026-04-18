@@ -238,7 +238,14 @@ describe("graphRules property-based fuzz tests", () => {
 
             const afterResult = validateGraph(extendedGraph, registry);
             if (!afterResult.ok) {
-              return false;
+              // Adding an edge may introduce an unexpected cycle, which is
+              // a valid new error from the cycle-detection rule (Step 6).
+              // The fuzz property only fails if errors OTHER than
+              // UNEXPECTED_CYCLE appear.
+              const nonCycleErrors = afterResult.error.filter((e) => e.code !== "UNEXPECTED_CYCLE");
+              if (nonCycleErrors.length > 0) {
+                return false;
+              }
             }
           }
         }
