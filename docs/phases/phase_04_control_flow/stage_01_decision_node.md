@@ -1,10 +1,11 @@
 # Phase 4 — Stage 1: Decision Node
+
 > Implement if/else and switch-style decision nodes with labeled branches, conditional edges, and validator rules.
 > Status: `[ ]` not started · **Effort**: 18h
 
 ## Steps
 
-- [ ] **Step 1**: `DecisionNode` spec (if/else): 1 in, 2 out (`true`, `false`)
+- [x] **Step 1**: `DecisionNode` spec (if/else): 1 in, 2 out (`true`, `false`)
   - File(s): `src/registry/builtins/DecisionNode.spec.ts`, `tests/unit/registry/builtins/DecisionNode.test.ts`
   - Contents: kind `'decision'`, variant `'if-else'`; `propertySchema = z.object({ condition: z.string().min(1) })`.
   - Test: 100% — spec shape; registers cleanly.
@@ -47,6 +48,7 @@
   - Effort: 3h
 
 ## Acceptance for Stage 1
+
 - All 7 steps `[x]` with score ≥ 90.
 - 100% unit coverage on new files.
 - Decision fixture added to `tests/fixtures/`.
