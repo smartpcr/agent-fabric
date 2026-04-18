@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { icons } from "lucide-react";
 import { useExecutionState } from "@/features/execution/useExecutionState";
+import { useWorkflowStore } from "@/store/hooks";
 import { StatusBadge, type BadgeStatus } from "@/features/nodes/badges/StatusBadge";
 import { IterationBadge } from "@/features/nodes/badges/IterationBadge";
 import type { NodeExecutionStatus } from "@/store/slices/executionSlice";
@@ -96,6 +97,7 @@ export function BaseNode({
   onDelete,
 }: BaseNodeProps) {
   const execState = useExecutionState(nodeId ?? "");
+  const openInspector = useWorkflowStore((s) => s.openInspector);
   const hasNodeId = nodeId !== undefined;
   const badgeStatus =
     hasNodeId && execState !== undefined ? STATUS_TO_BADGE[execState.status] : undefined;
@@ -142,7 +144,17 @@ export function BaseNode({
       )}
       {badgeStatus !== undefined && (
         <div data-testid="node-badges" style={BADGE_CONTAINER_STYLE}>
-          <StatusBadge status={badgeStatus} />
+          <StatusBadge
+            status={badgeStatus}
+            errorMessage={execState?.error}
+            onErrorClick={
+              hasNodeId && badgeStatus === "error"
+                ? () => {
+                    openInspector(nodeId);
+                  }
+                : undefined
+            }
+          />
           <IterationBadge iteration={execState?.iteration} total={execState?.totalIterations} />
         </div>
       )}
