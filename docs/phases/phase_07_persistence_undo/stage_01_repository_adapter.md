@@ -23,7 +23,7 @@
   - Test: 100%.
   - Effort: 2h
 
-- [ ] **Step 4**: `SaveLoadBar` UI
+- [x] **Step 4**: `SaveLoadBar` UI
   - File(s): `src/features/persistence/SaveLoadBar.tsx`, `tests/unit/features/persistence/SaveLoadBar.test.tsx`
   - Contents: Name field, Save / Load / New buttons; dirty indicator; last-saved timestamp.
   - Test: 100% — click Save dispatches; displays dirty state.
