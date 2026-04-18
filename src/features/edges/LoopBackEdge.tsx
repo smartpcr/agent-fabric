@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { memo, useRef, useState, useEffect } from "react";
 import { BaseEdge, EdgeLabelRenderer, type EdgeProps } from "@xyflow/react";
 import { useEdgeExecutionState } from "@/features/execution/useEdgeExecutionState";
 import "./edgeAnimations.css";
@@ -76,7 +76,7 @@ function buildLoopBackPath(
   return [path, labelX, labelY];
 }
 
-export function LoopBackEdge({
+const LoopBackEdgeInner = memo(function LoopBackEdge({
   id,
   sourceX,
   sourceY,
@@ -146,6 +146,8 @@ export function LoopBackEdge({
       </EdgeLabelRenderer>
     </g>
   );
-}
+});
 
-LoopBackEdge.ARROW_MARKER_ID = LOOP_ARROW_MARKER_ID;
+export const LoopBackEdge = Object.assign(LoopBackEdgeInner, {
+  ARROW_MARKER_ID: LOOP_ARROW_MARKER_ID,
+});

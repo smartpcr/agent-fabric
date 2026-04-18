@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Position, type NodeProps } from "@xyflow/react";
 import { useTranslation } from "react-i18next";
 import i18next from "i18next";
@@ -30,7 +31,9 @@ function buildOutputPortsFromBranches(
       }),
     );
   }
-  ports.push(makeOutputPort({ id: "default", label: i18next.t("decision.default"), dataType: "any" }));
+  ports.push(
+    makeOutputPort({ id: "default", label: i18next.t("decision.default"), dataType: "any" }),
+  );
   return ports;
 }
 
@@ -86,7 +89,7 @@ function evenlySpacedPositions(count: number): number[] {
   return positions;
 }
 
-export function DecisionNode({ id, data, type, selected }: NodeProps) {
+export const DecisionNode = memo(function DecisionNode({ id, data, type, selected }: NodeProps) {
   const { t } = useTranslation();
   const decisionData = data as DecisionData;
   const spec = useWorkflowStore((s) => selectNodeSpec(s, type ?? "decision"));
@@ -310,4 +313,4 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
       ) : null}
     </div>
   );
-}
+});

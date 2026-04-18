@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { BaseNode } from "@/features/nodes/BaseNode";
 import { InputHandle } from "@/features/nodes/ports/InputHandle";
@@ -14,7 +15,7 @@ function portPosition(port: PortSpec): Position {
   return port.kind === "in" ? Position.Top : Position.Bottom;
 }
 
-export function TaskNode({ id, data, type, selected }: NodeProps) {
+export const TaskNode = memo(function TaskNode({ id, data, type, selected }: NodeProps) {
   const taskData = data as TaskData;
   const spec = useWorkflowStore((s) => selectNodeSpec(s, type ?? "task"));
   const openInspector = useWorkflowStore((s) => s.openInspector);
@@ -65,4 +66,4 @@ export function TaskNode({ id, data, type, selected }: NodeProps) {
       )}
     </BaseNode>
   );
-}
+});

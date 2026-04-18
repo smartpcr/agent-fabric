@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { memo, useRef, useState, useEffect } from "react";
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from "@xyflow/react";
 import { useEdgeExecutionState } from "@/features/execution/useEdgeExecutionState";
 import { usePrefersReducedMotion } from "@/features/edges/usePrefersReducedMotion";
@@ -65,7 +65,7 @@ function truncateLabel(text: string): string {
   return `${text.slice(0, MAX_LABEL_LENGTH)}…`;
 }
 
-export function DefaultEdge({
+const DefaultEdgeInner = memo(function DefaultEdge({
   id,
   sourceX,
   sourceY,
@@ -151,7 +151,9 @@ export function DefaultEdge({
       )}
     </g>
   );
-}
+});
 
-DefaultEdge.ARROW_MARKER_ID = ARROW_MARKER_ID;
-DefaultEdge.MAX_LABEL_LENGTH = MAX_LABEL_LENGTH;
+export const DefaultEdge = Object.assign(DefaultEdgeInner, {
+  ARROW_MARKER_ID,
+  MAX_LABEL_LENGTH,
+});

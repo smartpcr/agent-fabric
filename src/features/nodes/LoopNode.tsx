@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Position, type NodeProps } from "@xyflow/react";
 import { useTranslation } from "react-i18next";
 import { BaseNode } from "@/features/nodes/BaseNode";
@@ -49,7 +49,7 @@ const HANDLE_LABEL_STYLE: React.CSSProperties = {
   position: "absolute",
 };
 
-export function LoopNode({ id, data, type, selected }: NodeProps) {
+export const LoopNode = memo(function LoopNode({ id, data, type, selected }: NodeProps) {
   const { t } = useTranslation();
   const loopData = data as LoopData;
   const spec = useWorkflowStore((s) => selectNodeSpec(s, type ?? "loop-while"));
@@ -328,4 +328,4 @@ export function LoopNode({ id, data, type, selected }: NodeProps) {
       ) : null}
     </div>
   );
-}
+});

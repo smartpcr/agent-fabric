@@ -11,7 +11,7 @@
   - Test: 100% — bundle stats show Monaco in its own chunk; main chunk under budget.
   - Effort: 3h
 
-- [ ] **Step 2**: Benchmark — 500-node pan/zoom ≥ 55 fps
+- [x] **Step 2**: Benchmark — 500-node pan/zoom ≥ 55 fps
   - File(s): `tests/performance/canvas.bench.ts`
   - Contents: Generate 500-node graph; simulate pan over 1 second; measure frames.
   - Test: Benchmark threshold.

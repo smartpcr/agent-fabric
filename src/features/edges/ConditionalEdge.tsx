@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from "@xyflow/react";
 
 const MAX_CONDITION_LENGTH = 20;
@@ -13,7 +14,7 @@ function truncateCondition(text: string): string {
  * Hover tooltip shows the full condition text when truncated.
  * Empty or missing conditions display "—".
  */
-export function ConditionalEdge({
+export const ConditionalEdge = memo(function ConditionalEdge({
   id,
   sourceX,
   sourceY,
@@ -73,4 +74,4 @@ export function ConditionalEdge({
       </EdgeLabelRenderer>
     </>
   );
-}
+});

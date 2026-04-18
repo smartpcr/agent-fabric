@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Position, type NodeProps } from "@xyflow/react";
 import { useTranslation } from "react-i18next";
 import { BaseNode } from "@/features/nodes/BaseNode";
@@ -5,7 +6,7 @@ import { InputHandle } from "@/features/nodes/ports/InputHandle";
 import { useWorkflowStore } from "@/store/hooks";
 import { selectNodeSpec } from "@/store/selectors/graphSelectors";
 
-export function EndNode({ id, selected, type }: NodeProps) {
+export const EndNode = memo(function EndNode({ id, selected, type }: NodeProps) {
   const { t } = useTranslation();
   const spec = useWorkflowStore((s) => selectNodeSpec(s, type ?? "end"));
   const openInspector = useWorkflowStore((s) => s.openInspector);
@@ -37,4 +38,4 @@ export function EndNode({ id, selected, type }: NodeProps) {
       ) : null}
     </BaseNode>
   );
-}
+});
