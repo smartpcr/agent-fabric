@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { EditorPage } from "@/features/editor/EditorPage";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { useWorkflowStore } from "@/store/hooks";
 
 function useInitRegistry() {
@@ -19,5 +20,9 @@ function useInitRegistry() {
 
 export function App() {
   useInitRegistry();
-  return <EditorPage />;
+  return (
+    <ThemeProvider>
+      <EditorPage />
+    </ThemeProvider>
+  );
 }
