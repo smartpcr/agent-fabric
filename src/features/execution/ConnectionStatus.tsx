@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { useExecutionEventSource } from "@/hooks/useExecutionEventSource";
 import type { ConnectionState } from "@/ports/IExecutionEventSource";
 
@@ -13,22 +13,26 @@ const STATE_CONFIG: Record<ConnectionState, { label: string; className: string }
  * Badge that reflects the current connection state of the execution
  * event source (`connected`, `reconnecting`, or `disconnected`).
  *
- * Subscribes to `connectionState$` on mount, reads the initial value
- * synchronously via `current()`, and updates on every state change.
- * Unsubscribes on unmount.
+ * Uses `useSyncExternalStore` to guarantee no state transitions are
+ * missed between the initial snapshot read and subscription — the
+ * React contract ensures the subscribe + getSnapshot pair is race-free.
  */
 export function ConnectionStatus() {
   const eventSource = useExecutionEventSource();
-  const [state, setState] = useState<ConnectionState>(() => eventSource.connectionState$.current());
 
-  useEffect(() => {
-    const unsubscribe = eventSource.connectionState$.subscribe((next) => {
-      setState(next);
-    });
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      const unsubscribe = eventSource.connectionState$.subscribe(() => {
+        onStoreChange();
+      });
+      return unsubscribe;
+    },
+    [eventSource],
+  );
 
-    return unsubscribe;
-  }, [eventSource]);
+  const getSnapshot = useCallback(() => eventSource.connectionState$.current(), [eventSource]);
 
+  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   const config = STATE_CONFIG[state];
 
   return (

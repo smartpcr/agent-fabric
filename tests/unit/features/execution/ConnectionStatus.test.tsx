@@ -23,15 +23,26 @@ function stubCommandSink(): IExecutionCommandSink {
 function createMockEventSource(initialState: ConnectionState = "connected") {
   let currentState: ConnectionState = initialState;
   const listeners: ConnectionStateListener[] = [];
+  const storeListeners: Array<() => void> = [];
   const unsubscribeSpy = vi.fn();
-  const connectionSubscribeSpy = vi.fn((listener: ConnectionStateListener): Unsubscribe => {
-    listeners.push(listener);
-    return () => {
-      unsubscribeSpy();
-      const idx = listeners.indexOf(listener);
-      if (idx >= 0) listeners.splice(idx, 1);
-    };
-  });
+  const connectionSubscribeSpy = vi.fn(
+    (listener: ConnectionStateListener | (() => void)): Unsubscribe => {
+      // useSyncExternalStore passes () => void; tests may pass ConnectionStateListener
+      if (listener.length === 0) {
+        storeListeners.push(listener as () => void);
+      } else {
+        listeners.push(listener as ConnectionStateListener);
+      }
+
+      return () => {
+        unsubscribeSpy();
+        const sIdx = storeListeners.indexOf(listener as () => void);
+        if (sIdx >= 0) storeListeners.splice(sIdx, 1);
+        const lIdx = listeners.indexOf(listener as ConnectionStateListener);
+        if (lIdx >= 0) listeners.splice(lIdx, 1);
+      };
+    },
+  );
 
   const eventSource: IExecutionEventSource = {
     subscribe: vi.fn(() => vi.fn()),
@@ -46,6 +57,9 @@ function createMockEventSource(initialState: ConnectionState = "connected") {
     currentState = next;
     for (const l of listeners) {
       l(next);
+    }
+    for (const s of storeListeners) {
+      s();
     }
   }
 
@@ -217,6 +231,43 @@ describe("ConnectionStatus", () => {
       "aria-label",
       "Connection status: Disconnected",
     );
+  });
+
+  // ── Race-safety (useSyncExternalStore guarantee) ────────────────
+
+  it("reflects a state change that occurs between render snapshot and subscription", () => {
+    // This test validates the useSyncExternalStore contract: even if the
+    // external store changes between getSnapshot and subscribe, React
+    // will re-read getSnapshot after subscribing and detect the mismatch.
+    let currentState: ConnectionState = "connected";
+    const storeListeners: Array<() => void> = [];
+    const unsubSpy = vi.fn();
+
+    const eventSource: IExecutionEventSource = {
+      subscribe: vi.fn(() => vi.fn()),
+      close: vi.fn(),
+      connectionState$: {
+        subscribe: vi.fn((cb: ConnectionStateListener | (() => void)) => {
+          // Simulate: state changes during the subscribe call itself
+          currentState = "disconnected";
+          if (cb.length === 0) {
+            storeListeners.push(cb as () => void);
+          }
+          return () => {
+            unsubSpy();
+          };
+        }),
+        current: vi.fn(() => currentState),
+      },
+    };
+
+    renderStatus(eventSource);
+
+    // useSyncExternalStore should detect the snapshot mismatch and
+    // re-render with the latest state
+    const badge = screen.getByTestId("connection-status");
+    expect(badge).toHaveTextContent("Disconnected");
+    expect(badge).toHaveClass("connection-status--disconnected");
   });
 
   // ── Provider guard ────────────────────────────────────────────────
