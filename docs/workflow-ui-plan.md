@@ -480,7 +480,7 @@ A step is `[x]` only when score ≥ 90.
 | 3 — Ports, Edges & Validation |      5 |      23 |         60 | `[ ]` 0%   |
 | 4 — Control Flow Nodes        |      3 |      23 |         80 | `[ ]` 0%   |
 | 5 — Property Grid             |      4 |      25 |         70 | `[x]` 100% |
-| 6 — Execution Visualization   |      6 |      32 |         80 | `[ ]` 0%   |
+| 6 — Execution Visualization   |      6 |      32 |         80 | `[ ]` 87%  |
 | 7 — Persistence & Undo        |      5 |      20 |         50 | `[ ]` 0%   |
 | 8 — Polish & Release          |      4 |      17 |         50 | `[ ]` 0%   |
 | **Total**                     | **40** | **216** |    **580** | **12%**    |

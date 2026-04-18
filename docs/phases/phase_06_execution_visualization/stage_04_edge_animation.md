@@ -1,7 +1,7 @@
 # Phase 6 — Stage 4: Edge Animation
 
 > CSS-based edge animations driven by execution edge states, including loop-back pulse, with a performance budget.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` done · **Effort**: 14h
 
 ## Steps
 
