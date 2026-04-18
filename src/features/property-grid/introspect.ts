@@ -113,6 +113,33 @@ function extractDescription(schema: z.ZodType): string | undefined {
   return typeof desc === "string" ? desc : undefined;
 }
 
+/**
+ * Detect whether a field is marked as secret via its description metadata.
+ *
+ * Supports two conventions:
+ * - JSON-parseable description containing `{ "secret": true }` (or single-quote variant)
+ * - Plain description string equal to `"secret"` (case-insensitive)
+ */
+function extractSecret(description?: string): boolean {
+  if (!description) return false;
+  if (description.trim().toLowerCase() === "secret") return true;
+  try {
+    const normalized = description.replace(/'/g, '"').replace(/(\w+)\s*:/g, '"$1":');
+    const parsed: unknown = JSON.parse(normalized);
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      "secret" in parsed &&
+      (parsed as Record<string, unknown>).secret === true
+    ) {
+      return true;
+    }
+  } catch {
+    // Not JSON — ignore
+  }
+  return false;
+}
+
 /** Extract numeric constraints from Zod's bag */
 function extractNumericConstraints(
   type: FieldDescriptor["type"],
@@ -151,16 +178,22 @@ function introspectType(schema: z.ZodType): Omit<FieldDescriptor, "name"> {
       ? { name: "value", ...introspectType(innerDef.valueType as z.ZodType) }
       : undefined;
 
+  // Check description on both the outer schema and the unwrapped inner
+  // (description may be on the inner type when .describe() is called before .optional()/.default())
+  const description = extractDescription(schema) ?? extractDescription(unwrapped.inner);
+  const secret = extractSecret(description) || undefined;
+
   return {
     type,
     required: unwrapped.required,
     defaultValue: unwrapped.defaultValue,
-    description: extractDescription(schema),
+    description,
     ...extractNumericConstraints(type, unwrapped.inner),
     enumValues: type === "enum" && enumEntries ? Object.values(enumEntries) : undefined,
     children: children && children.length > 0 ? children : undefined,
     elementType,
     valueType,
+    secret,
   };
 }
 

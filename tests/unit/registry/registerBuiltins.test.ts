@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { z } from "zod";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
-import { SECRET_FIELD_NAMES } from "@/features/property-grid/fields/SecretField";
+import { SECRET_FIELD_NAMES, scrubSecrets } from "@/features/property-grid/fields/SecretField";
 
 beforeEach(() => {
   SECRET_FIELD_NAMES.clear();
@@ -84,33 +83,27 @@ describe("registerBuiltins", () => {
     expect(SECRET_FIELD_NAMES).toBeInstanceOf(Set);
   });
 
-  it("populates SECRET_FIELD_NAMES when a spec with secret-marked schema is registered", () => {
+  it("populates SECRET_FIELD_NAMES with apiKey from TaskNode schema at startup", () => {
+    // SECRET_FIELD_NAMES is cleared in beforeEach.
+    expect(SECRET_FIELD_NAMES.size).toBe(0);
+
     const registry = new NodeRegistry();
-
-    // Register a custom spec whose schema has a secret-marked field
-    // (via descriptor.secret). Since introspect doesn't extract secret
-    // from Zod metadata, we test the end-to-end wiring by manually
-    // adding a spec and verifying the infrastructure runs without error.
-    const customSchema = z.object({
-      apiKey: z.string(),
-      name: z.string(),
-    });
-
-    registry.register({
-      kind: "custom-secret-test",
-      category: "test",
-      label: "Test",
-      icon: "🔑",
-      ports: [],
-      propertySchema: customSchema,
-      defaultData: { apiKey: "", name: "" },
-      capabilities: [],
-    });
-
-    // registerBuiltins processes all builtins + the infrastructure is exercised
     registerBuiltins(registry);
 
-    // The global set is valid and didn't crash
-    expect(SECRET_FIELD_NAMES).toBeInstanceOf(Set);
+    // TaskNode.spec has apiKey with .describe("{ secret: true }")
+    // introspect extracts secret: true, registerSecretFieldsFromDescriptors populates the set
+    expect(SECRET_FIELD_NAMES.has("apiKey")).toBe(true);
+  });
+
+  it("scrubSecrets works for secret fields discovered at startup", () => {
+    const registry = new NodeRegistry();
+    registerBuiltins(registry);
+
+    // apiKey is now registered — scrubbing should work without any component mount
+    const data = { apiKey: "raw-secret-value", name: "safe" };
+    const result = scrubSecrets(data) as Record<string, unknown>;
+
+    expect(result.apiKey).toBe("<secret>");
+    expect(result.name).toBe("safe");
   });
 });
