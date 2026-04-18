@@ -25,7 +25,14 @@ function stubRepo(): IWorkflowRepository {
 }
 
 function stubEventSource(): IExecutionEventSource {
-  return { subscribe: vi.fn().mockReturnValue(() => undefined) };
+  return {
+    subscribe: vi.fn().mockReturnValue(() => undefined),
+    connectionState$: {
+      subscribe: vi.fn().mockReturnValue(() => undefined),
+      current: () => "connected" as const,
+    },
+    close: vi.fn(),
+  };
 }
 
 function stubCommandSink(): IExecutionCommandSink {
