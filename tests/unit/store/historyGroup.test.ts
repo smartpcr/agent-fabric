@@ -152,24 +152,18 @@ describe("historyGroup — createHistoryGroupHandler", () => {
     expect(store.temporal.getState().pastStates.length).toBe(pastAfterAdd + 1);
   });
 
-  it("non-position mutations are also grouped by the handler", () => {
+  it("non-position mutations are NOT grouped — each creates its own history entry", () => {
     const store = createTemporalStore();
 
     store.getState().addNode(taskSpec, { x: 0, y: 0 });
-    vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
-    const pastBefore = store.temporal.getState().pastStates.length;
+    const pastAfterFirst = store.temporal.getState().pastStates.length;
 
-    // Two rapid addNode calls should be grouped
+    // Two rapid addNode calls are structural, not position-only
     store.getState().addNode(taskSpec, { x: 100, y: 0 });
     store.getState().addNode(taskSpec, { x: 200, y: 0 });
 
-    // Not flushed yet
-    expect(store.temporal.getState().pastStates.length).toBe(pastBefore);
-
-    vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
-
-    // One grouped entry
-    expect(store.temporal.getState().pastStates.length).toBe(pastBefore + 1);
+    // Each recorded immediately — 2 new entries
+    expect(store.temporal.getState().pastStates.length).toBe(pastAfterFirst + 2);
   });
 
   it("redo works after undoing a grouped drag", () => {
@@ -205,5 +199,25 @@ describe("historyGroup — createHistoryGroupHandler", () => {
     expect(typeof handler).toBe("function");
     // The handler itself is a higher-order function; exact delay behavior
     // is tested via the store integration above
+  });
+
+  it("structural mutation during a drag flushes the pending drag group first", () => {
+    const store = createTemporalStore();
+
+    const node = store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    const pastAfterAdd = store.temporal.getState().pastStates.length;
+
+    // Start a drag
+    for (let i = 1; i <= 5; i++) {
+      store.getState().updateNodePosition(node.id, { x: i * 10, y: 0 });
+    }
+    // No entries yet (drag debounced)
+    expect(store.temporal.getState().pastStates.length).toBe(pastAfterAdd);
+
+    // Structural mutation mid-drag: add a second node
+    store.getState().addNode(taskSpec, { x: 300, y: 0 });
+
+    // Should have flushed the pending drag group (+1) and recorded addNode (+1) = +2
+    expect(store.temporal.getState().pastStates.length).toBe(pastAfterAdd + 2);
   });
 });
