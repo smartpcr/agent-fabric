@@ -30,6 +30,7 @@ export function InputHandle({
       data-missing={isMissing ? "true" : undefined}
       aria-label={portSpec.label}
       className={`port-handle port-type-${portSpec.dataType}`}
+      tabIndex={0}
     />
   );
 }

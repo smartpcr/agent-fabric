@@ -415,13 +415,13 @@ export function Canvas() {
   );
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- role="application" is interactive per WAI-ARIA
+    /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex -- role="application" is interactive per WAI-ARIA */
     <div
       ref={canvasRef}
       role="application"
       aria-label="Workflow Canvas"
       style={{ width: "100%", height: "100%", position: "relative" }}
-      tabIndex={-1}
+      tabIndex={0}
       onPointerUp={handlePointerUp}
       onPointerMove={handlePointerMove}
       onKeyDown={handleKeyDown}
@@ -519,5 +519,6 @@ export function Canvas() {
         </div>
       )}
     </div>
+    /* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
   );
 }
