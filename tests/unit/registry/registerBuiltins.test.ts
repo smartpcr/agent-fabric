@@ -3,7 +3,7 @@ import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 
 describe("registerBuiltins", () => {
-  it("registers start, end, task, and decision kinds", () => {
+  it("registers start, end, task, decision, and decision-switch kinds", () => {
     const registry = new NodeRegistry();
     registerBuiltins(registry);
 
@@ -12,7 +12,8 @@ describe("registerBuiltins", () => {
     expect(kinds).toContain("end");
     expect(kinds).toContain("task");
     expect(kinds).toContain("decision");
-    expect(kinds).toHaveLength(4);
+    expect(kinds).toContain("decision-switch");
+    expect(kinds).toHaveLength(5);
   });
 
   it("second call is a no-op (idempotent)", () => {
@@ -20,7 +21,7 @@ describe("registerBuiltins", () => {
     registerBuiltins(registry);
     registerBuiltins(registry);
 
-    expect(registry.list()).toHaveLength(4);
+    expect(registry.list()).toHaveLength(5);
   });
 
   it("does not throw on second call", () => {
@@ -58,6 +59,7 @@ describe("registerBuiltins", () => {
     expect(kinds).toContain("end");
     expect(kinds).toContain("task");
     expect(kinds).toContain("decision");
-    expect(kinds).toHaveLength(4);
+    expect(kinds).toContain("decision-switch");
+    expect(kinds).toHaveLength(5);
   });
 });

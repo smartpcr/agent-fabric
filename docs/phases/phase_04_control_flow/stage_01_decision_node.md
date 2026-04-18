@@ -17,7 +17,7 @@
   - Test: 100% — labels rendered; condition preview binds to data.
   - Effort: 3h
 
-- [ ] **Step 3**: Switch-style `DecisionNode` variant
+- [x] **Step 3**: Switch-style `DecisionNode` variant
   - File(s): `src/registry/builtins/DecisionSwitchNode.spec.ts`, `src/features/nodes/DecisionNode.tsx` (extend), `tests/unit/features/nodes/DecisionNode.switch.test.tsx`
   - Contents: N configurable branches via `propertySchema.branches: z.array(z.object({ label, condition }))`; always includes implicit `default` port.
   - Test: 100% — 2, 3, 5 branches; `default` always present; handles evenly spaced.

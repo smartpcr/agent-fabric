@@ -53,17 +53,17 @@ describe("Integration: builtins appear in palette with correct labels", () => {
     setupBuiltinsOnly();
   });
 
-  it("renders exactly 4 items from registered builtins", () => {
+  it("renders exactly 5 items from registered builtins", () => {
     render(
       <DragProvider>
         <Palette />
       </DragProvider>,
     );
     const options = screen.getAllByRole("option");
-    expect(options).toHaveLength(4);
+    expect(options).toHaveLength(5);
   });
 
-  it("renders builtin labels: Start, Task, End, Decision", () => {
+  it("renders builtin labels: Start, Task, End, Decision, Switch", () => {
     render(
       <DragProvider>
         <Palette />
@@ -73,6 +73,7 @@ describe("Integration: builtins appear in palette with correct labels", () => {
     expect(screen.getByText("Task")).toBeInTheDocument();
     expect(screen.getByText("End")).toBeInTheDocument();
     expect(screen.getByText("Decision")).toBeInTheDocument();
+    expect(screen.getByText("Switch")).toBeInTheDocument();
   });
 
   it("items have correct data-kind attributes", () => {
@@ -148,7 +149,13 @@ describe("Integration: multi-category grouping", () => {
 
     options.forEach((opt, idx) => {
       const kind = opt.getAttribute("data-kind");
-      if (kind === "start" || kind === "task" || kind === "end" || kind === "decision") {
+      if (
+        kind === "start" ||
+        kind === "task" ||
+        kind === "end" ||
+        kind === "decision" ||
+        kind === "decision-switch"
+      ) {
         flowIndices.push(idx);
       }
       if (kind === "http-request") {
@@ -156,7 +163,7 @@ describe("Integration: multi-category grouping", () => {
       }
     });
 
-    expect(flowIndices).toHaveLength(4);
+    expect(flowIndices).toHaveLength(5);
     expect(flowIndices[flowIndices.length - 1] - flowIndices[0]).toBe(flowIndices.length - 1);
 
     expect(actionsIndices).toHaveLength(1);
