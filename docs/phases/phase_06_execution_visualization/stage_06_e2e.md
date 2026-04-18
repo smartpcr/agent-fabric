@@ -1,4 +1,5 @@
 # Phase 6 — Stage 6: Phase 6 E2E
+
 > Playwright scripted runs covering success / error / loop / reduced-motion paths.
 > Status: `[ ]` not started · **Effort**: 10h
 
@@ -16,7 +17,7 @@
   - Test: Green.
   - Effort: 3h
 
-- [ ] **Step 3**: E2E — loop node iteration badge increments across 3 iterations
+- [x] **Step 3**: E2E — loop node iteration badge increments across 3 iterations
   - File(s): `tests/e2e/run-workflow.spec.ts` (extend)
   - Contents: Emit iteration events; assert badge displays 1/?, 2/?, 3/?.
   - Test: Green.
@@ -29,6 +30,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 6
+
 - All 4 steps `[x]` with score ≥ 90.
 - Phase 6 scored ≥ 90 overall.
 - Full E2E matrix green in nightly.
