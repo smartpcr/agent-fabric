@@ -11,7 +11,7 @@
   - Test: E2E — author + run a workflow using only keyboard.
   - Effort: 4h
 
-- [ ] **Step 2**: `aria-live` region for announcements
+- [x] **Step 2**: `aria-live` region for announcements
   - File(s): `src/providers/AnnouncerProvider.tsx`, `src/hooks/useAnnounce.ts`, `tests/unit/providers/AnnouncerProvider.test.tsx`
   - Contents: Polite live region mounted at app root; `announce(msg)` hook; announces selection changes, connection results, run state transitions.
   - Test: 100% — message appears in live region; cleared after 3s.
