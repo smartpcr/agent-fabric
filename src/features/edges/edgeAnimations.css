@@ -1,0 +1,5 @@
+/* Edge animation base styles */
+
+.loop-back-edge {
+  stroke-dasharray: 6 4;
+}

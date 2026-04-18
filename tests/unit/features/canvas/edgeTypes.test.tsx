@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { edgeTypes } from "@/features/canvas/edgeTypes";
 import { DefaultEdge } from "@/features/edges/DefaultEdge";
 import { ConditionalEdge } from "@/features/edges/ConditionalEdge";
+import { LoopBackEdge } from "@/features/edges/LoopBackEdge";
 import type { EdgeKind } from "@/domain/models/edge";
 
 describe("edgeTypes", () => {
@@ -13,8 +14,8 @@ describe("edgeTypes", () => {
     expect(edgeTypes["default"]).toBe(DefaultEdge);
   });
 
-  it("maps 'loop-back' to DefaultEdge", () => {
-    expect(edgeTypes["loop-back"]).toBe(DefaultEdge);
+  it("maps 'loop-back' to LoopBackEdge", () => {
+    expect(edgeTypes["loop-back"]).toBe(LoopBackEdge);
   });
 
   it("maps 'conditional' to ConditionalEdge", () => {
