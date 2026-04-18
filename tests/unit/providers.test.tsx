@@ -52,13 +52,16 @@ describe("useWorkflowRepo", () => {
     spy.mockRestore();
   });
 
-  it("returns the injected repository inside RepositoryProvider", () => {
+  it("returns wrapped methods inside RepositoryProvider", () => {
     const repo = stubRepo();
     const wrapper = ({ children }: { children: ReactNode }) => (
       <RepositoryProvider repository={repo}>{children}</RepositoryProvider>
     );
     const { result } = renderHook(() => useWorkflowRepo(), { wrapper });
-    expect(result.current).toBe(repo);
+    expect(result.current).toHaveProperty("load");
+    expect(result.current).toHaveProperty("save");
+    expect(result.current).toHaveProperty("create");
+    expect(result.current).toHaveProperty("list");
   });
 });
 
@@ -144,7 +147,8 @@ describe("WorkflowProviders", () => {
     const { result: telResult } = renderHook(() => useTelemetry(), {
       wrapper,
     });
-    expect(repoResult.current).toBe(repo);
+    expect(repoResult.current).toHaveProperty("load");
+    expect(repoResult.current).toHaveProperty("save");
     expect(esResult.current).toBe(es);
     expect(telResult.current).toBeInstanceOf(NoopTelemetrySink);
   });
