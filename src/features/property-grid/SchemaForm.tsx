@@ -165,6 +165,7 @@ const MIXED_VALUE = "__mixed__";
 function MixedFieldInput({
   descriptor,
   field,
+  error,
 }: {
   readonly descriptor: FieldDescriptor;
   readonly field: {
@@ -173,9 +174,12 @@ function MixedFieldInput({
     onBlur: () => void;
     name: string;
   };
+  readonly error?: string;
 }) {
   const isMixed = field.value === MIXED_VALUE;
   const [editing, setEditing] = useState(false);
+  const fieldId = `field-${descriptor.name}`;
+  const errorId = `error-${descriptor.name}`;
 
   // Show mixed placeholder when the sentinel is active and user hasn't started typing
   const showMixed = isMixed && !editing;
@@ -187,28 +191,37 @@ function MixedFieldInput({
       : "";
 
   return (
-    <input
-      type="text"
-      id={`field-${descriptor.name}`}
-      placeholder={showMixed ? "mixed" : undefined}
-      value={displayValue}
-      onChange={(e) => {
-        if (!editing) setEditing(true);
-        field.onChange(e.target.value);
-      }}
-      onBlur={() => {
-        field.onBlur();
-        // Restore mixed presentation if the value is still the sentinel or was cleared
-        if (field.value === MIXED_VALUE || field.value === "" || field.value === undefined) {
-          setEditing(false);
-        }
-      }}
-      name={field.name}
-      aria-label={descriptor.name}
-      data-testid={`field-${descriptor.name}`}
-      data-mixed={showMixed ? "true" : undefined}
-      style={showMixed ? { fontStyle: "italic", color: "#999" } : undefined}
-    />
+    <>
+      <input
+        type="text"
+        id={fieldId}
+        placeholder={showMixed ? "mixed" : undefined}
+        value={displayValue}
+        onChange={(e) => {
+          if (!editing) setEditing(true);
+          field.onChange(e.target.value);
+        }}
+        onBlur={() => {
+          field.onBlur();
+          // Restore mixed presentation if the value is still the sentinel or was cleared
+          if (field.value === MIXED_VALUE || field.value === "" || field.value === undefined) {
+            setEditing(false);
+          }
+        }}
+        name={field.name}
+        aria-label={descriptor.name}
+        aria-invalid={!!error}
+        aria-describedby={error ? errorId : undefined}
+        data-testid={fieldId}
+        data-mixed={showMixed ? "true" : undefined}
+        style={showMixed ? { fontStyle: "italic", color: "#999" } : undefined}
+      />
+      {error && (
+        <span id={errorId} role="alert" data-testid={errorId}>
+          {error}
+        </span>
+      )}
+    </>
   );
 }
 
@@ -281,13 +294,20 @@ function FieldTree({
 
         // Show "mixed" placeholder for fields with differing values in multi-select
         if (mixedFields?.has(descriptor.name)) {
+          const mixedErrorMessage = getFieldError(errors, fieldPath);
           return (
             <div key={descriptor.name} data-testid={`field-wrapper-${descriptor.name}`}>
               <label htmlFor={`field-${descriptor.name}`}>{descriptor.name}</label>
               <Controller
                 name={fieldPath}
                 control={control}
-                render={({ field }) => <MixedFieldInput descriptor={descriptor} field={field} />}
+                render={({ field }) => (
+                  <MixedFieldInput
+                    descriptor={descriptor}
+                    field={field}
+                    error={mixedErrorMessage}
+                  />
+                )}
               />
             </div>
           );
