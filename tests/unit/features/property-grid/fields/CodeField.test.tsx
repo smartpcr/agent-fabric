@@ -1,19 +1,29 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import {
   CodeField,
   CodeFieldSkeleton,
   FallbackTextarea,
   extractLanguage,
+  configureReadOnlyWorker,
 } from "@/features/property-grid/fields/CodeField";
 import type { FieldComponentProps } from "@/features/property-grid/registry";
 import type { FieldDescriptor } from "@/features/property-grid/introspect";
 
 // ─── Mock @monaco-editor/react ──────────────────────────────────────
 
+const mockState = vi.hoisted(() => ({
+  capturedBeforeMount: undefined as (() => void) | undefined,
+}));
+
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 vi.mock("@monaco-editor/react", () => ({
   default: function MockMonacoEditor(props: any) {
+    // Capture and invoke the beforeMount callback if provided
+    if (typeof props.beforeMount === "function") {
+      mockState.capturedBeforeMount = props.beforeMount as () => void;
+      (props.beforeMount as () => void)();
+    }
     return (
       <div data-testid="mock-monaco">
         <textarea
@@ -30,6 +40,12 @@ vi.mock("@monaco-editor/react", () => ({
   },
 }));
 /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
+
+beforeEach(() => {
+  mockState.capturedBeforeMount = undefined;
+  // Clean up MonacoEnvironment between tests
+  delete (globalThis as Record<string, unknown>).MonacoEnvironment;
+});
 
 afterEach(cleanup);
 
@@ -510,5 +526,64 @@ describe("CodeField height", () => {
 
     // The mock Monaco uses the height prop on the textarea
     expect(screen.getByTestId("mock-monaco-textarea").style.height).toBe("350px");
+  });
+});
+
+// ─── Read-only worker configuration ─────────────────────────────────
+
+describe("configureReadOnlyWorker", () => {
+  it("sets globalThis.MonacoEnvironment when not already present", () => {
+    expect((globalThis as Record<string, unknown>).MonacoEnvironment).toBeUndefined();
+
+    configureReadOnlyWorker();
+
+    const env = (globalThis as Record<string, unknown>).MonacoEnvironment as Record<
+      string,
+      unknown
+    >;
+    expect(env).toBeDefined();
+    expect(typeof env.getWorker).toBe("function");
+  });
+
+  it("updates existing MonacoEnvironment.getWorker", () => {
+    const originalGetWorker = vi.fn();
+    (globalThis as Record<string, unknown>).MonacoEnvironment = {
+      getWorker: originalGetWorker,
+    };
+
+    configureReadOnlyWorker();
+
+    const env = (globalThis as Record<string, unknown>).MonacoEnvironment as Record<
+      string,
+      unknown
+    >;
+    expect(env.getWorker).not.toBe(originalGetWorker);
+    expect(typeof env.getWorker).toBe("function");
+  });
+
+  it("is invoked via beforeMount when Monaco editor renders", async () => {
+    render(<CodeField descriptor={makeDescriptor()} field={makeField({ value: "" })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("mock-monaco")).toBeInTheDocument();
+    });
+
+    // The mock captures and invokes beforeMount
+    expect(mockState.capturedBeforeMount).toBeDefined();
+
+    // After beforeMount ran, MonacoEnvironment should be configured
+    const env = (globalThis as Record<string, unknown>).MonacoEnvironment as Record<
+      string,
+      unknown
+    >;
+    expect(env).toBeDefined();
+    expect(typeof env.getWorker).toBe("function");
+  });
+
+  it("beforeMount is not called in fallback mode", () => {
+    render(<CodeField descriptor={makeDescriptor()} field={makeField()} disableMonaco />);
+
+    // In fallback mode, Monaco is not rendered so beforeMount is never invoked
+    expect(mockState.capturedBeforeMount).toBeUndefined();
   });
 });

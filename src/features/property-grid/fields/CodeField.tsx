@@ -69,6 +69,40 @@ export interface MonacoEditorWrapperProps {
   readonly error?: string;
 }
 
+// ─── Read-only worker configuration ─────────────────────────────────
+
+/**
+ * Configure Monaco's worker environment in read-only mode.
+ *
+ * Sets `globalThis.MonacoEnvironment.getWorker` to return a minimal
+ * no-op worker instead of spawning full language service workers.
+ * This keeps the editor lightweight — syntax highlighting works via
+ * Monarch grammars (synchronous), while expensive language features
+ * (autocomplete, diagnostics) that require workers are disabled.
+ *
+ * Called once via the `beforeMount` callback before Monaco initializes.
+ */
+export function configureReadOnlyWorker(): void {
+  const monacoEnv = (globalThis as Record<string, unknown>).MonacoEnvironment as
+    | Record<string, unknown>
+    | undefined;
+
+  if (monacoEnv) {
+    monacoEnv.getWorker = () => {
+      // Return a minimal Blob-based worker that does nothing
+      const blob = new Blob(["// no-op worker"], { type: "application/javascript" });
+      return new Worker(URL.createObjectURL(blob));
+    };
+  } else {
+    (globalThis as Record<string, unknown>).MonacoEnvironment = {
+      getWorker: () => {
+        const blob = new Blob(["// no-op worker"], { type: "application/javascript" });
+        return new Worker(URL.createObjectURL(blob));
+      },
+    };
+  }
+}
+
 // ─── Lazy Monaco wrapper ─────────────────────────────────────────────
 
 /**
@@ -91,6 +125,9 @@ const LazyMonacoEditor = lazy(
                 height={`${String(props.height)}px`}
                 language={props.language}
                 value={props.value}
+                beforeMount={() => {
+                  configureReadOnlyWorker();
+                }}
                 onChange={(val: unknown) => {
                   props.onChange((val as string | undefined) ?? "");
                 }}
