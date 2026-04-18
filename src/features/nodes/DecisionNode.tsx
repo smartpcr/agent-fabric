@@ -1,4 +1,5 @@
 import { Position, type NodeProps } from "@xyflow/react";
+import { makeOutputPort, type PortSpec } from "@/domain/models/port";
 import { BaseNode } from "@/features/nodes/BaseNode";
 import { InputHandle } from "@/features/nodes/ports/InputHandle";
 import { OutputHandle } from "@/features/nodes/ports/OutputHandle";
@@ -8,6 +9,27 @@ import { selectNodeSpec } from "@/store/selectors/graphSelectors";
 interface DecisionData {
   readonly condition?: string;
   readonly branches?: ReadonlyArray<{ label: string; condition: string }>;
+}
+
+/**
+ * Build output PortSpecs from data.branches for the switch variant.
+ * Always appends an implicit `default` port.
+ */
+function buildOutputPortsFromBranches(
+  branches: ReadonlyArray<{ label: string; condition: string }>,
+): PortSpec[] {
+  const ports: PortSpec[] = [];
+  for (const branch of branches) {
+    ports.push(
+      makeOutputPort({
+        id: `branch-${branch.label.toLowerCase().replace(/\s+/g, "-")}`,
+        label: branch.label,
+        dataType: "any",
+      }),
+    );
+  }
+  ports.push(makeOutputPort({ id: "default", label: "default", dataType: "any" }));
+  return ports;
 }
 
 const MAX_CONDITION_LENGTH = 24;
@@ -75,8 +97,9 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
   const inPort = spec?.ports.find((p) => p.kind === "in");
 
   if (isSwitch) {
-    // Switch variant: render N branch handles + default on right side, evenly spaced
-    const outputPorts = spec?.ports.filter((p) => p.kind === "out") ?? [];
+    // Switch variant: derive output ports from data.branches (truly configurable per node)
+    const branches = decisionData.branches ?? [];
+    const outputPorts = buildOutputPortsFromBranches(branches);
     const positions = evenlySpacedPositions(outputPorts.length);
     const nodeHeight = Math.max(100, outputPorts.length * 32 + 40);
 
@@ -128,7 +151,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
               margin: "0 auto",
             }}
           >
-            {outputPorts.length - 1} branches
+            {branches.length} branches
           </div>
         </BaseNode>
 

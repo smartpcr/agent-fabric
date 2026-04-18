@@ -29,17 +29,13 @@ const mockOpenInspector = vi.fn();
 const mockSelect = vi.fn();
 const mockDeleteSelected = vi.fn();
 
-function makeSwitchSpec(branches: Array<{ label: string; condition: string }>) {
-  const ports = buildSwitchPorts(branches);
-  return {
-    kind: "decision-switch",
-    variant: "switch",
-    icon: "git-branch",
-    ports,
-  };
-}
-
-let currentSpec: ReturnType<typeof makeSwitchSpec>;
+// Static spec — ports are irrelevant for switch rendering since handles are data-driven
+const staticSwitchSpec = {
+  kind: "decision-switch",
+  variant: "switch",
+  icon: "git-branch",
+  ports: [{ id: "in", kind: "in", label: "In", dataType: "any", cardinality: "single" }],
+};
 
 vi.mock("@/store/hooks", () => ({
   useWorkflowStore: (selector: (state: Record<string, unknown>) => unknown) =>
@@ -48,7 +44,7 @@ vi.mock("@/store/hooks", () => ({
       select: mockSelect,
       deleteSelected: mockDeleteSelected,
       registry: {
-        get: (kind: string) => (kind === "decision-switch" ? currentSpec : undefined),
+        get: (kind: string) => (kind === "decision-switch" ? staticSwitchSpec : undefined),
       },
       edges: [],
     }),
@@ -67,7 +63,6 @@ function renderSwitchNode(
   branches: Array<{ label: string; condition: string }>,
   overrides: Partial<NodeProps> = {},
 ) {
-  currentSpec = makeSwitchSpec(branches);
   const defaults: NodeProps = {
     id: "switch-1",
     type: "decision-switch",
@@ -390,6 +385,71 @@ describe("DecisionNode — switch variant rendering", () => {
       renderSwitchNode([{ label: "A", condition: "x" }]);
       const header = screen.getByTestId("node-header");
       expect(header.textContent).toContain("Switch");
+    });
+  });
+
+  describe("data-driven branch configurability", () => {
+    it("renders different handles when data.branches changes (rerender)", () => {
+      const { rerender } = renderSwitchNode([
+        { label: "X", condition: "v=1" },
+        { label: "Y", condition: "v=2" },
+      ]);
+
+      // Initially 2 branches + default = 3 outputs
+      expect(screen.getByTestId("decision-handle-branch-x")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-handle-branch-y")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-handle-default")).toBeInTheDocument();
+      expect(screen.getByTestId("condition-preview").textContent).toBe("2 branches");
+
+      // Rerender with 3 branches (same static spec, different data)
+      const props = {
+        id: "switch-1",
+        type: "decision-switch",
+        data: {
+          branches: [
+            { label: "A", condition: "a" },
+            { label: "B", condition: "b" },
+            { label: "C", condition: "c" },
+          ],
+        },
+        selected: false,
+        isConnectable: true,
+        zIndex: 0,
+        positionAbsoluteX: 0,
+        positionAbsoluteY: 0,
+        dragging: false,
+        deletable: true,
+        selectable: true,
+      } as unknown as NodeProps;
+      rerender(<DecisionNode {...props} />);
+
+      // Now 3 branches + default
+      expect(screen.getByTestId("decision-handle-branch-a")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-handle-branch-b")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-handle-branch-c")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-handle-default")).toBeInTheDocument();
+      expect(screen.queryByTestId("decision-handle-branch-x")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("decision-handle-branch-y")).not.toBeInTheDocument();
+      expect(screen.getByTestId("condition-preview").textContent).toBe("3 branches");
+    });
+
+    it("renders only default when data.branches is empty", () => {
+      renderSwitchNode([]);
+      expect(screen.getByTestId("decision-handle-default")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-label-default").textContent).toBe("default");
+      expect(screen.getByTestId("condition-preview").textContent).toBe("0 branches");
+    });
+
+    it("uses static spec for variant detection but data for branch handles", () => {
+      // The static spec has only an 'in' port — no output ports in spec
+      // But data.branches drives the actual rendered handles
+      renderSwitchNode([
+        { label: "Alpha", condition: "a" },
+        { label: "Beta", condition: "b" },
+      ]);
+      expect(screen.getByTestId("decision-handle-branch-alpha")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-handle-branch-beta")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-handle-default")).toBeInTheDocument();
     });
   });
 });
