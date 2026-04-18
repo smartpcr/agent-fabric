@@ -113,90 +113,95 @@ describe("migration registry + composition", () => {
   });
 
   describe("simulated v1→v2→v3 composition", () => {
-    // We simulate a 3-version chain by temporarily treating CURRENT_SCHEMA_VERSION
-    // as version 3 through the migration pipeline. Since migrate() loops until
-    // reaching CURRENT_SCHEMA_VERSION (which is 1), we instead register migrations
-    // that compose v0→v1 (passing through intermediate "virtual" steps internally).
+    // Uses the optional targetVersion parameter to simulate forward version chains.
 
-    it("composes multiple migration steps in sequence", () => {
-      // Simulate: v0 → (step1 adds fieldA) → v1 (current)
-      // We can't do a real 3-step chain since CURRENT is 1, but we can
-      // verify the looping mechanism by chaining v-2 → v-1 → v0 → v1.
-
-      // Register -2 → -1
-      registerMigration(-2, bumpVersion(-2, -1));
-      // Register -1 → 0
-      registerMigration(-1, bumpVersion(-1, 0));
-      // Register 0 → 1 (current)
+    it("composes v1→v2→v3 with targetVersion=3", () => {
       registerMigration(
-        0,
-        bumpVersion(0, CURRENT_SCHEMA_VERSION, (json) => ({
+        1,
+        bumpVersion(1, 2, (json) => ({
           ...json,
-          migratedThrough: "all-steps",
+          addedInV2: true,
+        })),
+      );
+      registerMigration(
+        2,
+        bumpVersion(2, 3, (json) => ({
+          ...json,
+          addedInV3: true,
         })),
       );
 
-      const result = migrate({
-        schemaVersion: -2,
-        id: "g1",
-        name: "Ancient",
-        nodes: [],
-        edges: [],
-      });
+      const result = migrate(
+        { schemaVersion: 1, id: "g1", name: "V1 Graph", nodes: [], edges: [] },
+        3,
+      );
 
-      expect(result.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
-      expect(result).toHaveProperty("migratedThrough", "all-steps");
-      expect(result).toHaveProperty("name", "Ancient");
+      expect(result.schemaVersion).toBe(3);
+      expect(result).toHaveProperty("addedInV2", true);
+      expect(result).toHaveProperty("addedInV3", true);
+      expect(result).toHaveProperty("name", "V1 Graph");
     });
 
-    it("each intermediate step is invoked in order", () => {
+    it("v1→v2→v3 migration steps are invoked in order", () => {
       const callOrder: number[] = [];
 
-      registerMigration(-2, (json) => {
-        callOrder.push(-2);
-        return { ...json, schemaVersion: -1 };
+      registerMigration(1, (json) => {
+        callOrder.push(1);
+        return { ...json, schemaVersion: 2 };
       });
-      registerMigration(-1, (json) => {
-        callOrder.push(-1);
-        return { ...json, schemaVersion: 0 };
-      });
-      registerMigration(0, (json) => {
-        callOrder.push(0);
-        return { ...json, schemaVersion: CURRENT_SCHEMA_VERSION };
+      registerMigration(2, (json) => {
+        callOrder.push(2);
+        return { ...json, schemaVersion: 3 };
       });
 
-      migrate({ schemaVersion: -2, id: "g1", name: "Test", nodes: [], edges: [] });
+      migrate({ schemaVersion: 1, id: "g1", name: "Test", nodes: [], edges: [] }, 3);
 
-      expect(callOrder).toEqual([-2, -1, 0]);
+      expect(callOrder).toEqual([1, 2]);
     });
 
-    it("data transformations accumulate across steps", () => {
-      registerMigration(-2, (json) => ({
+    it("v1→v2→v3 data transformations accumulate", () => {
+      registerMigration(1, (json) => ({
         ...json,
-        schemaVersion: -1,
-        step1: true,
+        schemaVersion: 2,
+        step1: "renamed field",
       }));
-      registerMigration(-1, (json) => ({
+      registerMigration(2, (json) => ({
         ...json,
-        schemaVersion: 0,
-        step2: true,
-      }));
-      registerMigration(0, (json) => ({
-        ...json,
-        schemaVersion: CURRENT_SCHEMA_VERSION,
-        step3: true,
+        schemaVersion: 3,
+        step2: "added field",
       }));
 
-      const result = migrate({ schemaVersion: -2, id: "g1", name: "Test", nodes: [], edges: [] });
+      const result = migrate({ schemaVersion: 1, id: "g1", name: "Test", nodes: [], edges: [] }, 3);
 
-      expect(result).toHaveProperty("step1", true);
-      expect(result).toHaveProperty("step2", true);
-      expect(result).toHaveProperty("step3", true);
-      expect(result.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(result).toHaveProperty("step1", "renamed field");
+      expect(result).toHaveProperty("step2", "added field");
+      expect(result.schemaVersion).toBe(3);
+    });
+
+    it("missing intermediate step in v1→v2→v3 throws MigrationError", () => {
+      // Register 1→2, skip 2→3
+      registerMigration(1, (json) => ({ ...json, schemaVersion: 2 }));
+
+      expect(() =>
+        migrate({ schemaVersion: 1, id: "g1", name: "Test", nodes: [], edges: [] }, 3),
+      ).toThrow(MigrationError);
+
+      try {
+        migrate({ schemaVersion: 1, id: "g1", name: "Test", nodes: [], edges: [] }, 3);
+      } catch (err) {
+        expect((err as MigrationError).details).toHaveProperty("fromVersion", 2);
+        expect((err as MigrationError).details).toHaveProperty("toVersion", 3);
+      }
+    });
+
+    it("already at v3 is identity when target is 3", () => {
+      const json = { schemaVersion: 3, id: "g1", name: "Current", nodes: [], edges: [] };
+      const result = migrate(json, 3);
+      expect(result).toEqual(json);
     });
   });
 
-  describe("missing step throws MigrationError", () => {
+  describe("multi-step composition (backward compat with default target)", () => {
     it("throws when no migration is registered for the source version", () => {
       const json = { schemaVersion: 99 };
       expect(() => migrate(json)).toThrow(MigrationError);

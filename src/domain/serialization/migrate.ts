@@ -14,16 +14,17 @@ export function clearMigrations(): void {
   migrations.clear();
 }
 
-export function migrate(json: unknown): GraphJsonV1Type {
+export function migrate(json: unknown, targetVersion?: number): GraphJsonV1Type {
+  const target = targetVersion ?? CURRENT_SCHEMA_VERSION;
   const raw = json as Record<string, unknown>;
   let current: Record<string, unknown> = { ...raw };
 
-  while (current.schemaVersion !== CURRENT_SCHEMA_VERSION) {
+  while (current.schemaVersion !== target) {
     const version = current.schemaVersion;
     if (typeof version !== "number") {
       throw new MigrationError("UNKNOWN_VERSION", `Invalid schema version: ${String(version)}`, {
         fromVersion: version,
-        toVersion: CURRENT_SCHEMA_VERSION,
+        toVersion: target,
       });
     }
 
@@ -32,7 +33,7 @@ export function migrate(json: unknown): GraphJsonV1Type {
       throw new MigrationError(
         "UNKNOWN_VERSION",
         `No migration path from schema version ${String(version)}`,
-        { fromVersion: version, toVersion: CURRENT_SCHEMA_VERSION },
+        { fromVersion: version, toVersion: target },
       );
     }
 
