@@ -7,6 +7,8 @@ export type { FieldDescriptor } from "@/features/property-grid/introspect";
 export interface FieldComponentProps {
   readonly descriptor: FieldDescriptor;
   readonly field: ControllerRenderProps;
+  /** Validation error message for this field, if any. */
+  readonly error?: string;
 }
 
 /** A React component that renders a form field for a given descriptor. */
