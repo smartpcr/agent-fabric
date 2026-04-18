@@ -3,16 +3,27 @@ import * as RadixToast from "@radix-ui/react-toast";
 
 export type ToastVariant = "default" | "success" | "error";
 
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 export interface ToastMessage {
   id: string;
   title: string;
   description?: string;
   variant?: ToastVariant;
+  actions?: ToastAction[];
 }
 
 export interface ToastContextValue {
   toasts: ToastMessage[];
-  show: (opts: { title: string; description?: string; variant?: ToastVariant }) => void;
+  show: (opts: {
+    title: string;
+    description?: string;
+    variant?: ToastVariant;
+    actions?: ToastAction[];
+  }) => void;
   dismiss: (id: string) => void;
 }
 
@@ -30,7 +41,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const show = useCallback(
-    (opts: { title: string; description?: string; variant?: ToastVariant }) => {
+    (opts: {
+      title: string;
+      description?: string;
+      variant?: ToastVariant;
+      actions?: ToastAction[];
+    }) => {
       const id = `toast-${String(nextId)}`;
       nextId += 1;
       const toast: ToastMessage = {
@@ -38,12 +54,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         title: opts.title,
         ...(opts.description === undefined ? {} : { description: opts.description }),
         variant: opts.variant ?? "default",
+        actions: opts.actions,
       };
       setToasts((prev) => [...prev, toast]);
 
-      setTimeout(() => {
-        dismiss(id);
-      }, AUTO_DISMISS_MS);
+      // Only auto-dismiss if no actions are present
+      if (!opts.actions?.length) {
+        setTimeout(() => {
+          dismiss(id);
+        }, AUTO_DISMISS_MS);
+      }
     },
     [dismiss],
   );
@@ -74,6 +94,32 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             </RadixToast.Title>
             {toast.description ? (
               <RadixToast.Description>{toast.description}</RadixToast.Description>
+            ) : null}
+            {toast.actions?.length ? (
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                {toast.actions.map((action) => (
+                  <RadixToast.Action key={action.label} altText={action.label} asChild>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        action.onClick();
+                        dismiss(toast.id);
+                      }}
+                      style={{
+                        padding: "4px 12px",
+                        borderRadius: 4,
+                        border: "1px solid currentColor",
+                        background: "transparent",
+                        color: "inherit",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {action.label}
+                    </button>
+                  </RadixToast.Action>
+                ))}
+              </div>
             ) : null}
             <RadixToast.Close
               aria-label="Dismiss"
