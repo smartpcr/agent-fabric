@@ -35,7 +35,7 @@
   - Test: Integration — two TaskNodes selected; edit name applies to both.
   - Effort: 3h
 
-- [ ] **Step 6**: Accessibility — legend, `aria-describedby` for errors
+- [x] **Step 6**: Accessibility — legend, `aria-describedby` for errors
   - File(s): `src/features/property-grid/SchemaForm.tsx` (extend), `tests/e2e/property-grid.a11y.spec.ts`
   - Contents: `<fieldset><legend>` for each object field; every input linked to its error message via `aria-describedby`; screen-reader announces validation changes.
   - Test: axe-core reports 0 violations on property grid panel.

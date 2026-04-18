@@ -21,10 +21,14 @@ export {
 // ─── Built-in field components ───────────────────────────────────────
 
 function StringField({ descriptor, field, error }: FieldComponentProps) {
+  const fieldId = `field-${descriptor.name}`;
+  const errorId = `error-${descriptor.name}`;
+
   return (
     <>
       <input
         type="text"
+        id={fieldId}
         value={field.value !== null && field.value !== undefined ? String(field.value) : ""}
         onChange={(e) => {
           field.onChange(e.target.value);
@@ -33,10 +37,11 @@ function StringField({ descriptor, field, error }: FieldComponentProps) {
         name={field.name}
         aria-label={descriptor.name}
         aria-invalid={!!error}
-        data-testid={`field-${descriptor.name}`}
+        aria-describedby={error ? errorId : undefined}
+        data-testid={fieldId}
       />
       {error && (
-        <span role="alert" data-testid={`error-${descriptor.name}`}>
+        <span id={errorId} role="alert" data-testid={errorId}>
           {error}
         </span>
       )}
@@ -45,10 +50,14 @@ function StringField({ descriptor, field, error }: FieldComponentProps) {
 }
 
 function NumberField({ descriptor, field, error }: FieldComponentProps) {
+  const fieldId = `field-${descriptor.name}`;
+  const errorId = `error-${descriptor.name}`;
+
   return (
     <>
       <input
         type="number"
+        id={fieldId}
         value={field.value !== null && field.value !== undefined ? String(field.value) : ""}
         onChange={(e) => {
           const val = e.target.value;
@@ -58,10 +67,11 @@ function NumberField({ descriptor, field, error }: FieldComponentProps) {
         name={field.name}
         aria-label={descriptor.name}
         aria-invalid={!!error}
-        data-testid={`field-${descriptor.name}`}
+        aria-describedby={error ? errorId : undefined}
+        data-testid={fieldId}
       />
       {error && (
-        <span role="alert" data-testid={`error-${descriptor.name}`}>
+        <span id={errorId} role="alert" data-testid={errorId}>
           {error}
         </span>
       )}
@@ -70,10 +80,14 @@ function NumberField({ descriptor, field, error }: FieldComponentProps) {
 }
 
 function BooleanField({ descriptor, field, error }: FieldComponentProps) {
+  const fieldId = `field-${descriptor.name}`;
+  const errorId = `error-${descriptor.name}`;
+
   return (
     <>
       <input
         type="checkbox"
+        id={fieldId}
         checked={Boolean(field.value)}
         onChange={(e) => {
           field.onChange(e.target.checked);
@@ -82,10 +96,11 @@ function BooleanField({ descriptor, field, error }: FieldComponentProps) {
         name={field.name}
         aria-label={descriptor.name}
         aria-invalid={!!error}
-        data-testid={`field-${descriptor.name}`}
+        aria-describedby={error ? errorId : undefined}
+        data-testid={fieldId}
       />
       {error && (
-        <span role="alert" data-testid={`error-${descriptor.name}`}>
+        <span id={errorId} role="alert" data-testid={errorId}>
           {error}
         </span>
       )}
@@ -94,9 +109,13 @@ function BooleanField({ descriptor, field, error }: FieldComponentProps) {
 }
 
 function EnumField({ descriptor, field, error }: FieldComponentProps) {
+  const fieldId = `field-${descriptor.name}`;
+  const errorId = `error-${descriptor.name}`;
+
   return (
     <>
       <select
+        id={fieldId}
         value={field.value !== null && field.value !== undefined ? String(field.value) : ""}
         onChange={(e) => {
           field.onChange(e.target.value);
@@ -105,7 +124,8 @@ function EnumField({ descriptor, field, error }: FieldComponentProps) {
         name={field.name}
         aria-label={descriptor.name}
         aria-invalid={!!error}
-        data-testid={`field-${descriptor.name}`}
+        aria-describedby={error ? errorId : undefined}
+        data-testid={fieldId}
       >
         {descriptor.enumValues?.map((v) => (
           <option key={v} value={v}>
@@ -114,7 +134,7 @@ function EnumField({ descriptor, field, error }: FieldComponentProps) {
         ))}
       </select>
       {error && (
-        <span role="alert" data-testid={`error-${descriptor.name}`}>
+        <span id={errorId} role="alert" data-testid={errorId}>
           {error}
         </span>
       )}
@@ -145,6 +165,7 @@ const MIXED_VALUE = "__mixed__";
 function MixedFieldInput({
   descriptor,
   field,
+  error,
 }: {
   readonly descriptor: FieldDescriptor;
   readonly field: {
@@ -153,9 +174,12 @@ function MixedFieldInput({
     onBlur: () => void;
     name: string;
   };
+  readonly error?: string;
 }) {
   const isMixed = field.value === MIXED_VALUE;
   const [editing, setEditing] = useState(false);
+  const fieldId = `field-${descriptor.name}`;
+  const errorId = `error-${descriptor.name}`;
 
   // Show mixed placeholder when the sentinel is active and user hasn't started typing
   const showMixed = isMixed && !editing;
@@ -167,27 +191,37 @@ function MixedFieldInput({
       : "";
 
   return (
-    <input
-      type="text"
-      placeholder={showMixed ? "mixed" : undefined}
-      value={displayValue}
-      onChange={(e) => {
-        if (!editing) setEditing(true);
-        field.onChange(e.target.value);
-      }}
-      onBlur={() => {
-        field.onBlur();
-        // Restore mixed presentation if the value is still the sentinel or was cleared
-        if (field.value === MIXED_VALUE || field.value === "" || field.value === undefined) {
-          setEditing(false);
-        }
-      }}
-      name={field.name}
-      aria-label={descriptor.name}
-      data-testid={`field-${descriptor.name}`}
-      data-mixed={showMixed ? "true" : undefined}
-      style={showMixed ? { fontStyle: "italic", color: "#999" } : undefined}
-    />
+    <>
+      <input
+        type="text"
+        id={fieldId}
+        placeholder={showMixed ? "mixed" : undefined}
+        value={displayValue}
+        onChange={(e) => {
+          if (!editing) setEditing(true);
+          field.onChange(e.target.value);
+        }}
+        onBlur={() => {
+          field.onBlur();
+          // Restore mixed presentation if the value is still the sentinel or was cleared
+          if (field.value === MIXED_VALUE || field.value === "" || field.value === undefined) {
+            setEditing(false);
+          }
+        }}
+        name={field.name}
+        aria-label={descriptor.name}
+        aria-invalid={!!error}
+        aria-describedby={error ? errorId : undefined}
+        data-testid={fieldId}
+        data-mixed={showMixed ? "true" : undefined}
+        style={showMixed ? { fontStyle: "italic", color: "#999" } : undefined}
+      />
+      {error && (
+        <span id={errorId} role="alert" data-testid={errorId}>
+          {error}
+        </span>
+      )}
+    </>
   );
 }
 
@@ -260,13 +294,20 @@ function FieldTree({
 
         // Show "mixed" placeholder for fields with differing values in multi-select
         if (mixedFields?.has(descriptor.name)) {
+          const mixedErrorMessage = getFieldError(errors, fieldPath);
           return (
             <div key={descriptor.name} data-testid={`field-wrapper-${descriptor.name}`}>
               <label htmlFor={`field-${descriptor.name}`}>{descriptor.name}</label>
               <Controller
                 name={fieldPath}
                 control={control}
-                render={({ field }) => <MixedFieldInput descriptor={descriptor} field={field} />}
+                render={({ field }) => (
+                  <MixedFieldInput
+                    descriptor={descriptor}
+                    field={field}
+                    error={mixedErrorMessage}
+                  />
+                )}
               />
             </div>
           );
@@ -420,14 +461,39 @@ export function SchemaFormFields({
     [mixedFields],
   );
 
+  // Validation summary text for screen-reader live region
+  // Compute directly from errors (not memoized) since RHF's proxy object may not
+  // change reference when errors clear
+  const currentErrors = collectErrorMessages(errors);
+  const validationSummary =
+    currentErrors.length > 0
+      ? `${String(currentErrors.length)} validation error${currentErrors.length === 1 ? "" : "s"}: ${currentErrors.join("; ")}`
+      : "";
+
   return (
-    <FieldTree
-      descriptors={fields}
-      control={control}
-      registry={registry}
-      errors={errors}
-      mixedFields={mixedFieldSet}
-    />
+    <>
+      <FieldTree
+        descriptors={fields}
+        control={control}
+        registry={registry}
+        errors={errors}
+        mixedFields={mixedFieldSet}
+      />
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        data-testid="validation-live-region"
+        style={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          overflow: "hidden",
+          clip: "rect(0,0,0,0)",
+        }}
+      >
+        {validationSummary}
+      </div>
+    </>
   );
 }
 /* eslint-enable react-hooks/incompatible-library */
