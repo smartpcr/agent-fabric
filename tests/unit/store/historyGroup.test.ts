@@ -220,4 +220,27 @@ describe("historyGroup — createHistoryGroupHandler", () => {
     // Should have flushed the pending drag group (+1) and recorded addNode (+1) = +2
     expect(store.temporal.getState().pastStates.length).toBe(pastAfterAdd + 2);
   });
+
+  it("dimension-only changes are NOT coalesced — recorded immediately", () => {
+    const store = createTemporalStore();
+
+    const node = store.getState().addNode(taskSpec, { x: 0, y: 0 });
+    const pastAfterAdd = store.temporal.getState().pastStates.length;
+
+    // Apply a dimensions change (not a position change)
+    store.getState().applyNodeChanges([
+      { type: "dimensions", id: node.id, dimensions: { width: 200, height: 100 } },
+    ]);
+
+    // Should record immediately, not be debounced
+    expect(store.temporal.getState().pastStates.length).toBe(pastAfterAdd + 1);
+
+    // Apply another dimensions change rapidly
+    store.getState().applyNodeChanges([
+      { type: "dimensions", id: node.id, dimensions: { width: 300, height: 150 } },
+    ]);
+
+    // Also recorded immediately — 2 total new entries
+    expect(store.temporal.getState().pastStates.length).toBe(pastAfterAdd + 2);
+  });
 });

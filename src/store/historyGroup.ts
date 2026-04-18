@@ -14,6 +14,9 @@ interface NodeLike {
   readonly kind: string;
   readonly position: { readonly x: number; readonly y: number };
   readonly data: unknown;
+  readonly selected?: boolean;
+  readonly width?: number;
+  readonly height?: number;
 }
 
 interface GraphLike {
@@ -22,9 +25,10 @@ interface GraphLike {
 }
 
 /**
- * Returns true if the only difference between past and current state
- * is node positions (i.e., a drag). Same node count, same IDs/kinds/data,
- * same edges reference or deep equality.
+ * Returns true if the **only** difference between past and current state
+ * is one or more node positions (i.e., a drag). Every other node field
+ * (`id`, `kind`, `data`, `selected`, `width`, `height`) must be identical,
+ * edges must be the same reference, and at least one position must differ.
  */
 function isPositionOnlyChange(past: unknown, current: unknown): boolean {
   const p = past as Partial<GraphLike>;
@@ -36,16 +40,24 @@ function isPositionOnlyChange(past: unknown, current: unknown): boolean {
   // Edges must be unchanged
   if (p.edges !== c.edges) return false;
 
-  // Every node must have the same id, kind, and data — only position may differ
+  let anyPositionChanged = false;
+
   for (let i = 0; i < p.nodes.length; i++) {
     const pn = p.nodes[i];
     const cn = c.nodes[i];
     if (pn.id !== cn.id) return false;
     if (pn.kind !== cn.kind) return false;
     if (pn.data !== cn.data) return false;
+    if (pn.selected !== cn.selected) return false;
+    if (pn.width !== cn.width) return false;
+    if (pn.height !== cn.height) return false;
+
+    if (pn.position.x !== cn.position.x || pn.position.y !== cn.position.y) {
+      anyPositionChanged = true;
+    }
   }
 
-  return true;
+  return anyPositionChanged;
 }
 
 /**
