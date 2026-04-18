@@ -1003,6 +1003,11 @@
 
     <div class="spacer"></div>
 
+    <button class="tb-btn" id="themeToggle" onclick="App.toggleTheme()" aria-label="Toggle light / dark theme" title="Toggle light / dark theme" style="padding: 6px 10px; border: 1px solid var(--stroke-1); border-radius: 8px; background: var(--bg-1);">
+      <svg class="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+
     <div class="exec-indicator" id="execIndicator">
       <span class="pulse"></span>
       <span id="execStatus">IDLE</span>
