@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -16,7 +16,12 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { nanoid } from "nanoid";
-import type { FieldComponentProps } from "@/features/property-grid/registry";
+import type {
+  FieldComponentProps,
+  FieldComponent,
+  FieldResolver,
+} from "@/features/property-grid/registry";
+import type { FieldDescriptor } from "@/features/property-grid/introspect";
 
 /** Internal representation of an array item with a stable key. */
 interface ArrayItem {
@@ -25,7 +30,7 @@ interface ArrayItem {
 }
 
 /** Build a default item value based on the element type descriptor. */
-function makeDefaultItem(elementType: FieldComponentProps["descriptor"]["elementType"]): unknown {
+function makeDefaultItem(elementType: FieldDescriptor | undefined): unknown {
   if (!elementType) return "";
   switch (elementType.type) {
     case "string":
@@ -51,6 +56,33 @@ function itemLabel(value: unknown, index: number): string {
   return `Item ${String(index + 1)}`;
 }
 
+/** Convert field.value to ArrayItem[] with stable ids. */
+function valueToItems(value: unknown): ArrayItem[] {
+  const arr = Array.isArray(value) ? (value as unknown[]) : [];
+  return arr.map((v) => ({ id: nanoid(), value: v }));
+}
+
+// ─── Default inline field for primitive items ───────────────────────
+
+function InlineStringField({ descriptor, field }: FieldComponentProps) {
+  const displayValue =
+    field.value !== null && field.value !== undefined && typeof field.value !== "object"
+      ? String(field.value as string | number | boolean)
+      : "";
+
+  return (
+    <input
+      type="text"
+      value={displayValue}
+      onChange={(e) => {
+        field.onChange(e.target.value);
+      }}
+      data-testid={`array-input-${descriptor.name}`}
+      aria-label={descriptor.name}
+    />
+  );
+}
+
 // ─── Sortable item wrapper ──────────────────────────────────────────
 
 interface SortableItemProps {
@@ -58,11 +90,24 @@ interface SortableItemProps {
   readonly index: number;
   readonly value: unknown;
   readonly fieldName: string;
+  readonly elementDescriptor: FieldDescriptor;
   readonly onRemove: (index: number) => void;
   readonly onItemChange: (index: number, newValue: unknown) => void;
+  readonly resolvedComponent: FieldComponent;
+  readonly itemError?: string;
 }
 
-function SortableItem({ id, index, value, fieldName, onRemove, onItemChange }: SortableItemProps) {
+function SortableItem({
+  id,
+  index,
+  value,
+  fieldName,
+  elementDescriptor,
+  onRemove,
+  onItemChange,
+  resolvedComponent: ResolvedComponent,
+  itemError,
+}: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   const indexStr = String(index);
 
@@ -71,10 +116,32 @@ function SortableItem({ id, index, value, fieldName, onRemove, onItemChange }: S
     transition: transition ?? undefined,
   };
 
-  const displayValue =
-    value !== null && value !== undefined && typeof value !== "object"
-      ? String(value as string | number | boolean)
-      : "";
+  // Build a synthetic field object for the resolved component
+  const itemField = useMemo(
+    () => ({
+      value,
+      onChange: (newVal: unknown) => {
+        onItemChange(index, newVal);
+      },
+      onBlur: () => {
+        /* no-op for array items */
+      },
+      name: `${fieldName}.${indexStr}`,
+      ref: () => {
+        /* no-op ref */
+      },
+    }),
+    [value, onItemChange, index, fieldName, indexStr],
+  );
+
+  // Build an item-level descriptor
+  const itemDescriptor = useMemo(
+    () => ({
+      ...elementDescriptor,
+      name: `${fieldName}-${indexStr}`,
+    }),
+    [elementDescriptor, fieldName, indexStr],
+  );
 
   return (
     <div
@@ -93,15 +160,7 @@ function SortableItem({ id, index, value, fieldName, onRemove, onItemChange }: S
         ☰
       </button>
 
-      <input
-        type="text"
-        value={displayValue}
-        onChange={(e) => {
-          onItemChange(index, e.target.value);
-        }}
-        data-testid={`array-input-${fieldName}-${indexStr}`}
-        aria-label={`${fieldName} item ${indexStr}`}
-      />
+      <ResolvedComponent descriptor={itemDescriptor} field={itemField} error={itemError} />
 
       <button
         type="button"
@@ -117,31 +176,67 @@ function SortableItem({ id, index, value, fieldName, onRemove, onItemChange }: S
   );
 }
 
+// ─── ArrayField props ───────────────────────────────────────────────
+
+export interface ArrayFieldProps extends FieldComponentProps {
+  /** Optional field resolver for rendering element items via the registry. */
+  readonly fieldResolver?: FieldResolver;
+  /** Per-item error messages, keyed by index. */
+  readonly itemErrors?: readonly (string | undefined)[];
+}
+
 // ─── ArrayField ─────────────────────────────────────────────────────
 
 /**
  * Array field with add/remove/reorder support.
  *
- * - Each item rendered with a text input, drag handle, and remove button
+ * - Each item rendered recursively via the field registry (falls back to inline text input)
  * - "+" button appends a default item
  * - "×" button removes by index
  * - Drag handles reorder via dnd-kit
  * - Stable item keys via nanoid
+ * - Aggregates per-item errors into array-level display
  */
-export function ArrayField({ descriptor, field, error }: FieldComponentProps) {
+export function ArrayField({
+  descriptor,
+  field,
+  error,
+  fieldResolver,
+  itemErrors,
+}: ArrayFieldProps) {
   const errorId = `error-${descriptor.name}`;
 
+  // Resolve the component for element rendering
+  const elementDescriptor: FieldDescriptor = descriptor.elementType ?? {
+    name: "element",
+    type: "string",
+    required: true,
+  };
+  const ResolvedComponent: FieldComponent = fieldResolver
+    ? fieldResolver.resolveField(elementDescriptor)
+    : InlineStringField;
+
   // Initialize items from field.value with stable ids
-  const [items, setItems] = useState<ArrayItem[]>(() => {
-    const arr = Array.isArray(field.value) ? (field.value as unknown[]) : [];
-    return arr.map((v) => ({ id: nanoid(), value: v }));
-  });
+  const [items, setItems] = useState<ArrayItem[]>(() => valueToItems(field.value));
+
+  // Track the last field.value we saw to detect external changes
+  const lastExternalValue = useRef<unknown>(field.value);
+
+  // Sync items from external field.value changes (e.g. undo/redo, form reset)
+  useEffect(() => {
+    if (field.value !== lastExternalValue.current) {
+      lastExternalValue.current = field.value;
+      setItems(valueToItems(field.value));
+    }
+  }, [field.value]);
 
   // Sync items → field.onChange
   const syncToField = useCallback(
     (updated: ArrayItem[]) => {
+      const values = updated.map((item) => item.value);
+      lastExternalValue.current = values;
       setItems(updated);
-      field.onChange(updated.map((item) => item.value));
+      field.onChange(values);
     },
     [field],
   );
@@ -196,6 +291,15 @@ export function ArrayField({ descriptor, field, error }: FieldComponentProps) {
 
   const itemIds = useMemo(() => items.map((item) => item.id), [items]);
 
+  // Aggregate per-item errors for array-level display
+  const aggregatedError = useMemo(() => {
+    if (error) return error;
+    if (!itemErrors) return undefined;
+    const errorCount = itemErrors.filter(Boolean).length;
+    if (errorCount === 0) return undefined;
+    return `${String(errorCount)} item${errorCount > 1 ? "s" : ""} with errors`;
+  }, [error, itemErrors]);
+
   return (
     <div data-testid={`array-field-${descriptor.name}`}>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -208,8 +312,11 @@ export function ArrayField({ descriptor, field, error }: FieldComponentProps) {
                 index={index}
                 value={item.value}
                 fieldName={descriptor.name}
+                elementDescriptor={elementDescriptor}
                 onRemove={handleRemove}
                 onItemChange={handleItemChange}
+                resolvedComponent={ResolvedComponent}
+                itemError={itemErrors?.[index]}
               />
             ))}
           </div>
@@ -225,9 +332,9 @@ export function ArrayField({ descriptor, field, error }: FieldComponentProps) {
         +
       </button>
 
-      {error && (
+      {aggregatedError && (
         <span id={errorId} role="alert" data-testid={`error-${descriptor.name}`}>
-          {error}
+          {aggregatedError}
         </span>
       )}
     </div>
