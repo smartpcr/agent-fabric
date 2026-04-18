@@ -1,10 +1,11 @@
 # Phase 4 — Stage 2: Loop Node
+
 > While and for-each loop nodes with body ports, back-edges, and validator rules.
 > Status: `[ ]` not started · **Effort**: 20h
 
 ## Steps
 
-- [ ] **Step 1**: `LoopNode` spec (while): in, body-out, body-in, done
+- [x] **Step 1**: `LoopNode` spec (while): in, body-out, body-in, done
   - File(s): `src/registry/builtins/LoopWhileNode.spec.ts`, `tests/unit/registry/builtins/LoopWhileNode.test.ts`
   - Contents: kind `'loop-while'`; ports `in` (input), `body-out` (output), `body-in` (input), `done` (output); `capabilities.canHaveBackEdge = true`; `propertySchema = z.object({ condition: z.string().min(1) })`.
   - Test: 100%.
@@ -53,6 +54,7 @@
   - Effort: 3h
 
 ## Acceptance for Stage 2
+
 - All 8 steps `[x]` with score ≥ 90.
 - 100% unit coverage on new files.
 - Loop fixture added to `tests/fixtures/`.
