@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, cleanup, fireEvent, within } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, within, waitFor } from "@testing-library/react";
+import { z } from "zod";
 import { ArrayField, reorderArray } from "@/features/property-grid/fields/ArrayField";
 import {
   FieldRegistry,
@@ -357,6 +358,156 @@ describe("ArrayField", () => {
       expect(onChange).toHaveBeenCalledTimes(1);
       const result = getOnChangeResult(onChange);
       expect(result).toEqual([{ name: "Alice", score: 100 }]);
+    });
+  });
+
+  describe("recursive rendering via SchemaFormFields", () => {
+    it("renders object items through SchemaFormFields when elementSchema is provided", () => {
+      const elementSchema = z.object({
+        name: z.string(),
+      });
+
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: {
+              name: "element",
+              type: "object",
+              required: true,
+              children: [{ name: "name", type: "string", required: true }],
+            },
+          })}
+          field={makeField({ value: [{ name: "Alice" }] })}
+          elementSchema={elementSchema}
+        />,
+      );
+
+      // SchemaFormFields renders items via SchemaForm's FieldTree, which uses
+      // data-testid="field-{name}" and data-testid="field-wrapper-{name}"
+      const item0 = screen.getByTestId("array-item-tags-0");
+      expect(item0).toBeInTheDocument();
+
+      // SchemaFormFields should produce a "schema-form-item-" wrapper
+      expect(screen.getByTestId("schema-form-item-tags-0")).toBeInTheDocument();
+
+      // The SchemaForm engine renders field inputs with data-testid="field-name"
+      const nameInput = within(item0).getByTestId("field-name");
+      expect(nameInput).toBeInTheDocument();
+      expect(nameInput).toHaveDisplayValue("Alice");
+    });
+
+    it("renders multiple object items through SchemaFormFields", () => {
+      const elementSchema = z.object({
+        title: z.string(),
+      });
+
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: {
+              name: "element",
+              type: "object",
+              required: true,
+              children: [{ name: "title", type: "string", required: true }],
+            },
+          })}
+          field={makeField({ value: [{ title: "First" }, { title: "Second" }] })}
+          elementSchema={elementSchema}
+        />,
+      );
+
+      const item0 = screen.getByTestId("array-item-tags-0");
+      const item1 = screen.getByTestId("array-item-tags-1");
+
+      expect(within(item0).getByTestId("field-title")).toHaveDisplayValue("First");
+      expect(within(item1).getByTestId("field-title")).toHaveDisplayValue("Second");
+    });
+
+    it("propagates changes from SchemaFormFields items to field.onChange", async () => {
+      const onChange = vi.fn();
+      const elementSchema = z.object({
+        label: z.string(),
+      });
+
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: {
+              name: "element",
+              type: "object",
+              required: true,
+              children: [{ name: "label", type: "string", required: true }],
+            },
+          })}
+          field={makeField({ onChange, value: [{ label: "Hello" }] })}
+          elementSchema={elementSchema}
+        />,
+      );
+
+      const item0 = screen.getByTestId("array-item-tags-0");
+      const labelInput = within(item0).getByTestId("field-label");
+
+      fireEvent.change(labelInput, { target: { value: "World" } });
+
+      // SchemaFormFields uses react-hook-form's watch, which may fire async
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalled();
+      });
+
+      // The last onChange call should contain the updated item
+      const calls = onChange.mock.calls as unknown[][];
+      const lastCall = calls[calls.length - 1] as unknown[];
+      const result = lastCall[0] as unknown[];
+      expect(result[0]).toEqual({ label: "World" });
+    });
+
+    it("adds items correctly when using SchemaFormFields path", () => {
+      const onChange = vi.fn();
+      const elementSchema = z.object({
+        value: z.string(),
+      });
+
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: {
+              name: "element",
+              type: "object",
+              required: true,
+              defaultValue: {},
+            },
+          })}
+          field={makeField({ onChange, value: [] })}
+          elementSchema={elementSchema}
+        />,
+      );
+
+      fireEvent.click(screen.getByTestId("add-tags"));
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      const newArr = getOnChangeResult(onChange);
+      expect(newArr).toHaveLength(1);
+    });
+
+    it("falls back to ChildFieldRenderer for object items without elementSchema", () => {
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: {
+              name: "element",
+              type: "object",
+              required: true,
+              children: [{ name: "name", type: "string", required: true }],
+            },
+          })}
+          field={makeField({ value: [{ name: "Bob" }] })}
+          // No elementSchema provided — uses fallback path
+        />,
+      );
+
+      // Fallback path uses object-fields-* testid
+      expect(screen.getByTestId("object-fields-tags-0")).toBeInTheDocument();
+      expect(screen.getByTestId("array-input-tags-0-name")).toBeInTheDocument();
     });
   });
 

@@ -16,12 +16,14 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { nanoid } from "nanoid";
+import type { z } from "zod";
 import type {
   FieldComponentProps,
   FieldComponent,
   FieldResolver,
 } from "@/features/property-grid/registry";
 import type { FieldDescriptor } from "@/features/property-grid/introspect";
+import { SchemaFormFields } from "@/features/property-grid/SchemaForm";
 
 /** Internal representation of an array item with a stable key. */
 interface ArrayItem {
@@ -180,14 +182,14 @@ function ChildFieldRenderer({
 // ─── Recursive item renderer (shared form engine path) ──────────────
 
 /**
- * Renders a single array item using the same field resolution pipeline
- * as SchemaForm's FieldTree:
+ * Renders a single array item recursively via SchemaForm's form engine:
  *
- * - For object-type items with children: recursively renders each child
- *   field via ChildFieldRenderer which resolves through the field registry
- *   (mirrors SchemaForm's recursive FieldTree)
- * - For primitive items: renders via the pre-resolved component passed as prop
- *   (mirrors SchemaForm's leaf field rendering)
+ * - When `elementSchema` is provided: renders the item through
+ *   `SchemaFormFields` — the same recursive form engine used by `SchemaForm`
+ *   (introspection → FieldTree → Controller → registry-resolved components).
+ * - For object-type items without a schema: falls back to ChildFieldRenderer
+ *   which resolves child fields through the field registry.
+ * - For primitive items: renders via the pre-resolved component.
  */
 function ArrayItemForm({
   descriptor,
@@ -195,12 +197,39 @@ function ArrayItemForm({
   error,
   resolvedComponent: ResolvedComponent,
   fieldResolver,
+  elementSchema,
 }: FieldComponentProps & {
   readonly resolvedComponent: FieldComponent;
   readonly fieldResolver?: FieldResolver;
+  readonly elementSchema?: z.ZodType;
 }) {
-  // Object-type with children: recursive rendering via ChildFieldRenderer
-  // (same registry resolution path as SchemaForm FieldTree)
+  // Primary path: render recursively via SchemaFormFields (the SchemaForm engine)
+  if (elementSchema && descriptor.type === "object") {
+    const objValue =
+      typeof field.value === "object" && field.value !== null
+        ? (field.value as Record<string, unknown>)
+        : {};
+
+    return (
+      <div data-testid={`schema-form-item-${descriptor.name}`}>
+        <SchemaFormFields
+          schema={elementSchema}
+          value={objValue}
+          onChange={(newVal) => {
+            field.onChange(newVal);
+          }}
+          fieldRegistry={fieldResolver}
+        />
+        {error && (
+          <span role="alert" data-testid={`item-error-${descriptor.name}`}>
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback: object-type with children but no schema — ChildFieldRenderer
   if (descriptor.type === "object" && descriptor.children) {
     const objValue =
       typeof field.value === "object" && field.value !== null
@@ -248,6 +277,7 @@ interface SortableItemProps {
   readonly onItemChange: (index: number, newValue: unknown) => void;
   readonly resolvedComponent: FieldComponent;
   readonly fieldResolver?: FieldResolver;
+  readonly elementSchema?: z.ZodType;
   readonly itemError?: string;
 }
 
@@ -261,6 +291,7 @@ function SortableItem({
   onItemChange,
   resolvedComponent,
   fieldResolver,
+  elementSchema,
   itemError,
 }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -321,6 +352,7 @@ function SortableItem({
         error={itemError}
         resolvedComponent={resolvedComponent}
         fieldResolver={fieldResolver}
+        elementSchema={elementSchema}
       />
 
       <button
@@ -342,6 +374,12 @@ function SortableItem({
 export interface ArrayFieldProps extends FieldComponentProps {
   /** Optional field resolver for rendering element items via the registry. */
   readonly fieldResolver?: FieldResolver;
+  /**
+   * Optional Zod schema for the element type. When provided, each object item
+   * is rendered recursively through `SchemaFormFields` — the same form engine
+   * used by `SchemaForm`.
+   */
+  readonly elementSchema?: z.ZodType;
   /** Per-item error messages, keyed by index. */
   readonly itemErrors?: readonly (string | undefined)[];
 }
@@ -351,8 +389,8 @@ export interface ArrayFieldProps extends FieldComponentProps {
 /**
  * Array field with add/remove/reorder support.
  *
- * - Each item rendered recursively via the same form engine path as SchemaForm:
- *   field registry resolution for primitives, recursive child rendering for objects
+ * - Each item rendered recursively via `SchemaFormFields` (the SchemaForm engine)
+ *   when `elementSchema` is provided; falls back to field registry resolution
  * - "+" button appends a default item
  * - "×" button removes by index
  * - Drag handles reorder via dnd-kit (uses exported `reorderArray` utility)
@@ -364,6 +402,7 @@ export function ArrayField({
   field,
   error,
   fieldResolver,
+  elementSchema,
   itemErrors,
 }: ArrayFieldProps) {
   const errorId = `error-${descriptor.name}`;
@@ -476,6 +515,7 @@ export function ArrayField({
                 onItemChange={handleItemChange}
                 resolvedComponent={resolvedComponent}
                 fieldResolver={fieldResolver}
+                elementSchema={elementSchema}
                 itemError={itemErrors?.[index]}
               />
             ))}

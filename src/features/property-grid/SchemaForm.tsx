@@ -220,14 +220,16 @@ export interface SchemaFormProps {
 }
 
 /**
- * Schema-driven form component.
+ * Schema-driven form fields renderer without a `<form>` wrapper.
  *
- * Introspects a Zod object schema and renders a tree of fields resolved
- * through a field registry. Uses react-hook-form for form state tracking.
- * Calls `onChange` whenever the form values change.
+ * Use for recursive embedding inside existing form fields (e.g., ArrayField
+ * items) where a nested `<form>` element would be invalid HTML.
+ *
+ * Introspects a Zod schema, creates its own react-hook-form context, resolves
+ * fields through a registry, and propagates changes via `onChange`.
  */
 /* eslint-disable react-hooks/incompatible-library -- react-hook-form watch API */
-export function SchemaForm({ schema, value, onChange, fieldRegistry }: SchemaFormProps) {
+export function SchemaFormFields({ schema, value, onChange, fieldRegistry }: SchemaFormProps) {
   const fields = introspect(schema);
   const registry = fieldRegistry ?? defaultFieldRegistry;
 
@@ -260,6 +262,19 @@ export function SchemaForm({ schema, value, onChange, fieldRegistry }: SchemaFor
     };
   }, [watch, onChangeRef]);
 
+  return <FieldTree descriptors={fields} control={control} registry={registry} errors={errors} />;
+}
+/* eslint-enable react-hooks/incompatible-library */
+
+/**
+ * Schema-driven form component.
+ *
+ * Wraps {@link SchemaFormFields} in a `<form>` element. Introspects a Zod
+ * object schema and renders a tree of fields resolved through a field registry.
+ * Uses react-hook-form for form state tracking. Calls `onChange` whenever the
+ * form values change.
+ */
+export function SchemaForm(props: SchemaFormProps) {
   return (
     <form
       data-testid="schema-form"
@@ -267,7 +282,7 @@ export function SchemaForm({ schema, value, onChange, fieldRegistry }: SchemaFor
         e.preventDefault();
       }}
     >
-      <FieldTree descriptors={fields} control={control} registry={registry} errors={errors} />
+      <SchemaFormFields {...props} />
     </form>
   );
 }
