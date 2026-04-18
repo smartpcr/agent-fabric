@@ -1,7 +1,7 @@
 # Phase 6 — Stage 5: Run Inspector & Controls
 
 > Slide-in inspector showing per-node event timeline, plus run controls and connection status.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` done · **Effort**: 14h
 
 ## Steps
 
@@ -29,13 +29,13 @@
   - Test: 100% — subscribe on mount; cleanup on unmount; late event dropped.
   - Effort: 2h
 
-- [ ] **Step 5**: Connection status indicator
+- [x] **Step 5**: Connection status indicator
   - File(s): `src/features/execution/ConnectionStatus.tsx`, `tests/unit/features/execution/ConnectionStatus.test.tsx`
   - Contents: Reads `connectionState$` from event source; renders `connected / reconnecting / disconnected` badge.
   - Test: 100% — state transitions reflected.
   - Effort: 2h
 
-- [ ] **Step 6**: Phase 6 acceptance + score review
+- [x] **Step 6**: Phase 6 acceptance + score review
   - File(s): —
   - Contents: Walk exit criteria; update phase status row.
   - Effort: 2h

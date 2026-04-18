@@ -1,7 +1,7 @@
 # Phase 6 — Stage 3: Node Badges
 
 > Status badges driven by execution store subscriptions, with iteration counters for loops.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` done · **Effort**: 14h
 
 ## Steps
 

@@ -1,7 +1,7 @@
 # Phase 6 — Stage 2: Execution State Store
 
 > Store slice + reducer that accepts event streams, enforces transitions, batches by animation frame.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` done · **Effort**: 14h
 
 ## Steps
 
@@ -11,7 +11,7 @@
   - Test: 100% — initial empty; `setActiveRun` / `clearRun`.
   - Effort: 3h
 
-- [ ] **Step 2**: `applyEvent(state, event)` reducer
+- [x] **Step 2**: `applyEvent(state, event)` reducer
   - File(s): `src/store/slices/executionSlice.ts` (extend), `tests/unit/store/slices/executionSlice.applyEvent.test.ts`
   - Contents: Updates node/edge maps based on event type; creates run entry on `run.started`; sets `finishedAt` on terminal run events.
   - Test: 100% — each event type mutates expected fields; unknown event logs warning and no-ops.

@@ -1,7 +1,7 @@
 # Phase 6 — Stage 1: Execution Event Contract
 
 > Execution event types, the `IExecutionEventSource` port, and SSE / WebSocket adapters.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` done · **Effort**: 14h
 
 ## Steps
 
