@@ -1,7 +1,7 @@
 # Phase 7 — Stage 4: Versioning & Migration
 
 > Schema version gating, migration registry, auto-save.
-> Status: `[ ]` not started · **Effort**: 10h
+> Status: `[x]` done · **Effort**: 10h
 
 ## Steps
 
@@ -23,13 +23,13 @@
   - Test: 100%.
   - Effort: 1h
 
-- [ ] **Step 4**: Auto-save (debounced 10s, dirty flag)
+- [x] **Step 4**: Auto-save (debounced 10s, dirty flag)
   - File(s): `src/features/persistence/useAutoSave.ts`, `tests/unit/features/persistence/useAutoSave.test.ts`
   - Contents: Listens to store `[x]` mutations (via zundo subscription); 10s debounce; skipped when graph has validation errors; dispatches save via `useWorkflowRepo`.
   - Test: 100% — fake timers; no save when clean; save on dirty; skip on invalid.
   - Effort: 3h
 
-- [ ] **Step 5**: Phase 7 acceptance + score review
+- [x] **Step 5**: Phase 7 acceptance + score review
   - File(s): —
   - Contents: Walk exit criteria; update phase status row.
   - Effort: 1h
