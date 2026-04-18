@@ -47,7 +47,7 @@
   - Test: 100% — renders value; height responsive; lazy-load guard works in jsdom (mock Monaco).
   - Effort: 4h
 
-- [ ] **Step 8**: `SecretField` (masked + reveal + copy; never in autosave raw)
+- [x] **Step 8**: `SecretField` (masked + reveal + copy; never in autosave raw)
   - File(s): `src/features/property-grid/fields/SecretField.tsx`, `src/features/persistence/useAutoSave.ts` (hook in scrub), `tests/unit/features/property-grid/fields/SecretField.test.tsx`
   - Contents: `<input type="password">` by default; reveal button toggles `type="text"`; copy button copies to clipboard + toast; autosave replaces value with `"<secret>"` sentinel.
   - Test: 100% — masked by default; reveal accessible; copy fires toast; autosave payload contains sentinel.

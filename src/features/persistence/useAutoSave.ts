@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { useWorkflowStore } from "@/store/hooks";
 import type { ViewportState } from "@/store/slices/viewportSlice";
+import { scrubSecrets } from "@/features/property-grid/fields/SecretField";
 
 /** Payload shape that includes graph data plus persisted viewport. */
 export interface SavePayload {
@@ -14,6 +15,8 @@ export interface SavePayload {
  * Stub hook wiring viewport persistence into save/load.
  *
  * - `save()` snapshots the current graph + viewport into a `SavePayload`.
+ *   Secret field values are scrubbed with the `"<secret>"` sentinel before
+ *   the payload is returned, so raw secrets are never persisted.
  * - `restore(payload)` loads graph state and calls `setViewport` on the
  *   xyflow instance so the canvas repositions to the saved view.
  */
@@ -26,7 +29,9 @@ export function useAutoSave() {
 
   const save = useCallback((): SavePayload => {
     const viewport = getViewportState();
-    return { nodes: [...nodes], edges: [...edges], viewport };
+    const scrubbedNodes = scrubSecrets([...nodes]) as unknown[];
+    const scrubbedEdges = scrubSecrets([...edges]) as unknown[];
+    return { nodes: scrubbedNodes, edges: scrubbedEdges, viewport };
   }, [getViewportState, nodes, edges]);
 
   const restore = useCallback(
