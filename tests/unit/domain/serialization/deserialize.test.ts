@@ -234,19 +234,18 @@ describe("deserialize", () => {
   });
 
   describe("Zod parse errors", () => {
-    it("throws SerializationError with INVALID_SCHEMA for malformed JSON", () => {
-      expect(() => deserialize({ bad: "data" }, registry)).toThrow(SerializationError);
+    it("throws MigrationError for object without schemaVersion", () => {
+      expect(() => deserialize({ bad: "data" }, registry)).toThrow(MigrationError);
       try {
         deserialize({ bad: "data" }, registry);
       } catch (err) {
-        expect(err).toBeInstanceOf(SerializationError);
-        expect((err as SerializationError).code).toBe("INVALID_SCHEMA");
-        expect((err as SerializationError).details).toHaveProperty("zodErrors");
+        expect(err).toBeInstanceOf(MigrationError);
+        expect((err as MigrationError).code).toBe("UNKNOWN_VERSION");
       }
     });
 
-    it("throws SerializationError for null input", () => {
-      expect(() => deserialize(null, registry)).toThrow(SerializationError);
+    it("throws MigrationError for null input", () => {
+      expect(() => deserialize(null, registry)).toThrow(MigrationError);
     });
 
     it("throws SerializationError for missing required fields", () => {
@@ -256,13 +255,13 @@ describe("deserialize", () => {
   });
 
   describe("message formatting", () => {
-    it("SerializationError message includes Invalid graph JSON prefix", () => {
+    it("MigrationError message includes Missing schemaVersion for empty object", () => {
       try {
         deserialize({}, registry);
         expect.fail("should have thrown");
       } catch (err) {
-        expect(err).toBeInstanceOf(SerializationError);
-        expect((err as SerializationError).message).toContain("Invalid graph JSON");
+        expect(err).toBeInstanceOf(MigrationError);
+        expect((err as MigrationError).message).toContain("schemaVersion");
       }
     });
 

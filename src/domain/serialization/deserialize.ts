@@ -1,6 +1,6 @@
 import { GraphJsonV1 } from "@/domain/serialization/schema.v1";
 import { migrate } from "@/domain/serialization/migrate";
-import { SerializationError } from "@/domain/validation/errors";
+import { SerializationError, MigrationError } from "@/domain/validation/errors";
 import { CURRENT_SCHEMA_VERSION, type WorkflowGraph } from "@/domain/models/graph";
 import type { NodeSpecRegistry } from "@/domain/validation/connectionRules";
 import type { WorkflowNode } from "@/domain/models/node";
@@ -10,8 +10,51 @@ export function deserialize(json: unknown, registry: NodeSpecRegistry): Workflow
   let input = json;
 
   const raw = input as Record<string, unknown> | null;
-  const version = raw?.schemaVersion;
-  if (typeof version === "number" && version !== CURRENT_SCHEMA_VERSION) {
+  if (!raw || typeof raw !== "object") {
+    throw new MigrationError("UNKNOWN_VERSION", "Invalid input: expected an object", {
+      fromVersion: undefined,
+      toVersion: CURRENT_SCHEMA_VERSION,
+    });
+  }
+
+  const version = raw.schemaVersion;
+
+  // Missing schemaVersion
+  if (version === undefined || version === null) {
+    throw new MigrationError("UNKNOWN_VERSION", "Missing schemaVersion field", {
+      fromVersion: undefined,
+      toVersion: CURRENT_SCHEMA_VERSION,
+    });
+  }
+
+  // Non-numeric schemaVersion
+  if (typeof version !== "number") {
+    const versionStr = typeof version === "string" ? version : JSON.stringify(version);
+    throw new MigrationError("UNKNOWN_VERSION", `Invalid schema version: ${versionStr}`, {
+      fromVersion: version,
+      toVersion: CURRENT_SCHEMA_VERSION,
+    });
+  }
+
+  // Future / unknown version (higher than current)
+  if (version > CURRENT_SCHEMA_VERSION) {
+    throw new MigrationError(
+      "UNKNOWN_VERSION",
+      `Unknown schema version ${String(version)} (current is ${String(CURRENT_SCHEMA_VERSION)})`,
+      { fromVersion: version, toVersion: CURRENT_SCHEMA_VERSION },
+    );
+  }
+
+  // Negative or zero version
+  if (version < 1) {
+    throw new MigrationError("UNKNOWN_VERSION", `Invalid schema version: ${String(version)}`, {
+      fromVersion: version,
+      toVersion: CURRENT_SCHEMA_VERSION,
+    });
+  }
+
+  // Older version — run migration pipeline
+  if (version !== CURRENT_SCHEMA_VERSION) {
     input = migrate(input);
   }
 
