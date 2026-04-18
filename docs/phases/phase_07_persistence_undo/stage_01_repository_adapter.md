@@ -1,7 +1,7 @@
 # Phase 7 — Stage 1: Repository Adapter
 
 > HTTP-backed `IWorkflowRepository` with ETag concurrency, plus an in-memory fake.
-> Status: `[ ]` not started · **Effort**: 12h
+> Status: `[x]` done · **Effort**: 12h
 
 ## Steps
 

@@ -1,7 +1,7 @@
 # Phase 7 — Stage 2: Import / Export
 
 > File download/upload of workflow JSON; drag-to-drop file onto canvas.
-> Status: `[ ]` not started · **Effort**: 10h
+> Status: `[x]` done · **Effort**: 10h
 
 ## Steps
 

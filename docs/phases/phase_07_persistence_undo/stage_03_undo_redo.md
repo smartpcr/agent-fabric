@@ -1,7 +1,7 @@
 # Phase 7 — Stage 3: Undo / Redo
 
 > Wire zundo temporal middleware, group drag updates, add keyboard shortcuts, prove 50-step chain.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` done · **Effort**: 14h
 
 ## Steps
 
