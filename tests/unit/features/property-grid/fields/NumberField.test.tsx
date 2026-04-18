@@ -168,6 +168,94 @@ describe("NumberField", () => {
     });
   });
 
+  describe("keyboard step increments", () => {
+    it("increments value by step on ArrowUp", () => {
+      const onChange = vi.fn();
+      render(
+        <NumberField
+          descriptor={makeDescriptor({ step: 0.5 })}
+          field={makeField({ onChange, value: 3 })}
+        />,
+      );
+
+      fireEvent.keyDown(screen.getByTestId("field-testField"), { key: "ArrowUp" });
+      expect(onChange).toHaveBeenCalledWith(3.5);
+    });
+
+    it("decrements value by step on ArrowDown", () => {
+      const onChange = vi.fn();
+      render(
+        <NumberField
+          descriptor={makeDescriptor({ step: 0.5 })}
+          field={makeField({ onChange, value: 3 })}
+        />,
+      );
+
+      fireEvent.keyDown(screen.getByTestId("field-testField"), { key: "ArrowDown" });
+      expect(onChange).toHaveBeenCalledWith(2.5);
+    });
+
+    it("uses step=1 as default when step is not defined", () => {
+      const onChange = vi.fn();
+      render(
+        <NumberField descriptor={makeDescriptor()} field={makeField({ onChange, value: 10 })} />,
+      );
+
+      fireEvent.keyDown(screen.getByTestId("field-testField"), { key: "ArrowUp" });
+      expect(onChange).toHaveBeenCalledWith(11);
+    });
+
+    it("clamps to max when ArrowUp would exceed it", () => {
+      const onChange = vi.fn();
+      render(
+        <NumberField
+          descriptor={makeDescriptor({ max: 10, step: 5 })}
+          field={makeField({ onChange, value: 8 })}
+        />,
+      );
+
+      fireEvent.keyDown(screen.getByTestId("field-testField"), { key: "ArrowUp" });
+      expect(onChange).toHaveBeenCalledWith(10);
+    });
+
+    it("clamps to min when ArrowDown would go below it", () => {
+      const onChange = vi.fn();
+      render(
+        <NumberField
+          descriptor={makeDescriptor({ min: 0, step: 5 })}
+          field={makeField({ onChange, value: 3 })}
+        />,
+      );
+
+      fireEvent.keyDown(screen.getByTestId("field-testField"), { key: "ArrowDown" });
+      expect(onChange).toHaveBeenCalledWith(0);
+    });
+
+    it("starts from 0 when current value is undefined", () => {
+      const onChange = vi.fn();
+      render(
+        <NumberField
+          descriptor={makeDescriptor({ step: 2 })}
+          field={makeField({ onChange, value: undefined })}
+        />,
+      );
+
+      fireEvent.keyDown(screen.getByTestId("field-testField"), { key: "ArrowUp" });
+      expect(onChange).toHaveBeenCalledWith(2);
+    });
+
+    it("does not fire onChange for non-arrow keys", () => {
+      const onChange = vi.fn();
+      render(
+        <NumberField descriptor={makeDescriptor()} field={makeField({ onChange, value: 5 })} />,
+      );
+
+      fireEvent.keyDown(screen.getByTestId("field-testField"), { key: "Enter" });
+      fireEvent.keyDown(screen.getByTestId("field-testField"), { key: "a" });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
+
   describe("clamping non-numeric input", () => {
     it("clamps to previous valid value when browser signals badInput", () => {
       const onChange = vi.fn();

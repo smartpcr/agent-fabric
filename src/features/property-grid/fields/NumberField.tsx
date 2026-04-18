@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import type { FieldComponentProps } from "@/features/property-grid/registry";
 
 /**
@@ -8,6 +8,7 @@ import type { FieldComponentProps } from "@/features/property-grid/registry";
  * - `min`, `max`, `step` attributes derived from the descriptor
  * - `aria-describedby` pointing to error message when present
  * - Clamps non-numeric input to the previous valid value
+ * - ArrowUp/ArrowDown keyboard step increments with min/max clamping
  */
 export function NumberField({ descriptor, field, error }: FieldComponentProps) {
   const errorId = `error-${descriptor.name}`;
@@ -52,6 +53,30 @@ export function NumberField({ descriptor, field, error }: FieldComponentProps) {
     field.onChange(parsed);
   };
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+
+      e.preventDefault();
+      const current = typeof field.value === "number" ? field.value : 0;
+      const stepSize = descriptor.step ?? 1;
+      const delta = e.key === "ArrowUp" ? stepSize : -stepSize;
+      let next = current + delta;
+
+      // Clamp to min/max when defined
+      if (descriptor.min !== undefined && next < descriptor.min) {
+        next = descriptor.min;
+      }
+      if (descriptor.max !== undefined && next > descriptor.max) {
+        next = descriptor.max;
+      }
+
+      lastValidRef.current = next;
+      field.onChange(next);
+    },
+    [field, descriptor.step, descriptor.min, descriptor.max],
+  );
+
   return (
     <>
       <input
@@ -59,6 +84,7 @@ export function NumberField({ descriptor, field, error }: FieldComponentProps) {
         id={`field-${descriptor.name}`}
         value={field.value !== null && field.value !== undefined ? String(field.value) : ""}
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
         onBlur={field.onBlur}
         name={field.name}
         min={descriptor.min}
