@@ -35,7 +35,7 @@
   - Test: 100% — schema valid/invalid cases.
   - Effort: 2h
 
-- [ ] **Step 6**: Validator — each outgoing edge matches a branch or `default`
+- [x] **Step 6**: Validator — each outgoing edge matches a branch or `default`
   - File(s): `src/domain/validation/graphRules.ts` (extend), `tests/unit/domain/validation/graphRules.decision.test.ts`
   - Contents: For decision nodes, every outgoing edge's `sourcePort` must be a declared branch id or `default`; duplicate branches fail; missing `default` produces a warning.
   - Test: 100% — orphan branch fails; duplicate fails; missing default warns.
