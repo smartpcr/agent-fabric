@@ -66,7 +66,10 @@
     "exportWorkflow": "Export workflow",
     "importWorkflow": "Import workflow",
     "importFailed": "Import failed",
-    "importConfirm": "Import \"{{name}}\"? This will replace the current workflow."
+    "importConfirm": "Import \"{{name}}\"? This will replace the current workflow.",
+    "invalidJson": "File is not valid JSON.",
+    "migrationFailed": "Migration failed: {{error}}",
+    "invalidWorkflow": "Invalid workflow: {{errors}}"
   },
   "canvas": {
     "ariaLabel": "Workflow Canvas",
@@ -99,7 +102,9 @@
     "copy": "Copy",
     "hideSecret": "Hide secret",
     "revealSecret": "Reveal secret",
-    "copyToClipboard": "Copy to clipboard"
+    "copyToClipboard": "Copy to clipboard",
+    "copiedToClipboard": "Copied to clipboard",
+    "failedToCopy": "Failed to copy"
   },
   "loop": {
     "iteration": "iteration {{count}}",

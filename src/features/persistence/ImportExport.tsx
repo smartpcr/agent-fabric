@@ -1,5 +1,6 @@
 import { useCallback, useRef, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 import { CURRENT_SCHEMA_VERSION, type WorkflowGraph } from "@/domain/models/graph";
 import { GraphJsonV1 } from "@/domain/serialization/schema.v1";
 import { migrate } from "@/domain/serialization/migrate";
@@ -119,7 +120,7 @@ export function parseImportedJson(text: string): ImportParseResult {
   try {
     raw = JSON.parse(text) as unknown;
   } catch {
-    return { ok: false, message: "File is not valid JSON." };
+    return { ok: false, message: i18next.t("persistence.invalidJson") };
   }
 
   // Migrate if needed
@@ -129,7 +130,7 @@ export function parseImportedJson(text: string): ImportParseResult {
     try {
       raw = migrate(raw);
     } catch (e: unknown) {
-      return { ok: false, message: `Migration failed: ${String(e)}` };
+      return { ok: false, message: i18next.t("persistence.migrationFailed", { error: String(e) }) };
     }
   }
 
@@ -137,7 +138,7 @@ export function parseImportedJson(text: string): ImportParseResult {
   if (!result.success) {
     return {
       ok: false,
-      message: `Invalid workflow: ${result.error.issues.map((i) => i.message).join("; ")}`,
+      message: i18next.t("persistence.invalidWorkflow", { errors: result.error.issues.map((i) => i.message).join("; ") }),
     };
   }
 

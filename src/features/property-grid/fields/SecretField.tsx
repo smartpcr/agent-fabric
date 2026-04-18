@@ -145,11 +145,11 @@ export function SecretField({ descriptor, field, error, onCopyToast }: SecretFie
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(displayValue);
-      showToast({ title: "Copied to clipboard", variant: "success" });
+      showToast({ title: t("secretField.copiedToClipboard"), variant: "success" });
     } catch {
-      showToast({ title: "Failed to copy", variant: "error" });
+      showToast({ title: t("secretField.failedToCopy"), variant: "error" });
     }
-  }, [displayValue, showToast]);
+  }, [displayValue, showToast, t]);
 
   return (
     <div data-testid={`secret-field-${descriptor.name}`}>

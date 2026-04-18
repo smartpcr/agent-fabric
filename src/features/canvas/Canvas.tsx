@@ -356,16 +356,16 @@ export function Canvas() {
           registry,
         );
         if (!result.ok) {
-          announce(`Connection rejected: ${result.error.message}`);
+          announce(t("canvas.connectionRejectedReason", { reason: result.error.message }));
           showToast({
-            title: "Connection rejected",
+            title: t("canvas.connectionRejected"),
             description: result.error.message,
             variant: "error",
           });
         }
       }
     },
-    [nodes, edges, registry, showToast, announce],
+    [nodes, edges, registry, showToast, announce, t],
   );
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
