@@ -17,7 +17,7 @@
   - Test: 100% — class applied/removed; reduced-motion opts out.
   - Effort: 3h
 
-- [ ] **Step 3**: Flash on success/error
+- [x] **Step 3**: Flash on success/error
   - File(s): `src/features/edges/edgeAnimations.css` (extend), `src/features/edges/DefaultEdge.tsx` (extend), `tests/unit/features/edges/DefaultEdge.flash.test.tsx`
   - Contents: Brief stroke-color transition (500ms green / red); one-shot via CSS animation + `animation-fill-mode: forwards`.
   - Test: 100% — class applied on state transition; removed after animation.

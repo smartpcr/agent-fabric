@@ -86,8 +86,13 @@ export function DefaultEdge({
   // ── Flash on success / error ────────────────────────────────────
   const flashClass = useEdgeFlash(edgeExecState?.status);
 
+  // ── Not-taken dim ─────────────────────────────────────────────
+  const isNotTaken = edgeExecState?.status === "not-taken";
+  const notTakenClass = isNotTaken ? "edge-not-taken" : undefined;
+
   // Combine classes for BaseEdge
-  const combinedClass = [flowClass, flashClass].filter(Boolean).join(" ") || undefined;
+  const combinedClass =
+    [flowClass, flashClass, notTakenClass].filter(Boolean).join(" ") || undefined;
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
