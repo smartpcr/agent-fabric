@@ -27,6 +27,7 @@ import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
 import { useDragContext } from "@/features/palette/DragContext";
 import { useAnnounce } from "@/hooks/useAnnounce";
 import { useToast } from "@/hooks/useToast";
+import { useTranslation } from "react-i18next";
 import { parseImportedJson } from "@/features/persistence/ImportExport";
 import { useWorkflowStore } from "@/store/hooks";
 import type { WorkflowNode } from "@/domain/models/node";
@@ -40,6 +41,7 @@ interface ConnectDragSource {
 
 export function Canvas() {
   useViewportPersistence();
+  const { t } = useTranslation();
   const { state: dragState, endDrag } = useDragContext();
   const { show: showToast } = useToast();
   const { announce } = useAnnounce();
@@ -308,17 +310,17 @@ export function Canvas() {
         targetPort: targetPortId,
       });
       if (result.ok) {
-        announce("Connection created");
+        announce(t("canvas.connectionCreated"));
       } else {
-        announce(`Connection rejected: ${result.error.message}`);
+        announce(t("canvas.connectionRejectedReason", { reason: result.error.message }));
         showToast({
-          title: "Connection rejected",
+          title: t("canvas.connectionRejected"),
           description: result.error.message,
           variant: "error",
         });
       }
     },
-    [tryConnect, showToast, announce, nodes, edges, registry],
+    [tryConnect, showToast, announce, nodes, edges, registry, t],
   );
 
   const handleConnectStart = useCallback(
@@ -354,16 +356,16 @@ export function Canvas() {
           registry,
         );
         if (!result.ok) {
-          announce(`Connection rejected: ${result.error.message}`);
+          announce(t("canvas.connectionRejectedReason", { reason: result.error.message }));
           showToast({
-            title: "Connection rejected",
+            title: t("canvas.connectionRejected"),
             description: result.error.message,
             variant: "error",
           });
         }
       }
     },
-    [nodes, edges, registry, showToast, announce],
+    [nodes, edges, registry, showToast, announce, t],
   );
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
@@ -414,7 +416,7 @@ export function Canvas() {
 
         if (!result.ok) {
           showToast({
-            title: "Import failed",
+            title: t("persistence.importFailed"),
             description: result.message,
             variant: "error",
           });
@@ -423,7 +425,7 @@ export function Canvas() {
 
         // eslint-disable-next-line no-alert -- intentional confirmation dialog
         const proceed = window.confirm(
-          `Import "${result.graph.name}"? This will replace the current workflow.`,
+          t("persistence.importConfirm", { name: result.graph.name }),
         );
         if (!proceed) return;
 
@@ -431,7 +433,7 @@ export function Canvas() {
       };
       reader.readAsText(file);
     },
-    [showToast, restoreGraph],
+    [showToast, restoreGraph, t],
   );
 
   const isValidConnection = useCallback(
@@ -460,7 +462,7 @@ export function Canvas() {
     <div
       ref={canvasRef}
       role="application"
-      aria-label="Workflow Canvas"
+      aria-label={t("canvas.ariaLabel")}
       style={{ width: "100%", height: "100%", position: "relative" }}
       tabIndex={0}
       onPointerUp={handlePointerUp}
@@ -506,7 +508,7 @@ export function Canvas() {
             <button
               type="button"
               data-testid="snap-toggle"
-              aria-label={snapEnabled ? "Disable snap to grid" : "Enable snap to grid"}
+              aria-label={snapEnabled ? t("toolbar.disableSnap") : t("toolbar.enableSnap")}
               aria-pressed={snapEnabled}
               onClick={toggleSnap}
               style={{
@@ -558,7 +560,7 @@ export function Canvas() {
             color: "rgb(59, 130, 246)",
           }}
         >
-          Drop workflow JSON to import
+          {t("canvas.dropToImport")}
         </div>
       )}
     </div>

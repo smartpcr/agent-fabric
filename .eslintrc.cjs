@@ -25,6 +25,7 @@ module.exports = {
     "react",
     "react-hooks",
     "jsx-a11y",
+    "i18n-json",
   ],
   extends: [
     "eslint:recommended",
@@ -45,6 +46,26 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": [
       "error",
       { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+    ],
+    // Reject hard-coded strings in JSX text nodes — use t() from react-i18next instead.
+    "react/jsx-no-literals": [
+      "error",
+      {
+        noStrings: true,
+        ignoreProps: true,
+        allowedStrings: [
+          " ", "\u00a0", "—", "·", "↻", "×", "▾", "▸", "✕",
+          "▶", "▼", "☰", "+", "…",
+          "true", "false",
+        ],
+      },
+    ],
+    // Custom i18n rule — provides actionable message directing to t()
+    "i18n-json/no-raw-text": [
+      "error",
+      {
+        allowedStrings: ["true", "false"],
+      },
     ],
 
   },

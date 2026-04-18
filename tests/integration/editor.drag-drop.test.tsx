@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, cleanup, act, renderHook, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { EditorPage } from "@/features/editor/EditorPage";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore } from "@/store/hooks";
@@ -97,7 +98,7 @@ describe("Integration — palette drag → canvas drop → node rendered", () =>
   });
 
   it("EditorPage mounts with palette items, canvas, and property grid", () => {
-    render(<EditorPage />);
+    render(<ThemeProvider><EditorPage /></ThemeProvider>);
 
     // Palette with items visible
     expect(screen.getAllByRole("complementary", { name: /node palette/i }).length).toBeGreaterThan(
@@ -116,7 +117,7 @@ describe("Integration — palette drag → canvas drop → node rendered", () =>
   });
 
   it("pointer drag from palette Task item → canvas drop → node rendered at drop point", () => {
-    render(<EditorPage />);
+    render(<ThemeProvider><EditorPage /></ThemeProvider>);
 
     // Find the real Task palette item
     const taskOption = screen.getByRole("option", { name: "Task" });
@@ -157,7 +158,7 @@ describe("Integration — palette drag → canvas drop → node rendered", () =>
   });
 
   it("pointer drag from palette Start item → canvas drop → start node rendered", () => {
-    render(<EditorPage />);
+    render(<ThemeProvider><EditorPage /></ThemeProvider>);
 
     const startOption = screen.getByRole("option", { name: "Start" });
     expect(startOption.getAttribute("data-kind")).toBe("start");
@@ -183,7 +184,7 @@ describe("Integration — palette drag → canvas drop → node rendered", () =>
   });
 
   it("pointer drag from palette End item → canvas drop → end node rendered at drop point", () => {
-    render(<EditorPage />);
+    render(<ThemeProvider><EditorPage /></ThemeProvider>);
 
     const endOption = screen.getByRole("option", { name: "End" });
     expect(endOption.getAttribute("data-kind")).toBe("end");

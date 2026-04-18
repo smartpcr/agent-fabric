@@ -129,7 +129,7 @@ describe("CodeFieldSkeleton", () => {
 
   it("renders loading text", () => {
     render(<CodeFieldSkeleton name="myCode" height={200} />);
-    expect(screen.getByText("Loading editor…")).toBeInTheDocument();
+    expect(screen.getByText("Loading code editor")).toBeInTheDocument();
   });
 
   it("respects height prop", () => {
@@ -477,7 +477,7 @@ describe("CodeField (lazy Monaco)", () => {
     // component directly to prove it renders correctly.
     render(<CodeFieldSkeleton name="code" height={200} />);
     expect(screen.getByTestId("code-skeleton-code")).toBeInTheDocument();
-    expect(screen.getByText("Loading editor…")).toBeInTheDocument();
+    expect(screen.getByText("Loading code editor")).toBeInTheDocument();
   });
 
   it("uses python language from description", async () => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Clock, Loader2, CheckCircle2, XCircle, SkipForward } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import { useTranslation } from "react-i18next";
 import "@/styles/animations.css";
 
 // ─── Reduced-motion detection ────────────────────────────────────────
@@ -51,12 +52,12 @@ export interface StatusBadgeProps {
 /** Maximum number of characters shown in the error tooltip. */
 const ERROR_TOOLTIP_MAX_CHARS = 200;
 
-const LABEL_MAP: Record<BadgeStatus, string> = {
-  pending: "Pending",
-  running: "Running",
-  success: "Succeeded",
-  error: "Failed",
-  skipped: "Skipped",
+const LABEL_KEY_MAP: Record<BadgeStatus, string> = {
+  pending: "statusBadge.pending",
+  running: "statusBadge.running",
+  success: "statusBadge.succeeded",
+  error: "statusBadge.failed",
+  skipped: "statusBadge.skipped",
 };
 
 const ICON_MAP: Record<
@@ -126,7 +127,8 @@ function truncateErrorMessage(message: string): string {
  * `onErrorClick` (typically to open the inspector).
  */
 export function StatusBadge({ status, errorMessage, onErrorClick }: StatusBadgeProps) {
-  const label = LABEL_MAP[status];
+  const { t } = useTranslation();
+  const label = t(LABEL_KEY_MAP[status]);
   const Icon = ICON_MAP[status];
   const color = COLOR_MAP[status];
   const prefersReducedMotion = usePrefersReducedMotion();

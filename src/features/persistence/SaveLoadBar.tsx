@@ -1,4 +1,5 @@
 import type { ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 // ─── Props ───────────────────────────────────────────────────────────
 
@@ -81,6 +82,7 @@ export function SaveLoadBar({
   lastSavedAt,
   saving = false,
 }: SaveLoadBarProps) {
+  const { t } = useTranslation();
   const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     onNameChange(e.target.value);
   };
@@ -90,7 +92,7 @@ export function SaveLoadBar({
       <input
         data-testid="workflow-name-input"
         type="text"
-        aria-label="Workflow name"
+        aria-label={t("persistence.workflowName")}
         value={name}
         onChange={handleNameChange}
         style={NAME_INPUT_STYLE}
@@ -99,34 +101,34 @@ export function SaveLoadBar({
       <button
         type="button"
         data-testid="save-button"
-        aria-label="Save"
+        aria-label={t("persistence.save")}
         onClick={onSave}
         disabled={saving}
       >
-        {saving ? "Saving…" : "Save"}
+        {saving ? t("persistence.saving") : t("persistence.save")}
       </button>
 
-      <button type="button" data-testid="load-button" aria-label="Load" onClick={onLoad}>
-        Load
+      <button type="button" data-testid="load-button" aria-label={t("persistence.load")} onClick={onLoad}>
+        {t("persistence.load")}
       </button>
 
-      <button type="button" data-testid="new-button" aria-label="New" onClick={onNew}>
-        New
+      <button type="button" data-testid="new-button" aria-label={t("persistence.new")} onClick={onNew}>
+        {t("persistence.new")}
       </button>
 
       {dirty && (
         <span
           data-testid="dirty-indicator"
           role="status"
-          aria-label="Unsaved changes"
-          title="Unsaved changes"
+          aria-label={t("persistence.unsavedChanges")}
+          title={t("persistence.unsavedChanges")}
           style={DIRTY_DOT_STYLE}
         />
       )}
 
       {lastSavedAt !== null && (
         <span data-testid="last-saved-timestamp" style={TIMESTAMP_STYLE}>
-          Saved {formatTimestamp(lastSavedAt)}
+          {t("persistence.saved", { timestamp: formatTimestamp(lastSavedAt) })}
         </span>
       )}
     </div>

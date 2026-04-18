@@ -1,9 +1,11 @@
 import { useCallback } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { ZoomIn, ZoomOut, Maximize, Lock, Unlock, LayoutGrid } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useWorkflowStore } from "@/store/hooks";
 
 export function CanvasControls() {
+  const { t } = useTranslation();
   const interactive = useWorkflowStore((s) => s.interactive);
   const toggleInteractive = useWorkflowStore((s) => s.toggleInteractive);
   const layoutRunning = useWorkflowStore((s) => s.layoutRunning);
@@ -37,12 +39,12 @@ export function CanvasControls() {
   }, [toggleInteractive]);
 
   return (
-    <div data-testid="canvas-controls" role="toolbar" aria-label="Canvas controls">
+    <div data-testid="canvas-controls" role="toolbar" aria-label={t("canvasControls.ariaLabel")}>
       <button
         type="button"
         data-testid="zoom-in"
-        aria-label="Zoom in (+)"
-        title="Zoom in (+)"
+        aria-label={t("canvasControls.zoomIn")}
+        title={t("canvasControls.zoomIn")}
         onClick={handleZoomIn}
       >
         <ZoomIn size={14} aria-hidden="true" />
@@ -50,8 +52,8 @@ export function CanvasControls() {
       <button
         type="button"
         data-testid="zoom-out"
-        aria-label="Zoom out (-)"
-        title="Zoom out (-)"
+        aria-label={t("canvasControls.zoomOut")}
+        title={t("canvasControls.zoomOut")}
         onClick={handleZoomOut}
       >
         <ZoomOut size={14} aria-hidden="true" />
@@ -59,8 +61,8 @@ export function CanvasControls() {
       <button
         type="button"
         data-testid="fit-view"
-        aria-label="Fit view (f)"
-        title="Fit view (f)"
+        aria-label={t("canvasControls.fitView")}
+        title={t("canvasControls.fitView")}
         onClick={handleFitView}
       >
         <Maximize size={14} aria-hidden="true" />
@@ -68,9 +70,9 @@ export function CanvasControls() {
       <button
         type="button"
         data-testid="toggle-lock"
-        aria-label={interactive ? "Lock canvas (l)" : "Unlock canvas (l)"}
+        aria-label={interactive ? t("canvasControls.lockCanvas") : t("canvasControls.unlockCanvas")}
         aria-pressed={!interactive}
-        title={interactive ? "Lock canvas (l)" : "Unlock canvas (l)"}
+        title={interactive ? t("canvasControls.lockCanvas") : t("canvasControls.unlockCanvas")}
         onClick={handleToggleLock}
       >
         {interactive ? (
@@ -82,8 +84,8 @@ export function CanvasControls() {
       <button
         type="button"
         data-testid="auto-layout-button"
-        aria-label="Auto-layout"
-        title="Auto-layout"
+        aria-label={t("toolbar.autoLayout")}
+        title={t("toolbar.autoLayout")}
         disabled={layoutRunning}
         onClick={() => {
           // Read actual rendered node dimensions from the DOM before running

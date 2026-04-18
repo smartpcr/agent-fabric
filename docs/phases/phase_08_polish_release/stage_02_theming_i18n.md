@@ -11,7 +11,7 @@
   - Test: 100% — toggle; persists; system-pref fallback.
   - Effort: 3h
 
-- [ ] **Step 2**: `react-i18next` wiring + extraction script
+- [x] **Step 2**: `react-i18next` wiring + extraction script
   - File(s): `src/i18n/index.ts`, `src/i18n/locales/en.json`, `scripts/i18n-extract.mjs`, `tests/unit/i18n/i18n.test.ts`
   - Contents: i18next init; fallback `en`; extraction script scans `t('…')` calls and writes keys to `en.json`.
   - Test: 100% — `t('key')` returns correct string; missing key falls back.

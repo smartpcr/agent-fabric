@@ -1,33 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <title>Flow Studio — Workflow Designer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  // Apply saved theme before first paint to avoid flash of incorrect theme
+  (function () {
+    try {
+      var saved = localStorage.getItem('flow-studio:theme');
+      var theme = (saved === 'dark' || saved === 'light') ? saved
+        : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch (_) {}
+  })();
+</script>
 <style>
-  :root {
-    --bg-0: #07080b;
-    --bg-1: #0c0e13;
-    --bg-2: #11141b;
-    --bg-3: #171b24;
-    --bg-4: #1e222d;
-    --stroke-0: rgba(255,255,255,0.04);
-    --stroke-1: rgba(255,255,255,0.08);
-    --stroke-2: rgba(255,255,255,0.14);
-    --stroke-3: rgba(255,255,255,0.22);
-    --text-0: #f5f6f8;
-    --text-1: #c7cbd4;
-    --text-2: #8b909c;
-    --text-3: #5a5f6b;
-    --accent: #d4a657;      /* brass/amber */
-    --accent-dim: #8a6f3a;
+  /* =============================================================
+     THEME PALETTES — WCAG AA contrast targets
+     Normal text ≥4.5:1, large text ≥3:1. text-3 reserved for hints/decoration.
+     ============================================================= */
+  :root,
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg-0: #07080b;   /* canvas */
+    --bg-1: #11141b;   /* panels — lifted so shadows register against bg-0 */
+    --bg-2: #171b24;
+    --bg-3: #1f2430;
+    --bg-4: #2a3040;
+    --stroke-0: rgba(255,255,255,0.06);
+    --stroke-1: rgba(255,255,255,0.12);
+    --stroke-2: rgba(255,255,255,0.22);
+    --stroke-3: rgba(255,255,255,0.36);
+    --text-0: #f5f6f8;  /* ~17:1 on bg-1 */
+    --text-1: #d6dae3;  /* ~13:1 */
+    --text-2: #a0a6b2;  /* ~6.6:1 (AA) */
+    --text-3: #6c7280;  /* ~3.6:1 (large text / hints) */
+    --accent: #e5b36a;         /* ~8.7:1 on bg-0 */
+    --accent-dim: #9a7a3f;
+    --accent-btn-text: #1a1200;
     --run: #f4c56a;
-    --ok: #6dd4a8;
-    --err: #ff7b7b;
-    --paused: #8fb8ff;
-    --cancel: #b0b4bc;
+    --ok: #7ddbaf;
+    --err: #ff8888;
+    --paused: #9cc0ff;
+    --cancel: #c0c4cc;
 
     --n-start:    #c5d86d;
     --n-action:   #94b4f7;
@@ -39,8 +57,92 @@
     --n-container:#9ba3b4;
     --n-end:      #ff9c95;
 
-    --shadow-panel: 0 24px 60px -30px rgba(0,0,0,0.8), 0 2px 0 rgba(255,255,255,0.02) inset;
-    --glow-accent: 0 0 0 1px var(--stroke-2), 0 6px 24px -8px rgba(212,166,87,0.3);
+    --grid-dot: rgba(255,255,255,0.09);
+    --canvas-bg: var(--bg-0);
+    --panel-glass-tint: rgba(255,255,255,0.022);
+    /* Dark-mode elevation: top-edge light catch + outer light ring + deep black drop */
+    --node-shadow:
+      0 1px 0 rgba(255,255,255,0.09) inset,
+      0 0 0 1px rgba(255,255,255,0.05),
+      0 3px 8px rgba(0,0,0,0.7),
+      0 22px 42px -14px rgba(0,0,0,1);
+
+    --shadow-panel:
+      0 1px 0 rgba(255,255,255,0.05) inset,
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 18px 48px -18px rgba(0,0,0,1);
+    --glow-accent: 0 0 0 1px var(--stroke-2), 0 6px 24px -6px rgba(229,179,106,0.45);
+    --focus-ring: 0 0 0 2px var(--bg-0), 0 0 0 4px var(--accent);
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg-0: #eef1f7;   /* off-white chrome background */
+    --bg-1: #ffffff;   /* panels */
+    --bg-2: #f4f6fa;
+    --bg-3: #e4e8f0;
+    --bg-4: #ccd3de;
+    --stroke-0: rgba(15,20,30,0.06);
+    --stroke-1: rgba(15,20,30,0.14);
+    --stroke-2: rgba(15,20,30,0.26);
+    --stroke-3: rgba(15,20,30,0.42);
+    --text-0: #0b1018;  /* ~17:1 on white */
+    --text-1: #1e293b;  /* ~13:1 */
+    --text-2: #475569;  /* ~7.2:1 (AA) */
+    --text-3: #64748b;  /* ~4.8:1 */
+    --accent: #8a5a0f;         /* ~6.9:1 on white */
+    --accent-dim: #6b4608;
+    --accent-btn-text: #ffffff;
+    --run: #9c6d0a;            /* 5.7:1 */
+    --ok: #0f7a55;             /* 5.3:1 */
+    --err: #b52d2d;            /* 6.3:1 */
+    --paused: #234a9f;         /* 7:1 */
+    --cancel: #475569;
+
+    --n-start:    #4d7a08;
+    --n-action:   #1f4bc5;
+    --n-if:       #a04b10;
+    --n-switch:   #8c2566;
+    --n-loop:     #0e6c5e;
+    --n-ai:       #5a32b0;
+    --n-subflow:  #8a6200;
+    --n-container:#374151;
+    --n-end:      #9a2b2b;
+
+    --grid-dot: rgba(15,20,30,0.12);
+    --canvas-bg: #ffffff;   /* pure white canvas */
+    --panel-glass-tint: rgba(15,20,30,0.02);
+
+    --node-shadow:
+      0 0 0 1px rgba(15,20,30,0.12),
+      0 1px 2px rgba(15,20,30,0.06),
+      0 10px 24px -12px rgba(15,20,30,0.28);
+    --shadow-panel:
+      0 0 0 1px rgba(15,20,30,0.08),
+      0 12px 32px -20px rgba(15,20,30,0.3);
+    --glow-accent: 0 0 0 1px var(--accent), 0 6px 18px -6px rgba(138,90,15,0.35);
+    --focus-ring: 0 0 0 2px var(--bg-1), 0 0 0 4px var(--accent);
+  }
+
+  /* ========== Keyboard accessibility ========== */
+  *:focus { outline: none; }
+  *:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: 6px;
+    z-index: 10;
+  }
+  .tb-btn:focus-visible, button:focus-visible { box-shadow: var(--focus-ring); }
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(138,90,15,0.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -285,8 +387,11 @@
     position: relative;
     overflow: hidden;
     background:
-      radial-gradient(circle at 50% 50%, rgba(255,255,255,0.015), transparent 60%),
-      var(--bg-0);
+      radial-gradient(circle at 50% 50%, var(--panel-glass-tint), transparent 60%),
+      var(--canvas-bg);
+  }
+  :root[data-theme="light"] .canvas-area {
+    box-shadow: inset 1px 0 0 var(--stroke-1), inset -1px 0 0 var(--stroke-1);
   }
   .canvas {
     position: absolute; inset: 0;
@@ -304,7 +409,7 @@
   .canvas-grid {
     position: absolute; inset: 0;
     background-image:
-      radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+      radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
     background-size: 24px 24px;
     pointer-events: none;
   }
@@ -354,9 +459,7 @@
     background: linear-gradient(180deg, var(--bg-3) 0%, var(--bg-2) 100%);
     border: 1px solid var(--stroke-1);
     border-radius: 10px;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.03) inset,
-      0 12px 28px -14px rgba(0,0,0,0.8);
+    box-shadow: var(--node-shadow);
     transition: border-color 0.14s, box-shadow 0.14s, transform 0.08s;
     cursor: grab;
     font-size: 12px;
@@ -366,8 +469,8 @@
     border-color: var(--accent);
     box-shadow:
       0 0 0 1px var(--accent),
-      0 0 28px -8px rgba(212,166,87,0.5),
-      0 12px 28px -14px rgba(0,0,0,0.8);
+      0 0 28px -8px var(--accent),
+      var(--node-shadow);
     z-index: 2;
   }
   .node.dragging { cursor: grabbing; opacity: 0.85; }
@@ -537,6 +640,8 @@
   .node[data-status="failed"] .node-status-badge { background: var(--err); color: #400; }
   .node[data-status="cancelled"] .node-status-badge { background: var(--cancel); color: #222; }
   .node[data-status="paused"] .node-status-badge { background: var(--paused); color: #001a3a; }
+  /* Light-theme status/accent text must contrast with the saturated (darker) status colors */
+  :root[data-theme="light"] .node-status-badge { color: #ffffff !important; }
 
   /* Container node */
   .node.container {
@@ -800,8 +905,10 @@
   }
   .modal-btn-secondary { color: var(--text-1); border: 1px solid var(--stroke-1); }
   .modal-btn-secondary:hover { background: var(--bg-3); }
-  .modal-btn-danger { background: var(--err); color: #200; font-weight: 600; }
-  .modal-btn-primary { background: var(--accent); color: #2a1f08; font-weight: 600; }
+  .modal-btn-danger { background: var(--err); color: var(--accent-btn-text); font-weight: 600; }
+  .modal-btn-primary { background: var(--accent); color: var(--accent-btn-text); font-weight: 600; }
+  :root[data-theme="dark"] .modal-btn-danger { color: #1a0000; }
+  :root[data-theme="light"] .modal-btn-danger { color: #ffffff; }
 
   /* ============ TOASTS ============ */
   .toasts {
@@ -895,6 +1002,11 @@
     </div>
 
     <div class="spacer"></div>
+
+    <button class="tb-btn" id="themeToggle" onclick="App.toggleTheme()" aria-label="Toggle light / dark theme" title="Toggle light / dark theme" style="padding: 6px 10px; border: 1px solid var(--stroke-1); border-radius: 8px; background: var(--bg-1);">
+      <svg class="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
 
     <div class="exec-indicator" id="execIndicator">
       <span class="pulse"></span>

@@ -3,6 +3,7 @@ import { render, screen, cleanup, renderHook, act, fireEvent } from "@testing-li
 import type { ReactNode } from "react";
 import { Background } from "@/features/canvas/Background";
 import { Toolbar } from "@/features/editor/Toolbar";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { useWorkflowStore } from "@/store/hooks";
 
 // Capture Background props
@@ -114,7 +115,7 @@ describe("Background grid pattern", () => {
 describe("Toolbar snap toggle", () => {
   it("renders the toolbar with snap toggle button", () => {
     setupStore(false);
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
 
     expect(screen.getByTestId("snap-grid-toggle")).toBeDefined();
     expect(screen.getByRole("toolbar", { name: "Editor toolbar" })).toBeDefined();
@@ -124,7 +125,7 @@ describe("Toolbar snap toggle", () => {
     setupStore(false);
     expect(getSnapEnabled()).toBe(false);
 
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
     fireEvent.click(screen.getByTestId("snap-grid-toggle"));
 
     expect(getSnapEnabled()).toBe(true);
@@ -133,7 +134,7 @@ describe("Toolbar snap toggle", () => {
   it("clicking toggle twice returns to original state", () => {
     setupStore(false);
 
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
     const btn = screen.getByTestId("snap-grid-toggle");
 
     fireEvent.click(btn);
@@ -145,7 +146,7 @@ describe("Toolbar snap toggle", () => {
 
   it("button shows correct aria-label when disabled", () => {
     setupStore(false);
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
 
     const btn = screen.getByTestId("snap-grid-toggle");
     expect(btn.getAttribute("aria-label")).toBe("Enable snap to grid");
@@ -154,7 +155,7 @@ describe("Toolbar snap toggle", () => {
 
   it("button shows correct aria-label when enabled", () => {
     setupStore(true);
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
 
     const btn = screen.getByTestId("snap-grid-toggle");
     expect(btn.getAttribute("aria-label")).toBe("Disable snap to grid");
@@ -163,7 +164,7 @@ describe("Toolbar snap toggle", () => {
 
   it("toolbar has role=toolbar with aria-label", () => {
     setupStore(false);
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
 
     const toolbar = screen.getByRole("toolbar", { name: "Editor toolbar" });
     expect(toolbar).toBeDefined();

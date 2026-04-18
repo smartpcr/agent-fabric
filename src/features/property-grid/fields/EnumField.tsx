@@ -1,4 +1,5 @@
 import * as Select from "@radix-ui/react-select";
+import { useTranslation } from "react-i18next";
 import type { FieldComponentProps } from "@/features/property-grid/registry";
 
 /**
@@ -10,6 +11,7 @@ import type { FieldComponentProps } from "@/features/property-grid/registry";
  * - Keyboard navigation delegated to Radix Select (arrows, Enter)
  */
 export function EnumField({ descriptor, field, error }: FieldComponentProps) {
+  const { t } = useTranslation();
   const errorId = `error-${descriptor.name}`;
   const options = descriptor.enumValues ?? [];
 
@@ -39,7 +41,7 @@ export function EnumField({ descriptor, field, error }: FieldComponentProps) {
           data-testid={`field-${descriptor.name}`}
           onBlur={field.onBlur}
         >
-          <Select.Value placeholder={descriptor.description ?? "Select..."} />
+          <Select.Value placeholder={descriptor.description ?? t("propertyGrid.selectPlaceholder")} />
           <Select.Icon data-testid={`icon-${descriptor.name}`} />
         </Select.Trigger>
 

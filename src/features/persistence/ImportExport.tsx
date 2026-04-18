@@ -1,4 +1,6 @@
 import { useCallback, useRef, type ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 import { CURRENT_SCHEMA_VERSION, type WorkflowGraph } from "@/domain/models/graph";
 import { GraphJsonV1 } from "@/domain/serialization/schema.v1";
 import { migrate } from "@/domain/serialization/migrate";
@@ -70,6 +72,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
  * timestamp.
  */
 export function ExportButton({ graph, onDownload = downloadBlob }: ExportButtonProps) {
+  const { t } = useTranslation();
   const handleExport = useCallback(() => {
     const json = JSON.stringify(graph, null, 2);
     const blob = new Blob([json], { type: "application/json" });
@@ -81,10 +84,10 @@ export function ExportButton({ graph, onDownload = downloadBlob }: ExportButtonP
     <button
       type="button"
       data-testid="export-button"
-      aria-label="Export workflow"
+      aria-label={t("persistence.exportWorkflow")}
       onClick={handleExport}
     >
-      Export
+      {t("persistence.export")}
     </button>
   );
 }
@@ -117,7 +120,7 @@ export function parseImportedJson(text: string): ImportParseResult {
   try {
     raw = JSON.parse(text) as unknown;
   } catch {
-    return { ok: false, message: "File is not valid JSON." };
+    return { ok: false, message: i18next.t("persistence.invalidJson") };
   }
 
   // Migrate if needed
@@ -127,7 +130,7 @@ export function parseImportedJson(text: string): ImportParseResult {
     try {
       raw = migrate(raw);
     } catch (e: unknown) {
-      return { ok: false, message: `Migration failed: ${String(e)}` };
+      return { ok: false, message: i18next.t("persistence.migrationFailed", { error: String(e) }) };
     }
   }
 
@@ -135,7 +138,7 @@ export function parseImportedJson(text: string): ImportParseResult {
   if (!result.success) {
     return {
       ok: false,
-      message: `Invalid workflow: ${result.error.issues.map((i) => i.message).join("; ")}`,
+      message: i18next.t("persistence.invalidWorkflow", { errors: result.error.issues.map((i) => i.message).join("; ") }),
     };
   }
 
@@ -198,6 +201,7 @@ export function ImportButton({
   // eslint-disable-next-line no-alert -- intentional user confirmation dialog
   confirm: confirmFn = (msg: string) => window.confirm(msg),
 }: ImportButtonProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
 
@@ -217,7 +221,7 @@ export function ImportButton({
 
         if (!result.ok) {
           toast.show({
-            title: "Import failed",
+            title: t("persistence.importFailed"),
             description: result.message,
             variant: "error",
           });
@@ -226,7 +230,7 @@ export function ImportButton({
         }
 
         const proceed = confirmFn(
-          `Import "${result.graph.name}"? This will replace the current workflow.`,
+          t("persistence.importConfirm", { name: result.graph.name }),
         );
         if (!proceed) return;
 
@@ -237,7 +241,7 @@ export function ImportButton({
       // Reset the input so the same file can be re-selected
       e.target.value = "";
     },
-    [onImport, onError, confirmFn, toast],
+    [onImport, onError, confirmFn, toast, t],
   );
 
   return (
@@ -245,10 +249,10 @@ export function ImportButton({
       <button
         type="button"
         data-testid="import-button"
-        aria-label="Import workflow"
+        aria-label={t("persistence.importWorkflow")}
         onClick={handleClick}
       >
-        Import
+        {t("persistence.import")}
       </button>
       <input
         ref={inputRef}

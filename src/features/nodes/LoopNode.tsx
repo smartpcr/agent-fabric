@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Position, type NodeProps } from "@xyflow/react";
+import { useTranslation } from "react-i18next";
 import { BaseNode } from "@/features/nodes/BaseNode";
 import { InputHandle } from "@/features/nodes/ports/InputHandle";
 import { OutputHandle } from "@/features/nodes/ports/OutputHandle";
@@ -49,6 +50,7 @@ const HANDLE_LABEL_STYLE: React.CSSProperties = {
 };
 
 export function LoopNode({ id, data, type, selected }: NodeProps) {
+  const { t } = useTranslation();
   const loopData = data as LoopData;
   const spec = useWorkflowStore((s) => selectNodeSpec(s, type ?? "loop-while"));
   const openInspector = useWorkflowStore((s) => s.openInspector);
@@ -137,7 +139,7 @@ export function LoopNode({ id, data, type, selected }: NodeProps) {
       data-testid="loop-node-wrapper"
     >
       {/* ↻ badge */}
-      <div data-testid="loop-badge" style={BADGE_STYLE} aria-label="loop indicator">
+      <div data-testid="loop-badge" style={BADGE_STYLE} aria-label={t("loop.indicator")}>
         ↻
       </div>
 
@@ -219,7 +221,7 @@ export function LoopNode({ id, data, type, selected }: NodeProps) {
         >
           {loopData.iterationCount === undefined
             ? ""
-            : `iteration ${String(loopData.iterationCount)}`}
+            : t("loop.iteration", { count: String(loopData.iterationCount) })}
         </div>
       </BaseNode>
 
@@ -251,7 +253,7 @@ export function LoopNode({ id, data, type, selected }: NodeProps) {
               transform: "translate(100%, -50%)",
             }}
           >
-            body
+            {t("loop.body")}
           </span>
         </>
       ) : null}
@@ -274,7 +276,7 @@ export function LoopNode({ id, data, type, selected }: NodeProps) {
               transform: "translate(-100%, -50%)",
             }}
           >
-            back
+            {t("loop.back")}
           </span>
         </>
       ) : null}
@@ -297,7 +299,7 @@ export function LoopNode({ id, data, type, selected }: NodeProps) {
               transform: "translate(-50%, 100%)",
             }}
           >
-            done
+            {t("loop.done")}
           </span>
         </>
       ) : null}
@@ -320,7 +322,7 @@ export function LoopNode({ id, data, type, selected }: NodeProps) {
               transform: "translateY(100%)",
             }}
           >
-            break
+            {t("loop.break")}
           </span>
         </>
       ) : null}

@@ -1,4 +1,6 @@
 import { Position, type NodeProps } from "@xyflow/react";
+import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 import { makeOutputPort, type PortSpec } from "@/domain/models/port";
 import { BaseNode } from "@/features/nodes/BaseNode";
 import { InputHandle } from "@/features/nodes/ports/InputHandle";
@@ -28,7 +30,7 @@ function buildOutputPortsFromBranches(
       }),
     );
   }
-  ports.push(makeOutputPort({ id: "default", label: "default", dataType: "any" }));
+  ports.push(makeOutputPort({ id: "default", label: i18next.t("decision.default"), dataType: "any" }));
   return ports;
 }
 
@@ -85,6 +87,7 @@ function evenlySpacedPositions(count: number): number[] {
 }
 
 export function DecisionNode({ id, data, type, selected }: NodeProps) {
+  const { t } = useTranslation();
   const decisionData = data as DecisionData;
   const spec = useWorkflowStore((s) => selectNodeSpec(s, type ?? "decision"));
   const openInspector = useWorkflowStore((s) => s.openInspector);
@@ -125,7 +128,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
         </svg>
 
         <BaseNode
-          title="Switch"
+          title={t("nodes.switch")}
           icon={icon}
           selected={selected}
           nodeId={id}
@@ -151,7 +154,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
               margin: "0 auto",
             }}
           >
-            {branches.length} branches
+            {t("decision.branchCount", { count: branches.length })}
           </div>
         </BaseNode>
 
@@ -218,7 +221,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
       </svg>
 
       <BaseNode
-        title="Decision"
+        title={t("nodes.decision")}
         icon={icon}
         selected={selected}
         nodeId={id}
@@ -278,7 +281,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
               transform: "translate(100%, -50%)",
             }}
           >
-            true
+            {t("decision.true")}
           </span>
         </>
       ) : null}
@@ -301,7 +304,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
               transform: "translate(-50%, 100%)",
             }}
           >
-            false
+            {t("decision.false")}
           </span>
         </>
       ) : null}

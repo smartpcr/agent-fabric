@@ -1,5 +1,170 @@
 {
   "app": {
     "title": "Workflow Editor"
+  },
+  "toolbar": {
+    "ariaLabel": "Editor toolbar",
+    "save": "Save",
+    "autoLayout": "Auto-layout",
+    "disableSnap": "Disable snap to grid",
+    "enableSnap": "Enable snap to grid",
+    "switchToDark": "Switch to dark theme",
+    "switchToLight": "Switch to light theme"
+  },
+  "undoRedo": {
+    "ariaLabel": "Undo / Redo",
+    "undo": "Undo",
+    "redo": "Redo"
+  },
+  "propertyGrid": {
+    "ariaLabel": "Property Grid",
+    "title": "Properties",
+    "selectNode": "Select a node",
+    "differentKinds": "Selected nodes have different kinds. Select nodes of the same kind to edit shared properties.",
+    "editingNodes": "Editing {{count}} nodes",
+    "copy": "Copy",
+    "loadingEditor": "Loading code editor",
+    "noSchema": "No schema provided",
+    "nodeIdCopied": "Node ID copied",
+    "nodeLabel": "Node label",
+    "editNodeLabel": "Edit node label",
+    "copyNodeId": "Copy node ID",
+    "mixed": "mixed",
+    "selectPlaceholder": "Select...",
+    "expand": "Expand {{name}}",
+    "collapse": "Collapse {{name}}",
+    "nestedErrors_one": "{{count}} nested error",
+    "nestedErrors_other": "{{count}} nested errors",
+    "errorCount_one": "{{count}} error",
+    "errorCount_other": "{{count}} errors",
+    "validationErrors_one": "{{count}} validation error",
+    "validationErrors_other": "{{count}} validation errors",
+    "fields": "{{name}} fields",
+    "dragItem": "Drag {{label}}",
+    "removeItem": "Remove item {{index}}",
+    "addItem": "Add {{name}} item",
+    "itemFallback": "Item {{index}}",
+    "itemsWithErrors_one": "{{count}} item with errors",
+    "itemsWithErrors_other": "{{count}} items with errors"
+  },
+  "palette": {
+    "ariaLabel": "Node Palette",
+    "searchPlaceholder": "Search nodes\u2026",
+    "searchAriaLabel": "Search palette",
+    "nodeTypes": "Node types",
+    "noMatching": "No matching nodes"
+  },
+  "execution": {
+    "start": "Start",
+    "pause": "Pause",
+    "cancel": "Cancel",
+    "startRun": "Start run",
+    "pauseRun": "Pause run",
+    "cancelRun": "Cancel run",
+    "runControlsLabel": "Run controls",
+    "runInspector": "Run Inspector",
+    "closeInspector": "Close inspector",
+    "eventTimeline": "Event timeline",
+    "copyPayload": "Copy payload for {{type}}",
+    "noEvents": "No events recorded for this node.",
+    "copied": "Copied!",
+    "copyAction": "Copy",
+    "connectionStatus": "Connection status: {{state}}",
+    "connected": "Connected",
+    "reconnecting": "Reconnecting",
+    "disconnected": "Disconnected"
+  },
+  "persistence": {
+    "saving": "Saving\u2026",
+    "save": "Save",
+    "load": "Load",
+    "new": "New",
+    "export": "Export",
+    "import": "Import",
+    "saved": "Saved {{timestamp}}",
+    "workflowName": "Workflow name",
+    "unsavedChanges": "Unsaved changes",
+    "exportWorkflow": "Export workflow",
+    "importWorkflow": "Import workflow",
+    "importFailed": "Import failed",
+    "importConfirm": "Import \"{{name}}\"? This will replace the current workflow.",
+    "invalidJson": "File is not valid JSON.",
+    "migrationFailed": "Migration failed: {{error}}",
+    "invalidWorkflow": "Invalid workflow: {{errors}}",
+    "conflictTitle": "Workflow changed elsewhere",
+    "conflictDescription": "Another user saved this workflow. Reload the latest version or force your save.",
+    "reload": "Reload",
+    "forceSave": "Force save"
+  },
+  "canvas": {
+    "ariaLabel": "Workflow Canvas",
+    "miniMap": "Mini map",
+    "dropToImport": "Drop workflow JSON to import",
+    "connectionCreated": "Connection created",
+    "connectionRejected": "Connection rejected",
+    "connectionRejectedReason": "Connection rejected: {{reason}}",
+    "noCompatibleTargets": "No compatible targets available",
+    "connectMode": "Connect mode: {{count}} targets. {{label}} ({{current}} of {{total}})",
+    "connectionCancelled": "Connection cancelled",
+    "targetPosition": "{{label}} ({{current}} of {{total}})",
+    "connectedTo": "Connected to {{label}}",
+    "connectionToRejected": "Connection to {{label}} rejected"
+  },
+  "canvasControls": {
+    "ariaLabel": "Canvas controls",
+    "zoomIn": "Zoom in (+)",
+    "zoomOut": "Zoom out (-)",
+    "fitView": "Fit view (f)",
+    "lockCanvas": "Lock canvas (l)",
+    "unlockCanvas": "Unlock canvas (l)"
+  },
+  "toast": {
+    "dismiss": "Dismiss"
+  },
+  "nodes": {
+    "start": "Start",
+    "end": "End",
+    "decision": "Decision",
+    "switch": "Switch"
+  },
+  "secretField": {
+    "hide": "Hide",
+    "reveal": "Reveal",
+    "copy": "Copy",
+    "hideSecret": "Hide secret",
+    "revealSecret": "Reveal secret",
+    "copyToClipboard": "Copy to clipboard",
+    "copiedToClipboard": "Copied to clipboard",
+    "failedToCopy": "Failed to copy"
+  },
+  "loop": {
+    "iteration": "iteration {{count}}",
+    "body": "body",
+    "back": "back",
+    "done": "done",
+    "break": "break",
+    "indicator": "loop indicator"
+  },
+  "decision": {
+    "branchCount": "{{count}} branches",
+    "default": "default",
+    "true": "true",
+    "false": "false"
+  },
+  "statusBadge": {
+    "pending": "Pending",
+    "running": "Running",
+    "succeeded": "Succeeded",
+    "failed": "Failed",
+    "skipped": "Skipped"
+  },
+  "iterationBadge": {
+    "iteration": "Iteration {{count}}",
+    "iterationOf": "Iteration {{count}} of {{total}}"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred.",
+    "recover": "Recover"
   }
 }

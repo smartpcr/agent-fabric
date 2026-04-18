@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo } from "react";
 import type { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { useWorkflowStore } from "@/store/hooks";
 import { selectNodeSpec } from "@/store/selectors/graphSelectors";
 import { SchemaForm } from "@/features/property-grid/SchemaForm";
@@ -65,13 +66,9 @@ function PropertyGridContent({
   readonly handleChange: (value: Record<string, unknown>) => void;
   readonly handleValidationChange: (count: number, messages: string[]) => void;
 }) {
+  const { t } = useTranslation();
   if (isMultiSelect && !multiSelectKind) {
-    return (
-      <p data-testid="property-grid-mixed-kinds">
-        Selected nodes have different kinds. Select nodes of the same kind to edit shared
-        properties.
-      </p>
-    );
+    return <p data-testid="property-grid-mixed-kinds">{t("propertyGrid.differentKinds")}</p>;
   }
 
   if (hasActiveForm && spec && formValue) {
@@ -79,7 +76,7 @@ function PropertyGridContent({
       <div data-testid="property-grid-fields">
         {isMultiSelect && (
           <p data-testid="multi-select-indicator" style={{ fontSize: "0.85rem", color: "#666" }}>
-            Editing {selectedNodes.length} nodes
+            {t("propertyGrid.editingNodes", { count: selectedNodes.length })}
           </p>
         )}
         <PropertyGridHeader
@@ -103,7 +100,7 @@ function PropertyGridContent({
     );
   }
 
-  return <p data-testid="property-grid-empty">Select a node</p>;
+  return <p data-testid="property-grid-empty">{t("propertyGrid.selectNode")}</p>;
 }
 
 /**
@@ -119,6 +116,7 @@ function PropertyGridContent({
  * - Shows "Select a node" empty state when nothing is selected
  */
 export function PropertyGrid() {
+  const { t } = useTranslation();
   const lastSelectedNodeId = useWorkflowStore((s) => s.lastSelectedNodeId);
   const selectedNodeIds = useWorkflowStore((s) => s.selectedNodeIds);
   const nodes = useWorkflowStore((s) => s.nodes);
@@ -238,12 +236,12 @@ export function PropertyGrid() {
   return (
     <div
       role="complementary"
-      aria-label="Property Grid"
+      aria-label={t("propertyGrid.ariaLabel")}
       style={{ height: "100%", padding: "8px" }}
       data-testid="property-grid"
     >
       <h2>
-        Properties
+        {t("propertyGrid.title")}
         {errorCount > 0 && (
           <span
             data-testid="error-count-badge"
@@ -256,7 +254,7 @@ export function PropertyGrid() {
               fontSize: "0.75rem",
               fontWeight: 600,
             }}
-            aria-label={`${String(errorCount)} validation error${errorCount === 1 ? "" : "s"}`}
+            aria-label={t("propertyGrid.validationErrors", { count: errorCount })}
           >
             {errorCount}
           </span>

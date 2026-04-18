@@ -1,5 +1,6 @@
 import { createContext, useCallback, useState, type ReactNode } from "react";
 import * as RadixToast from "@radix-ui/react-toast";
+import i18next from "i18next";
 
 export type ToastVariant = "default" | "success" | "error";
 
@@ -122,7 +123,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               </div>
             ) : null}
             <RadixToast.Close
-              aria-label="Dismiss"
+              aria-label={i18next.t("toast.dismiss")}
               style={{
                 marginLeft: 8,
                 background: "transparent",

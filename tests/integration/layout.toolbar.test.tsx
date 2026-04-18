@@ -10,6 +10,7 @@ import {
 } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Toolbar } from "@/features/editor/Toolbar";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { useWorkflowStore, useTemporalStore } from "@/store/hooks";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -96,13 +97,13 @@ describe("Auto-layout toolbar button", () => {
   });
 
   it("renders the auto-layout button", () => {
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
     expect(screen.getByTestId("auto-layout-button")).toBeInTheDocument();
     expect(screen.getByLabelText("Auto-layout")).toBeInTheDocument();
   });
 
   it("button is enabled when layout is not running", () => {
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
     const btn = screen.getByTestId("auto-layout-button");
     expect(btn).not.toBeDisabled();
   });
@@ -118,7 +119,7 @@ describe("Auto-layout toolbar button", () => {
 
     const originalPositions = readStoreNodes().map((n) => ({ ...n.position }));
 
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
     const btn = screen.getByTestId("auto-layout-button");
 
     act(() => {
@@ -155,7 +156,7 @@ describe("Auto-layout toolbar button", () => {
     });
     unmountT();
 
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
     const btn = screen.getByTestId("auto-layout-button");
 
     act(() => {
@@ -206,7 +207,7 @@ describe("Auto-layout toolbar button", () => {
     });
     unmount();
 
-    render(<Toolbar />);
+    render(<ThemeProvider><Toolbar /></ThemeProvider>);
 
     // Button should be disabled while running
     await waitFor(() => {

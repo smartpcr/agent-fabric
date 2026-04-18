@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useExecutionCommand, type ExecutionCommand } from "@/hooks/useExecutionCommand";
 import type { RunStatus } from "@/store/slices/executionSlice";
 
@@ -21,6 +22,7 @@ export interface RunControlsProps {
  * - Ctrl+. → cancel
  */
 export function RunControls({ runStatus }: RunControlsProps) {
+  const { t } = useTranslation();
   const { dispatch } = useExecutionCommand();
 
   const isRunning = runStatus === "running";
@@ -55,36 +57,36 @@ export function RunControls({ runStatus }: RunControlsProps) {
   }, [isRunning, handleDispatch]);
 
   return (
-    <div data-testid="run-controls" role="toolbar" aria-label="Run controls">
+    <div data-testid="run-controls" role="toolbar" aria-label={t("execution.runControlsLabel")}>
       <button
         data-testid="run-btn"
-        aria-label="Start run"
+        aria-label={t("execution.startRun")}
         disabled={isRunning}
         onClick={() => {
           handleDispatch({ type: "run" });
         }}
       >
-        Start
+        {t("execution.start")}
       </button>
       <button
         data-testid="pause-btn"
-        aria-label="Pause run"
+        aria-label={t("execution.pauseRun")}
         disabled={!isRunning}
         onClick={() => {
           handleDispatch({ type: "pause" });
         }}
       >
-        Pause
+        {t("execution.pause")}
       </button>
       <button
         data-testid="cancel-btn"
-        aria-label="Cancel run"
+        aria-label={t("execution.cancelRun")}
         disabled={!isRunning}
         onClick={() => {
           handleDispatch({ type: "cancel" });
         }}
       >
-        Cancel
+        {t("execution.cancel")}
       </button>
     </div>
   );

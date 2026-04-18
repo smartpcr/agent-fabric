@@ -1,0 +1,7 @@
+{
+  "name": "eslint-plugin-i18n-json",
+  "version": "1.0.0",
+  "description": "Custom ESLint rule to enforce i18n usage — rejects hard-coded strings in JSX",
+  "main": "index.js",
+  "private": true
+}

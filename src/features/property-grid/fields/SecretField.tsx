@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useContext } from "react";
 import type { FieldComponentProps } from "@/features/property-grid/registry";
 import type { FieldDescriptor } from "@/features/property-grid/introspect";
 import { ToastContext, type ToastVariant } from "@/features/editor/Toast";
+import { useTranslation } from "react-i18next";
 
 /** Sentinel value used to replace raw secrets in autosave payloads. */
 export const SECRET_SENTINEL = "<secret>";
@@ -113,6 +114,7 @@ export interface SecretFieldProps extends FieldComponentProps {
  *   `SECRET_SENTINEL` before persisting.
  */
 export function SecretField({ descriptor, field, error, onCopyToast }: SecretFieldProps) {
+  const { t } = useTranslation();
   const [revealed, setRevealed] = useState(false);
   const toastCtx = useContext(ToastContext);
 
@@ -143,11 +145,11 @@ export function SecretField({ descriptor, field, error, onCopyToast }: SecretFie
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(displayValue);
-      showToast({ title: "Copied to clipboard", variant: "success" });
+      showToast({ title: t("secretField.copiedToClipboard"), variant: "success" });
     } catch {
-      showToast({ title: "Failed to copy", variant: "error" });
+      showToast({ title: t("secretField.failedToCopy"), variant: "error" });
     }
-  }, [displayValue, showToast]);
+  }, [displayValue, showToast, t]);
 
   return (
     <div data-testid={`secret-field-${descriptor.name}`}>
@@ -169,20 +171,20 @@ export function SecretField({ descriptor, field, error, onCopyToast }: SecretFie
       <button
         type="button"
         onClick={toggleReveal}
-        aria-label={revealed ? "Hide secret" : "Reveal secret"}
+        aria-label={revealed ? t("secretField.hideSecret") : t("secretField.revealSecret")}
         data-testid={`reveal-${descriptor.name}`}
       >
-        {revealed ? "Hide" : "Reveal"}
+        {revealed ? t("secretField.hide") : t("secretField.reveal")}
       </button>
       <button
         type="button"
         onClick={() => {
           void handleCopy();
         }}
-        aria-label="Copy to clipboard"
+        aria-label={t("secretField.copyToClipboard")}
         data-testid={`copy-${descriptor.name}`}
       >
-        Copy
+        {t("secretField.copy")}
       </button>
       {error && (
         <span id={errorId} role="alert" data-testid={`error-${descriptor.name}`}>

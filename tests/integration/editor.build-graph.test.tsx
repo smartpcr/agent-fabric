@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, cleanup, act, renderHook, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { EditorPage } from "@/features/editor/EditorPage";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore } from "@/store/hooks";
@@ -140,7 +141,7 @@ describe("Integration — build 3-node chain via palette + canvas interactions",
   });
 
   it("drag Start, Task, End from palette → connect via ports → graph has 3 nodes and 2 edges in chain", () => {
-    render(<EditorPage />);
+    render(<ThemeProvider><EditorPage /></ThemeProvider>);
 
     // 1. Drag all three node types from palette onto canvas
     dragPaletteItemToCanvas("Start", 100, 100);
@@ -213,7 +214,7 @@ describe("Integration — build 3-node chain via palette + canvas interactions",
   });
 
   it("edges render in the mock ReactFlow after connection", () => {
-    render(<EditorPage />);
+    render(<ThemeProvider><EditorPage /></ThemeProvider>);
 
     // Drag all three nodes
     dragPaletteItemToCanvas("Start", 50, 50);
@@ -242,7 +243,7 @@ describe("Integration — build 3-node chain via palette + canvas interactions",
 
     // Re-render to pick up edges
     cleanup();
-    render(<EditorPage />);
+    render(<ThemeProvider><EditorPage /></ThemeProvider>);
 
     // Edges should be rendered by the mock ReactFlow
     const edges = result.current.edges;
@@ -264,7 +265,7 @@ describe("Integration — build 3-node chain via palette + canvas interactions",
   });
 
   it("rejects invalid connection in the user flow (end has no output port)", () => {
-    render(<EditorPage />);
+    render(<ThemeProvider><EditorPage /></ThemeProvider>);
 
     dragPaletteItemToCanvas("Start", 100, 100);
     dragPaletteItemToCanvas("End", 300, 100);

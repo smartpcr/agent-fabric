@@ -1,5 +1,6 @@
 import { MiniMap as XYMiniMap, useReactFlow } from "@xyflow/react";
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useWorkflowStore } from "@/store/hooks";
 
 const NODE_COLORS: Record<string, string> = {
@@ -15,6 +16,7 @@ function nodeColor(node: { type?: string }): string {
 }
 
 export function MiniMap() {
+  const { t } = useTranslation();
   const setZoom = useWorkflowStore((s) => s.setZoom);
   const setPan = useWorkflowStore((s) => s.setPan);
   const { setViewport } = useReactFlow();
@@ -36,7 +38,7 @@ export function MiniMap() {
       pannable
       zoomable
       onClick={handleClick}
-      aria-label="Mini map"
+      aria-label={t("canvas.miniMap")}
     />
   );
 }

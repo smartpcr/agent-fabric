@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -10,12 +11,13 @@ interface ErrorBoundaryState {
 }
 
 function FallbackUi({ onRecover }: { onRecover: () => void }) {
+  const { t } = useTranslation();
   return (
     <div role="alert" style={{ padding: "24px", textAlign: "center" }}>
-      <h2>Something went wrong</h2>
-      <p>An unexpected error occurred.</p>
+      <h2>{t("errorBoundary.title")}</h2>
+      <p>{t("errorBoundary.description")}</p>
       <button type="button" onClick={onRecover}>
-        Recover
+        {t("errorBoundary.recover")}
       </button>
     </div>
   );

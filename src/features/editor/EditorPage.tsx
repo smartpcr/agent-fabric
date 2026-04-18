@@ -1,4 +1,5 @@
 import { ReactFlowProvider } from "@xyflow/react";
+import { useTranslation } from "react-i18next";
 import { EditorLayout } from "@/features/editor/EditorLayout";
 import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
@@ -7,6 +8,7 @@ import { ValidationProvider } from "@/features/property-grid/ValidationContext";
 import { AnnouncerProvider } from "@/providers/AnnouncerProvider";
 
 export function EditorPage() {
+  const { t } = useTranslation();
   return (
     <ReactFlowProvider>
       <AnnouncerProvider>
@@ -27,7 +29,7 @@ export function EditorPage() {
                     border: 0,
                   }}
                 >
-                  Workflow Editor
+                  {t("app.title")}
                 </h1>
                 <EditorLayout />
                 <div id="portal-root" />

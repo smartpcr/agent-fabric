@@ -1,10 +1,12 @@
 import { Position, type NodeProps } from "@xyflow/react";
+import { useTranslation } from "react-i18next";
 import { BaseNode } from "@/features/nodes/BaseNode";
 import { InputHandle } from "@/features/nodes/ports/InputHandle";
 import { useWorkflowStore } from "@/store/hooks";
 import { selectNodeSpec } from "@/store/selectors/graphSelectors";
 
 export function EndNode({ id, selected, type }: NodeProps) {
+  const { t } = useTranslation();
   const spec = useWorkflowStore((s) => selectNodeSpec(s, type ?? "end"));
   const openInspector = useWorkflowStore((s) => s.openInspector);
   const selectNode = useWorkflowStore((s) => s.select);
@@ -12,7 +14,7 @@ export function EndNode({ id, selected, type }: NodeProps) {
   const inPort = spec?.ports.find((p) => p.kind === "in");
   return (
     <BaseNode
-      title="End"
+      title={t("nodes.end")}
       icon="square"
       selected={selected}
       borderRadius="9999px"

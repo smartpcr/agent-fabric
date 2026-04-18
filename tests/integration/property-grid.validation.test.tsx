@@ -13,6 +13,7 @@ import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { PropertyGrid } from "@/features/property-grid/PropertyGrid";
 import { Toolbar } from "@/features/editor/Toolbar";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ValidationProvider } from "@/features/property-grid/ValidationContext";
 
 // Mock @monaco-editor/react to avoid Monaco in tests
@@ -57,10 +58,12 @@ afterEach(() => {
 
 function renderApp() {
   return render(
-    <ValidationProvider>
-      <Toolbar />
-      <PropertyGrid />
-    </ValidationProvider>,
+    <ThemeProvider>
+      <ValidationProvider>
+        <Toolbar />
+        <PropertyGrid />
+      </ValidationProvider>
+    </ThemeProvider>,
   );
 }
 
