@@ -413,4 +413,72 @@ describe("useHistoryShortcut", () => {
     });
     expect(store.current.nodes).toHaveLength(1);
   });
+
+  it("Ctrl+Z with uppercase key 'Z' still triggers undo", () => {
+    const { result: store } = renderHook(() => useWorkflowStore());
+
+    act(() => {
+      store.current.addNode(taskSpec, { x: 0, y: 0 });
+    });
+    expect(store.current.nodes).toHaveLength(1);
+
+    const { unmount } = renderHook(() => {
+      useHistoryShortcut();
+    });
+
+    act(() => {
+      fireKey("Z", { ctrlKey: true });
+    });
+
+    expect(store.current.nodes).toHaveLength(0);
+    unmount();
+  });
+
+  it("Ctrl+Shift+Z with uppercase key 'Z' still triggers redo", () => {
+    const { result: store } = renderHook(() => useWorkflowStore());
+    const { result: temporal } = renderHook(() => useTemporalStore());
+
+    act(() => {
+      store.current.addNode(taskSpec, { x: 0, y: 0 });
+    });
+    act(() => {
+      temporal.current.undo();
+    });
+    expect(store.current.nodes).toHaveLength(0);
+
+    const { unmount } = renderHook(() => {
+      useHistoryShortcut();
+    });
+
+    act(() => {
+      fireKey("Z", { ctrlKey: true, shiftKey: true });
+    });
+
+    expect(store.current.nodes).toHaveLength(1);
+    unmount();
+  });
+
+  it("Ctrl+Y with uppercase key 'Y' still triggers redo", () => {
+    const { result: store } = renderHook(() => useWorkflowStore());
+    const { result: temporal } = renderHook(() => useTemporalStore());
+
+    act(() => {
+      store.current.addNode(taskSpec, { x: 0, y: 0 });
+    });
+    act(() => {
+      temporal.current.undo();
+    });
+    expect(store.current.nodes).toHaveLength(0);
+
+    const { unmount } = renderHook(() => {
+      useHistoryShortcut();
+    });
+
+    act(() => {
+      fireKey("Y", { ctrlKey: true });
+    });
+
+    expect(store.current.nodes).toHaveLength(1);
+    unmount();
+  });
 });

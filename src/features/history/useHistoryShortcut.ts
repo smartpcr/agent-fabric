@@ -38,22 +38,24 @@ export function useHistoryShortcut(): void {
       const ctrl = e.ctrlKey || e.metaKey;
       if (!ctrl) return;
 
+      const key = e.key.toLowerCase();
+
       // Ctrl+Shift+Z → Redo
-      if (e.key === "z" && e.shiftKey) {
+      if (key === "z" && e.shiftKey) {
         e.preventDefault();
         temporal.getState().redo();
         return;
       }
 
       // Ctrl+Z → Undo
-      if (e.key === "z" && !e.shiftKey) {
+      if (key === "z" && !e.shiftKey) {
         e.preventDefault();
         temporal.getState().undo();
         return;
       }
 
       // Ctrl+Y → Redo (Windows convention)
-      if (e.key === "y" && !e.shiftKey) {
+      if (key === "y" && !e.shiftKey) {
         e.preventDefault();
         temporal.getState().redo();
       }
