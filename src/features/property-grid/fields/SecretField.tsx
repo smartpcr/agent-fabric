@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useContext } from "react";
 import type { FieldComponentProps } from "@/features/property-grid/registry";
 import type { FieldDescriptor } from "@/features/property-grid/introspect";
 import { ToastContext, type ToastVariant } from "@/features/editor/Toast";
+import { useTranslation } from "react-i18next";
 
 /** Sentinel value used to replace raw secrets in autosave payloads. */
 export const SECRET_SENTINEL = "<secret>";
@@ -113,6 +114,7 @@ export interface SecretFieldProps extends FieldComponentProps {
  *   `SECRET_SENTINEL` before persisting.
  */
 export function SecretField({ descriptor, field, error, onCopyToast }: SecretFieldProps) {
+  const { t } = useTranslation();
   const [revealed, setRevealed] = useState(false);
   const toastCtx = useContext(ToastContext);
 
@@ -172,7 +174,7 @@ export function SecretField({ descriptor, field, error, onCopyToast }: SecretFie
         aria-label={revealed ? "Hide secret" : "Reveal secret"}
         data-testid={`reveal-${descriptor.name}`}
       >
-        {revealed ? "Hide" : "Reveal"}
+        {revealed ? t("secretField.hide") : t("secretField.reveal")}
       </button>
       <button
         type="button"
@@ -182,7 +184,7 @@ export function SecretField({ descriptor, field, error, onCopyToast }: SecretFie
         aria-label="Copy to clipboard"
         data-testid={`copy-${descriptor.name}`}
       >
-        Copy
+        {t("secretField.copy")}
       </button>
       {error && (
         <span id={errorId} role="alert" data-testid={`error-${descriptor.name}`}>

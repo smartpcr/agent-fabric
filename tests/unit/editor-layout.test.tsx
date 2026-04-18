@@ -4,19 +4,22 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { EditorLayout } from "@/features/editor/EditorLayout";
 import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AnnouncerProvider } from "@/providers/AnnouncerProvider";
 
 function renderLayout() {
   return render(
-    <ReactFlowProvider>
-      <AnnouncerProvider>
-        <ToastProvider>
-          <DragProvider>
-            <EditorLayout />
-          </DragProvider>
-        </ToastProvider>
-      </AnnouncerProvider>
-    </ReactFlowProvider>,
+    <ThemeProvider>
+      <ReactFlowProvider>
+        <AnnouncerProvider>
+          <ToastProvider>
+            <DragProvider>
+              <EditorLayout />
+            </DragProvider>
+          </ToastProvider>
+        </AnnouncerProvider>
+      </ReactFlowProvider>
+    </ThemeProvider>,
   );
 }
 

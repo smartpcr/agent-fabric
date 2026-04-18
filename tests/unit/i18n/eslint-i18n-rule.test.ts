@@ -35,15 +35,15 @@ function lintString(code: string): { exitCode: number; stdout: string } {
   }
 }
 
-describe("i18n ESLint rule — react/jsx-no-literals", () => {
-  it("rejects a hard-coded string in a JSX text node", () => {
+describe("i18n ESLint rule — react/jsx-no-literals + i18n-json/no-raw-text", () => {
+  it("fails lint on a hard-coded string in a JSX text node", () => {
     const code = `export function Bad() {
   return <p>Hard-coded text</p>;
 }
 `;
     const result = lintString(code);
-    // The rule is set to "warn" in .eslintrc.cjs, so ESLint may exit 0
-    // but the warning text must appear in stdout.
+    // The rules are set to "error" so ESLint must exit with non-zero code
+    expect(result.exitCode).not.toBe(0);
     expect(result.stdout).toContain("jsx-no-literals");
   }, 30000);
 
@@ -57,5 +57,17 @@ export function Good() {
 `;
     const result = lintString(code);
     expect(result.stdout).not.toContain("jsx-no-literals");
+    expect(result.stdout).not.toContain("no-raw-text");
+    expect(result.exitCode).toBe(0);
+  }, 30000);
+
+  it("reports the custom i18n-json/no-raw-text rule for raw text", () => {
+    const code = `export function Bad() {
+  return <p>Untranslated text</p>;
+}
+`;
+    const result = lintString(code);
+    expect(result.exitCode).not.toBe(0);
+    expect(result.stdout).toContain("no-raw-text");
   }, 30000);
 });

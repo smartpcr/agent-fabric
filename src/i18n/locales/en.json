@@ -37,5 +37,25 @@
   },
   "canvas": {
     "dropToImport": "Drop workflow JSON to import"
+  },
+  "secretField": {
+    "hide": "Hide",
+    "reveal": "Reveal",
+    "copy": "Copy"
+  },
+  "loop": {
+    "iteration": "iteration {{count}}",
+    "body": "body",
+    "back": "back",
+    "done": "done",
+    "break": "break"
+  },
+  "decision": {
+    "branchCount": "{{count}} branches"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred.",
+    "recover": "Recover"
   }
 }

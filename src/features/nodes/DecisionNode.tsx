@@ -1,4 +1,5 @@
 import { Position, type NodeProps } from "@xyflow/react";
+import { useTranslation } from "react-i18next";
 import { makeOutputPort, type PortSpec } from "@/domain/models/port";
 import { BaseNode } from "@/features/nodes/BaseNode";
 import { InputHandle } from "@/features/nodes/ports/InputHandle";
@@ -85,6 +86,7 @@ function evenlySpacedPositions(count: number): number[] {
 }
 
 export function DecisionNode({ id, data, type, selected }: NodeProps) {
+  const { t } = useTranslation();
   const decisionData = data as DecisionData;
   const spec = useWorkflowStore((s) => selectNodeSpec(s, type ?? "decision"));
   const openInspector = useWorkflowStore((s) => s.openInspector);
@@ -151,7 +153,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
               margin: "0 auto",
             }}
           >
-            {branches.length} branches
+            {t("decision.branchCount", { count: branches.length })}
           </div>
         </BaseNode>
 
