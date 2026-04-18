@@ -17,7 +17,7 @@
   - Test: 100% — label edit; id read-only; copy id.
   - Effort: 2h
 
-- [ ] **Step 3**: Form re-renders on external store changes (undo/redo)
+- [x] **Step 3**: Form re-renders on external store changes (undo/redo)
   - File(s): `src/features/property-grid/SchemaForm.tsx` (extend), `tests/integration/property-grid.undo-redo.test.tsx`
   - Contents: Effect detects `value` prop change → `reset()` on the `react-hook-form` instance; preserves focused field when possible.
   - Test: Integration — undo restores previous form values; focus preserved.
