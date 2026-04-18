@@ -17,7 +17,7 @@
   - Test: Benchmark threshold.
   - Effort: 4h
 
-- [ ] **Step 3**: Selector memoization audit
+- [x] **Step 3**: Selector memoization audit
   - File(s): `src/store/selectors/**` (various), profiler report notes.
   - Contents: React Devtools Profiler recording + React.memo audit on nodes/edges; fix any selector returning new references unnecessarily.
   - Effort: 3h
