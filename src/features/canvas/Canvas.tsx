@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   Controls,
@@ -24,7 +24,10 @@ import { validateConnection } from "@/domain/validation/connectionRules";
 import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
 import { useDragContext } from "@/features/palette/DragContext";
 import { useToast } from "@/hooks/useToast";
+import { parseImportedJson } from "@/features/persistence/ImportExport";
 import { useWorkflowStore } from "@/store/hooks";
+import type { WorkflowNode } from "@/domain/models/node";
+import type { WorkflowEdge } from "@/domain/models/edge";
 import type { SelectMode } from "@/store/slices/selectionSlice";
 
 interface ConnectDragSource {
@@ -54,12 +57,15 @@ export function Canvas() {
   const interactive = useWorkflowStore((s) => s.interactive);
   const toggleInteractive = useWorkflowStore((s) => s.toggleInteractive);
   const tryConnect = useWorkflowStore((s) => s.tryConnect);
+  const restoreGraph = useWorkflowStore((s) => s.restoreGraph);
   const { screenToFlowPosition, getViewport, zoomIn, zoomOut, fitView } = useReactFlow();
 
   // Track connect-drag source for snap override
   const connectDragSourceRef = useRef<ConnectDragSource | null>(null);
   const lastPointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
+  const [fileDragOver, setFileDragOver] = useState(false);
+  const dragCounterRef = useRef(0);
 
   const {
     connectState,
@@ -323,6 +329,70 @@ export function Canvas() {
     lastPointerRef.current = { x: e.clientX, y: e.clientY };
   }, []);
 
+  // ─── File drop handlers ──────────────────────────────────────────
+
+  const hasJsonFile = (dt: DataTransfer): boolean =>
+    Array.from(dt.items).some(
+      (item) => item.kind === "file" && (item.type === "application/json" || item.type === ""),
+    );
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    if (!hasJsonFile(e.dataTransfer)) return;
+    e.preventDefault();
+    dragCounterRef.current += 1;
+    setFileDragOver(true);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    if (!hasJsonFile(e.dataTransfer)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    dragCounterRef.current -= 1;
+    if (dragCounterRef.current <= 0) {
+      dragCounterRef.current = 0;
+      setFileDragOver(false);
+    }
+  }, []);
+
+  const handleFileDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      dragCounterRef.current = 0;
+      setFileDragOver(false);
+
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = reader.result as string;
+        const result = parseImportedJson(text);
+
+        if (!result.ok) {
+          showToast({
+            title: "Import failed",
+            description: result.message,
+            variant: "error",
+          });
+          return;
+        }
+
+        // eslint-disable-next-line no-alert -- intentional confirmation dialog
+        const proceed = window.confirm(
+          `Import "${result.graph.name}"? This will replace the current workflow.`,
+        );
+        if (!proceed) return;
+
+        restoreGraph(result.graph.nodes as WorkflowNode[], result.graph.edges as WorkflowEdge[]);
+      };
+      reader.readAsText(file);
+    },
+    [showToast, restoreGraph],
+  );
+
   const isValidConnection = useCallback(
     (connection: Connection) => {
       if (!connection.source || !connection.target) return false;
@@ -350,12 +420,16 @@ export function Canvas() {
       ref={canvasRef}
       role="application"
       aria-label="Workflow Canvas"
-      style={{ width: "100%", height: "100%" }}
+      style={{ width: "100%", height: "100%", position: "relative" }}
       tabIndex={-1}
       onPointerUp={handlePointerUp}
       onPointerMove={handlePointerMove}
       onKeyDown={handleKeyDown}
       onFocusCapture={handleFocusCapture}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleFileDrop}
     >
       <KeyboardConnectContext.Provider value={enterConnectMode}>
         <ReactFlow
@@ -422,6 +496,28 @@ export function Canvas() {
       >
         {connectState.announcement}
       </div>
+      {fileDragOver && (
+        <div
+          data-testid="file-drop-overlay"
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(59, 130, 246, 0.12)",
+            border: "2px dashed rgba(59, 130, 246, 0.6)",
+            borderRadius: 8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "none",
+            zIndex: 50,
+            fontSize: 16,
+            fontWeight: 500,
+            color: "rgb(59, 130, 246)",
+          }}
+        >
+          Drop workflow JSON to import
+        </div>
+      )}
     </div>
   );
 }

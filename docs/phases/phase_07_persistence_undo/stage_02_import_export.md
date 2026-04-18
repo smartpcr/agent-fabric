@@ -11,7 +11,7 @@
   - Test: 100% — click triggers blob with correct content; filename includes workflow name + timestamp.
   - Effort: 2h
 
-- [ ] **Step 2**: Upload JSON, validate, replace graph (confirm dialog)
+- [x] **Step 2**: Upload JSON, validate, replace graph (confirm dialog)
   - File(s): `src/features/persistence/ImportExport.tsx` (extend), `tests/unit/features/persistence/ImportExport.upload.test.tsx`
   - Contents: `<input type="file">`; parses + validates via Zod; migrates if needed; confirmation dialog before replacing current graph.
   - Test: 100% — invalid JSON → error toast; valid → confirmation → load.
