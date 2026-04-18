@@ -1,0 +1,406 @@
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
+import { render, screen, cleanup, act, renderHook, fireEvent } from "@testing-library/react";
+import { useWorkflowStore } from "@/store/hooks";
+import { NodeRegistry } from "@/registry/NodeRegistry";
+import { registerBuiltins } from "@/registry/registerBuiltins";
+import { PropertyGrid } from "@/features/property-grid/PropertyGrid";
+import { LoopNode } from "@/features/nodes/LoopNode";
+import type { NodeProps } from "@xyflow/react";
+
+// Mock @xyflow/react for LoopNode handles
+vi.mock("@xyflow/react", () => ({
+  Handle: (props: Record<string, unknown>) => (
+    <div data-testid={props["data-testid"] as string} data-handle-type={props.type as string} />
+  ),
+  Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
+  SelectionMode: { Partial: "partial", Full: "full" },
+  MiniMap: () => null,
+}));
+
+// Mock KeyboardConnectContext used by OutputHandle
+vi.mock("@/features/canvas/KeyboardConnectContext", () => ({
+  useStartKeyboardConnect: () => vi.fn(),
+}));
+
+function resetStore() {
+  const { result } = renderHook(() => useWorkflowStore());
+  act(() => {
+    // Remove all nodes
+    const nodeIds = result.current.nodes.map((n) => n.id);
+    for (const id of nodeIds) {
+      result.current.removeNode(id);
+    }
+    result.current.clearSelection();
+  });
+}
+
+beforeEach(() => {
+  resetStore();
+  const registry = new NodeRegistry();
+  registerBuiltins(registry);
+  const { result } = renderHook(() => useWorkflowStore());
+  act(() => {
+    result.current.setRegistry(registry);
+    // Also populate nodeSpecs so updateNodeData validation works
+    for (const spec of registry.list()) {
+      result.current.registerNodeSpec(spec);
+    }
+  });
+});
+
+afterEach(() => {
+  cleanup();
+  resetStore();
+});
+
+/**
+ * Integration test: verifies that when node data is updated via updateNodeData
+ * (the same action called by LoopNode inline editor), the PropertyGrid
+ * re-renders with the updated values — demonstrating store-level sync.
+ */
+describe("Loop inline edit → PropertyGrid sync (store integration)", () => {
+  it("PropertyGrid shows 'No node selected' when no inspector node set", () => {
+    render(<PropertyGrid />);
+    expect(screen.getByTestId("property-grid-empty")).toBeInTheDocument();
+    expect(screen.getByTestId("property-grid-empty").textContent).toBe("No node selected");
+  });
+
+  it("PropertyGrid displays loop node condition when inspector is open", () => {
+    const { result } = renderHook(() => useWorkflowStore());
+
+    let nodeId = "";
+    act(() => {
+      const spec = result.current.registry.get("loop-while");
+      if (spec) {
+        const node = result.current.addNode(spec, { x: 0, y: 0 });
+        nodeId = node.id;
+      }
+    });
+    expect(nodeId).not.toBe("");
+
+    // Open inspector
+    act(() => {
+      result.current.openInspector(nodeId);
+    });
+
+    render(<PropertyGrid />);
+
+    expect(screen.getByTestId("property-grid-fields")).toBeInTheDocument();
+    expect(screen.getByTestId("property-grid-kind").textContent).toContain("loop-while");
+    // Default data from spec: { condition: "count < 10" }
+    expect(screen.getByTestId("property-value-condition").textContent).toBe("count < 10");
+  });
+
+  it("PropertyGrid reflects updated condition after updateNodeData (inline edit sync)", () => {
+    const { result } = renderHook(() => useWorkflowStore());
+
+    let nodeId = "";
+    act(() => {
+      const spec = result.current.registry.get("loop-while");
+      if (spec) {
+        const node = result.current.addNode(spec, { x: 0, y: 0 });
+        nodeId = node.id;
+      }
+    });
+
+    act(() => {
+      result.current.openInspector(nodeId);
+    });
+
+    const { rerender } = render(<PropertyGrid />);
+
+    // Verify initial default data
+    expect(screen.getByTestId("property-value-condition").textContent).toBe("count < 10");
+
+    // Simulate what the inline editor does: updateNodeData with new condition
+    act(() => {
+      result.current.updateNodeData(nodeId, { condition: "y > 5" });
+    });
+
+    rerender(<PropertyGrid />);
+
+    // PropertyGrid should now show the updated value
+    expect(screen.getByTestId("property-value-condition").textContent).toBe("y > 5");
+  });
+
+  it("PropertyGrid reflects updated iterable for for-each loop", () => {
+    const { result } = renderHook(() => useWorkflowStore());
+
+    let nodeId = "";
+    act(() => {
+      const spec = result.current.registry.get("loop-foreach");
+      if (spec) {
+        const node = result.current.addNode(spec, { x: 0, y: 0 });
+        nodeId = node.id;
+      }
+    });
+    expect(nodeId).not.toBe("");
+
+    // Set initial data
+    act(() => {
+      result.current.updateNodeData(nodeId, { iterable: "items", item: "x" });
+    });
+
+    act(() => {
+      result.current.openInspector(nodeId);
+    });
+
+    const { rerender } = render(<PropertyGrid />);
+
+    expect(screen.getByTestId("property-value-iterable").textContent).toBe("items");
+    expect(screen.getByTestId("property-value-item").textContent).toBe("x");
+
+    // Simulate inline edit
+    act(() => {
+      result.current.updateNodeData(nodeId, { iterable: "users", item: "x" });
+    });
+
+    rerender(<PropertyGrid />);
+
+    expect(screen.getByTestId("property-value-iterable").textContent).toBe("users");
+  });
+
+  it("store updateNodeData changes are immediately visible to node data readers", () => {
+    const { result } = renderHook(() => useWorkflowStore());
+
+    let nodeId = "";
+    act(() => {
+      const spec = result.current.registry.get("loop-while");
+      if (spec) {
+        const node = result.current.addNode(spec, { x: 0, y: 0 });
+        nodeId = node.id;
+      }
+    });
+
+    // Update via updateNodeData (same action the inline editor calls)
+    act(() => {
+      const updateResult = result.current.updateNodeData(nodeId, { condition: "c < d" });
+      expect(updateResult.ok).toBe(true);
+    });
+
+    // Re-read from result.current after the act() to get fresh state
+    const nodeAfter = result.current.nodes.find((n) => n.id === nodeId);
+    expect(nodeAfter?.data).toEqual({ condition: "c < d" });
+  });
+});
+
+/**
+ * End-to-end integration: renders LoopNode + PropertyGrid together with the
+ * real store. Performs click-preview → change → blur on the LoopNode inline
+ * editor, then asserts both the store node data AND the PropertyGrid field
+ * value are updated — the exact acceptance path from the spec.
+ */
+describe("End-to-end: LoopNode inline edit → store → PropertyGrid sync", () => {
+  function renderLoopNodeWithProps(
+    nodeId: string,
+    nodeType: string,
+    data: Record<string, unknown>,
+  ) {
+    const props = {
+      id: nodeId,
+      type: nodeType,
+      data,
+      selected: false,
+      isConnectable: true,
+      zIndex: 0,
+      positionAbsoluteX: 0,
+      positionAbsoluteY: 0,
+      dragging: false,
+      deletable: true,
+      selectable: true,
+      parentId: undefined,
+      sourcePosition: undefined,
+      targetPosition: undefined,
+      dragHandle: undefined,
+    } as unknown as NodeProps;
+    return <LoopNode {...props} />;
+  }
+
+  it("while-loop: click preview → edit → blur updates store and PropertyGrid", () => {
+    const { result } = renderHook(() => useWorkflowStore());
+
+    let nodeId = "";
+    act(() => {
+      const spec = result.current.registry.get("loop-while");
+      if (spec) {
+        const node = result.current.addNode(spec, { x: 0, y: 0 });
+        nodeId = node.id;
+      }
+    });
+    expect(nodeId).not.toBe("");
+
+    // Open inspector so PropertyGrid renders the node
+    act(() => {
+      result.current.openInspector(nodeId);
+    });
+
+    // Get the initial data from the store node
+    const initialNode = result.current.nodes.find((n) => n.id === nodeId);
+    const initialData = initialNode?.data as Record<string, unknown>;
+
+    // Render both LoopNode and PropertyGrid together
+    const { rerender } = render(
+      <>
+        {renderLoopNodeWithProps(nodeId, "loop-while", initialData)}
+        <PropertyGrid />
+      </>,
+    );
+
+    // Verify PropertyGrid shows initial condition
+    expect(screen.getByTestId("property-value-condition").textContent).toBe("count < 10");
+
+    // Click the preview to enter edit mode
+    act(() => {
+      fireEvent.click(screen.getByTestId("loop-preview"));
+    });
+
+    // Change the condition value
+    const input = screen.getByTestId("loop-inline-input");
+    act(() => {
+      fireEvent.change(input, { target: { value: "x > 42" } });
+    });
+
+    // Blur to commit the edit (calls real updateNodeData)
+    act(() => {
+      fireEvent.blur(input);
+    });
+
+    // Verify store was updated
+    const updatedNode = result.current.nodes.find((n) => n.id === nodeId);
+    expect((updatedNode?.data as Record<string, unknown>).condition).toBe("x > 42");
+
+    // Re-render to pick up store changes in PropertyGrid
+    const freshData = updatedNode?.data as Record<string, unknown>;
+    rerender(
+      <>
+        {renderLoopNodeWithProps(nodeId, "loop-while", freshData)}
+        <PropertyGrid />
+      </>,
+    );
+
+    // Verify PropertyGrid now shows the updated value
+    expect(screen.getByTestId("property-value-condition").textContent).toBe("x > 42");
+  });
+
+  it("for-each loop: click preview → edit → blur updates store and PropertyGrid", () => {
+    const { result } = renderHook(() => useWorkflowStore());
+
+    let nodeId = "";
+    act(() => {
+      const spec = result.current.registry.get("loop-foreach");
+      if (spec) {
+        const node = result.current.addNode(spec, { x: 0, y: 0 });
+        nodeId = node.id;
+      }
+    });
+    expect(nodeId).not.toBe("");
+
+    // Set initial data
+    act(() => {
+      result.current.updateNodeData(nodeId, { iterable: "items", item: "x" });
+    });
+
+    // Open inspector
+    act(() => {
+      result.current.openInspector(nodeId);
+    });
+
+    const initialNode = result.current.nodes.find((n) => n.id === nodeId);
+    const initialData = initialNode?.data as Record<string, unknown>;
+
+    const { rerender } = render(
+      <>
+        {renderLoopNodeWithProps(nodeId, "loop-foreach", initialData)}
+        <PropertyGrid />
+      </>,
+    );
+
+    // Verify PropertyGrid shows initial iterable
+    expect(screen.getByTestId("property-value-iterable").textContent).toBe("items");
+
+    // Click preview → edit → blur
+    act(() => {
+      fireEvent.click(screen.getByTestId("loop-preview"));
+    });
+
+    const input = screen.getByTestId("loop-inline-input");
+    act(() => {
+      fireEvent.change(input, { target: { value: "users" } });
+    });
+
+    act(() => {
+      fireEvent.blur(input);
+    });
+
+    // Verify store
+    const updatedNode = result.current.nodes.find((n) => n.id === nodeId);
+    expect((updatedNode?.data as Record<string, unknown>).iterable).toBe("users");
+
+    // Re-render with fresh data and verify PropertyGrid
+    const freshData = updatedNode?.data as Record<string, unknown>;
+    rerender(
+      <>
+        {renderLoopNodeWithProps(nodeId, "loop-foreach", freshData)}
+        <PropertyGrid />
+      </>,
+    );
+
+    expect(screen.getByTestId("property-value-iterable").textContent).toBe("users");
+  });
+
+  it("Enter key commit also syncs store and PropertyGrid", () => {
+    const { result } = renderHook(() => useWorkflowStore());
+
+    let nodeId = "";
+    act(() => {
+      const spec = result.current.registry.get("loop-while");
+      if (spec) {
+        const node = result.current.addNode(spec, { x: 0, y: 0 });
+        nodeId = node.id;
+      }
+    });
+
+    act(() => {
+      result.current.openInspector(nodeId);
+    });
+
+    const initialNode = result.current.nodes.find((n) => n.id === nodeId);
+    const initialData = initialNode?.data as Record<string, unknown>;
+
+    const { rerender } = render(
+      <>
+        {renderLoopNodeWithProps(nodeId, "loop-while", initialData)}
+        <PropertyGrid />
+      </>,
+    );
+
+    // Click preview → edit → Enter to commit
+    act(() => {
+      fireEvent.click(screen.getByTestId("loop-preview"));
+    });
+
+    const input = screen.getByTestId("loop-inline-input");
+    act(() => {
+      fireEvent.change(input, { target: { value: "done === true" } });
+    });
+
+    act(() => {
+      fireEvent.keyDown(input, { key: "Enter" });
+    });
+
+    // Verify store updated
+    const updatedNode = result.current.nodes.find((n) => n.id === nodeId);
+    expect((updatedNode?.data as Record<string, unknown>).condition).toBe("done === true");
+
+    // Verify PropertyGrid updated
+    const freshData = updatedNode?.data as Record<string, unknown>;
+    rerender(
+      <>
+        {renderLoopNodeWithProps(nodeId, "loop-while", freshData)}
+        <PropertyGrid />
+      </>,
+    );
+
+    expect(screen.getByTestId("property-value-condition").textContent).toBe("done === true");
+  });
+});

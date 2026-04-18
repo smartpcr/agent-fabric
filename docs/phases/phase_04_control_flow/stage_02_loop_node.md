@@ -41,7 +41,7 @@
   - Test: 100% — direct cycle via non-loop nodes fails; loop-based cycle passes.
   - Effort: 2h
 
-- [ ] **Step 7**: Inline loop property editor (condition / iterable)
+- [x] **Step 7**: Inline loop property editor (condition / iterable)
   - File(s): `src/features/nodes/LoopNode.tsx` (extend), `tests/integration/loop.inline-edit.test.tsx`
   - Contents: Click condition preview → inline input; blur commits; sync with property grid if panel open.
   - Test: Integration — edit via node UI reflects in store and property grid.
