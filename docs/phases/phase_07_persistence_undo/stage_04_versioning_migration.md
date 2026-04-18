@@ -1,10 +1,11 @@
 # Phase 7 — Stage 4: Versioning & Migration
+
 > Schema version gating, migration registry, auto-save.
 > Status: `[ ]` not started · **Effort**: 10h
 
 ## Steps
 
-- [ ] **Step 1**: `schemaVersion` gating on every persisted file
+- [x] **Step 1**: `schemaVersion` gating on every persisted file
   - File(s): `src/domain/serialization/deserialize.ts` (extend), `tests/unit/domain/serialization/deserialize.versioning.test.ts`
   - Contents: Reject unknown version with `MigrationError`.
   - Test: 100% — unknown version rejected; known passes through.
@@ -34,6 +35,7 @@
   - Effort: 1h
 
 ## Acceptance for Stage 4
+
 - All 5 steps `[x]` with score ≥ 90.
 - Migration test fixture in place.
 - Phase 7 scored ≥ 90 overall.
