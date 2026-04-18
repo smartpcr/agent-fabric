@@ -1,10 +1,11 @@
 # Phase 6 — Stage 4: Edge Animation
+
 > CSS-based edge animations driven by execution edge states, including loop-back pulse, with a performance budget.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: `DefaultEdge` reads `useEdgeExecutionState(id)`
+- [x] **Step 1**: `DefaultEdge` reads `useEdgeExecutionState(id)`
   - File(s): `src/features/edges/DefaultEdge.tsx` (extend), `src/features/execution/useEdgeExecutionState.ts`, `tests/unit/features/edges/DefaultEdge.execution.test.tsx`
   - Contents: Selector-backed subscription; edge re-renders on state change only (not on graph state).
   - Test: 100% — re-renders only on own state change.
@@ -41,6 +42,7 @@
   - Effort: 4h
 
 ## Acceptance for Stage 4
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on edge rendering + animations.
 - Performance benchmark within budget.
