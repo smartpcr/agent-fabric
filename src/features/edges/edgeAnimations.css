@@ -61,3 +61,30 @@
   opacity: 0.35;
   filter: saturate(0);
 }
+
+/* ─── Loop-back pulse on iteration boundary ──────────────────────── */
+
+@keyframes loop-pulse {
+  0% {
+    stroke-width: 4;
+    stroke-opacity: 1;
+  }
+  50% {
+    stroke-width: 5;
+    stroke-opacity: 0.7;
+  }
+  100% {
+    stroke-width: 2;
+    stroke-opacity: 1;
+  }
+}
+
+.loop-back-pulse {
+  animation: loop-pulse 400ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop-back-pulse {
+    animation: none;
+  }
+}

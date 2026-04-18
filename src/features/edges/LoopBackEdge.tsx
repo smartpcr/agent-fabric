@@ -1,7 +1,49 @@
+import { useRef, useState, useEffect } from "react";
 import { BaseEdge, EdgeLabelRenderer, type EdgeProps } from "@xyflow/react";
+import { useEdgeExecutionState } from "@/features/execution/useEdgeExecutionState";
 import "./edgeAnimations.css";
 
 const LOOP_ARROW_MARKER_ID = "loop-back-edge-arrow";
+
+/** Duration of pulse animation in ms — must match CSS. */
+const PULSE_DURATION_MS = 400;
+
+/**
+ * Hook that detects iteration increments on an edge and returns a one-shot
+ * pulse CSS class. Cleared after `PULSE_DURATION_MS`.
+ */
+function useIterationPulse(iteration: number | undefined): string | undefined {
+  const [pulseClass, setPulseClass] = useState<string | undefined>(undefined);
+  const prevIterRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    const prev = prevIterRef.current;
+    prevIterRef.current = iteration;
+
+    if (prev === undefined) {
+      return;
+    }
+
+    if (iteration !== undefined && iteration !== prev) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: pulse is derived from iteration transition
+      setPulseClass("loop-back-pulse");
+    }
+  }, [iteration]);
+
+  useEffect(() => {
+    if (pulseClass === undefined) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setPulseClass(undefined);
+    }, PULSE_DURATION_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [pulseClass]);
+
+  return pulseClass;
+}
 
 /**
  * Build a curved path that routes around the loop body from body-out back to body-in.
@@ -45,13 +87,17 @@ export function LoopBackEdge({
   label,
   data,
 }: EdgeProps) {
+  const edgeExecState = useEdgeExecutionState(id);
+  const pulseClass = useIterationPulse(edgeExecState?.iteration);
   const [edgePath, labelX, labelY] = buildLoopBackPath(sourceX, sourceY, targetX, targetY);
 
   const rawLabel = label ?? data?.label ?? "loop";
   const labelText = typeof rawLabel === "string" ? rawLabel : "loop";
 
+  const combinedClass = ["loop-back-edge", pulseClass].filter(Boolean).join(" ");
+
   return (
-    <>
+    <g data-testid="loop-back-edge" data-edge-id={id}>
       <defs>
         <marker
           id={LOOP_ARROW_MARKER_ID}
@@ -75,7 +121,7 @@ export function LoopBackEdge({
           strokeWidth: 2,
           strokeDasharray: "6 4",
         }}
-        className="loop-back-edge"
+        className={combinedClass}
       />
       <EdgeLabelRenderer>
         <div
@@ -98,7 +144,7 @@ export function LoopBackEdge({
           {labelText}
         </div>
       </EdgeLabelRenderer>
-    </>
+    </g>
   );
 }
 
