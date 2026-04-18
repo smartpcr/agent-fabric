@@ -53,17 +53,17 @@ describe("Integration: builtins appear in palette with correct labels", () => {
     setupBuiltinsOnly();
   });
 
-  it("renders exactly 3 items from registered builtins", () => {
+  it("renders exactly 4 items from registered builtins", () => {
     render(
       <DragProvider>
         <Palette />
       </DragProvider>,
     );
     const options = screen.getAllByRole("option");
-    expect(options).toHaveLength(3);
+    expect(options).toHaveLength(4);
   });
 
-  it("renders builtin labels: Start, Task, End", () => {
+  it("renders builtin labels: Start, Task, End, Decision", () => {
     render(
       <DragProvider>
         <Palette />
@@ -72,6 +72,7 @@ describe("Integration: builtins appear in palette with correct labels", () => {
     expect(screen.getByText("Start")).toBeInTheDocument();
     expect(screen.getByText("Task")).toBeInTheDocument();
     expect(screen.getByText("End")).toBeInTheDocument();
+    expect(screen.getByText("Decision")).toBeInTheDocument();
   });
 
   it("items have correct data-kind attributes", () => {
@@ -147,7 +148,7 @@ describe("Integration: multi-category grouping", () => {
 
     options.forEach((opt, idx) => {
       const kind = opt.getAttribute("data-kind");
-      if (kind === "start" || kind === "task" || kind === "end") {
+      if (kind === "start" || kind === "task" || kind === "end" || kind === "decision") {
         flowIndices.push(idx);
       }
       if (kind === "http-request") {
@@ -155,11 +156,13 @@ describe("Integration: multi-category grouping", () => {
       }
     });
 
-    expect(flowIndices).toHaveLength(3);
-    expect(flowIndices[2] - flowIndices[0]).toBe(2);
+    expect(flowIndices).toHaveLength(4);
+    expect(flowIndices[flowIndices.length - 1] - flowIndices[0]).toBe(flowIndices.length - 1);
 
     expect(actionsIndices).toHaveLength(1);
     const actionsIdx = actionsIndices[0];
-    expect(actionsIdx < flowIndices[0] || actionsIdx > flowIndices[2]).toBe(true);
+    expect(actionsIdx < flowIndices[0] || actionsIdx > flowIndices[flowIndices.length - 1]).toBe(
+      true,
+    );
   });
 });

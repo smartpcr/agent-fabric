@@ -116,6 +116,18 @@ vi.mock("@/store/selectors/graphSelectors", () => ({
         ],
       };
     }
+    if (kind === "decision") {
+      return {
+        kind: "decision",
+        variant: "if-else",
+        icon: "git-branch",
+        ports: [
+          { id: "in", kind: "in", label: "In", dataType: "any", cardinality: "single" },
+          { id: "true", kind: "out", label: "True", dataType: "any", cardinality: "single" },
+          { id: "false", kind: "out", label: "False", dataType: "any", cardinality: "single" },
+        ],
+      };
+    }
     return { icon: "cog" };
   },
   selectIsPortMissing: () => false,
@@ -141,11 +153,12 @@ function setupStore() {
 }
 
 describe("nodeTypes", () => {
-  it("exports start, end, and task entries", () => {
+  it("exports start, end, task, and decision entries", () => {
     expect(nodeTypes).toHaveProperty("start");
     expect(nodeTypes).toHaveProperty("end");
     expect(nodeTypes).toHaveProperty("task");
-    expect(Object.keys(nodeTypes)).toHaveLength(3);
+    expect(nodeTypes).toHaveProperty("decision");
+    expect(Object.keys(nodeTypes)).toHaveLength(4);
   });
 });
 

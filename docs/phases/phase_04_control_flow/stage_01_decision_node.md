@@ -11,7 +11,7 @@
   - Test: 100% — spec shape; registers cleanly.
   - Effort: 2h
 
-- [ ] **Step 2**: `DecisionNode` React component — diamond shape + condition preview
+- [x] **Step 2**: `DecisionNode` React component — diamond shape + condition preview
   - File(s): `src/features/nodes/DecisionNode.tsx`, `tests/unit/features/nodes/DecisionNode.test.tsx`
   - Contents: Diamond SVG background; 2 labeled output handles (`true` on right, `false` on bottom); input handle on left; condition preview text truncated.
   - Test: 100% — labels rendered; condition preview binds to data.
