@@ -257,3 +257,137 @@ test.describe("E2E: Scripted 5-node run — running → success", () => {
     }
   });
 });
+
+test.describe("E2E: Error path — inspector opens with payload", () => {
+  test.beforeEach(async ({ page }) => {
+    await page["goto"]("/");
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+  });
+
+  test("node.failed shows error badge; clicking it opens inspector with event + payload", async ({
+    page,
+  }) => {
+    const RUN_ID = "e2e-error-1";
+    const nodeIds = await dropTaskNodes(page, 1);
+    expect(nodeIds).toHaveLength(1);
+    const nodeId = nodeIds[0] as string;
+
+    await startRun(page, RUN_ID);
+
+    // Emit node.started then node.failed with a payload
+    await emitEvent(page, {
+      type: "node.started",
+      runId: RUN_ID,
+      nodeId,
+      at: 1000,
+    });
+    await page.waitForTimeout(100);
+
+    await emitEvent(page, {
+      type: "node.failed",
+      runId: RUN_ID,
+      nodeId,
+      at: 2000,
+      payload: { error: "Connection timeout after 30s" },
+    });
+    await page.waitForTimeout(200);
+
+    // Verify the error badge is shown
+    expect(await getBadgeStatus(page, nodeId)).toBe("error");
+
+    // Click the error badge to open the inspector
+    const errorBadge = page.locator(
+      `[data-id="${nodeId}"] [data-testid="status-badge"][data-status="error"]`,
+    );
+    await expect(errorBadge).toBeVisible();
+    await errorBadge.click();
+
+    // Inspector should open
+    const inspector = page.locator('[data-testid="run-inspector"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Inspector should contain the event timeline
+    const timeline = page.locator('[data-testid="event-timeline"]');
+    await expect(timeline).toBeVisible();
+
+    // Timeline should show both events (node.started + node.failed)
+    const timelineItems = page.locator('[data-testid="event-timeline-item"]');
+    await expect(timelineItems).toHaveCount(2);
+
+    // Verify event types are shown
+    const eventTypes = page.locator('[data-testid="event-type"]');
+    await expect(eventTypes.nth(0)).toHaveText("node.started");
+    await expect(eventTypes.nth(1)).toHaveText("node.failed");
+
+    // Verify the error payload is displayed
+    const payload = page.locator('[data-testid="event-payload"]');
+    await expect(payload).toBeVisible();
+    await expect(payload).toContainText("Connection timeout after 30s");
+  });
+
+  test("error badge shows 'Failed' label text", async ({ page }) => {
+    const RUN_ID = "e2e-error-2";
+    const nodeIds = await dropTaskNodes(page, 1);
+    const nodeId = nodeIds[0] as string;
+
+    await startRun(page, RUN_ID);
+
+    await emitEvent(page, {
+      type: "node.started",
+      runId: RUN_ID,
+      nodeId,
+      at: 1000,
+    });
+    await emitEvent(page, {
+      type: "node.failed",
+      runId: RUN_ID,
+      nodeId,
+      at: 2000,
+      payload: { error: "Something broke" },
+    });
+    await page.waitForTimeout(200);
+
+    // Verify badge label says "Failed"
+    const badgeLabel = page.locator(`[data-id="${nodeId}"] [data-testid="badge-label"]`);
+    await expect(badgeLabel).toHaveText("Failed");
+  });
+
+  test("inspector can be closed with the close button", async ({ page }) => {
+    const RUN_ID = "e2e-error-3";
+    const nodeIds = await dropTaskNodes(page, 1);
+    const nodeId = nodeIds[0] as string;
+
+    await startRun(page, RUN_ID);
+
+    await emitEvent(page, {
+      type: "node.started",
+      runId: RUN_ID,
+      nodeId,
+      at: 1000,
+    });
+    await emitEvent(page, {
+      type: "node.failed",
+      runId: RUN_ID,
+      nodeId,
+      at: 2000,
+      payload: { error: "Test error" },
+    });
+    await page.waitForTimeout(200);
+
+    // Open inspector by clicking error badge
+    const errorBadge = page.locator(
+      `[data-id="${nodeId}"] [data-testid="status-badge"][data-status="error"]`,
+    );
+    await errorBadge.click();
+
+    const inspector = page.locator('[data-testid="run-inspector"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Close inspector
+    const closeBtn = page.locator('[data-testid="run-inspector-close"]');
+    await closeBtn.click();
+
+    // Inspector should be hidden
+    await expect(inspector).not.toBeVisible({ timeout: 5000 });
+  });
+});

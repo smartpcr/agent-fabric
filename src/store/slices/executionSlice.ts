@@ -46,6 +46,8 @@ export interface RunState {
   readonly status: RunStatus;
   readonly startedAt: number;
   readonly finishedAt?: number;
+  /** Chronological log of all events for this run. */
+  readonly eventLog: readonly ExecutionEvent[];
 }
 
 // ─── applyEvent helpers ──────────────────────────────────────────────
@@ -112,6 +114,8 @@ export function applyEvent(
 ): Map<string, RunState> {
   const { runId } = event;
 
+  let result: Map<string, RunState>;
+
   switch (event.type) {
     case "run.started": {
       const next = new Map(runs);
@@ -120,61 +124,80 @@ export function applyEvent(
         edges: new Map(),
         status: "running",
         startedAt: event.at,
+        eventLog: [event],
       });
       return next;
     }
 
     case "run.completed":
-      return finalizeRun(runs, runId, "completed", event.at);
+      result = finalizeRun(runs, runId, "completed", event.at);
+      break;
 
     case "run.failed":
-      return finalizeRun(runs, runId, "failed", event.at);
+      result = finalizeRun(runs, runId, "failed", event.at);
+      break;
 
     case "run.cancelled":
-      return finalizeRun(runs, runId, "cancelled", event.at);
+      result = finalizeRun(runs, runId, "cancelled", event.at);
+      break;
 
     case "node.started":
-      return updateNodeInRun(runs, runId, event.nodeId, {
+      result = updateNodeInRun(runs, runId, event.nodeId, {
         status: "running",
         startedAt: event.at,
         iteration: event.payload?.iteration,
       });
+      break;
 
     case "node.succeeded":
-      return updateNodeInRun(runs, runId, event.nodeId, {
+      result = updateNodeInRun(runs, runId, event.nodeId, {
         ...runs.get(runId)?.nodes.get(event.nodeId),
         status: "succeeded",
         finishedAt: event.at,
       });
+      break;
 
     case "node.failed":
-      return updateNodeInRun(runs, runId, event.nodeId, {
+      result = updateNodeInRun(runs, runId, event.nodeId, {
         ...runs.get(runId)?.nodes.get(event.nodeId),
         status: "failed",
         finishedAt: event.at,
         error: event.payload?.error,
       });
+      break;
 
     case "node.skipped":
-      return updateNodeInRun(runs, runId, event.nodeId, { status: "skipped" });
+      result = updateNodeInRun(runs, runId, event.nodeId, { status: "skipped" });
+      break;
 
     case "edge.activated":
-      return updateEdgeInRun(runs, runId, event.edgeId, {
+      result = updateEdgeInRun(runs, runId, event.edgeId, {
         status: "active",
         activatedAt: event.at,
       });
+      break;
 
     case "edge.taken":
-      return updateEdgeInRun(runs, runId, event.edgeId, {
+      result = updateEdgeInRun(runs, runId, event.edgeId, {
         ...runs.get(runId)?.edges.get(event.edgeId),
         status: "taken",
         takenAt: event.at,
       });
+      break;
 
     default:
       console.warn(`applyEvent: unknown event type "${(event as { type: string }).type}"`);
       return runs;
   }
+
+  // Append event to the run's event log
+  const run = result.get(runId);
+  if (run) {
+    const next = new Map(result);
+    next.set(runId, { ...run, eventLog: [...run.eventLog, event] });
+    return next;
+  }
+  return result;
 }
 
 // ─── Slice ───────────────────────────────────────────────────────────
@@ -254,6 +277,7 @@ export function createExecutionSlice(
         edges: new Map(),
         status: "running",
         startedAt: Date.now(),
+        eventLog: [],
       };
       base.set(runId, newRun);
       set({ runs: base, activeRunId: runId });

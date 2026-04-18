@@ -1,10 +1,11 @@
 # Phase 6 — Stage 6: Phase 6 E2E
+
 > Playwright scripted runs covering success / error / loop / reduced-motion paths.
 > Status: `[ ]` not started · **Effort**: 10h
 
 ## Steps
 
-- [ ] **Step 1**: E2E — scripted 5-node run; each node shows running → success
+- [x] **Step 1**: E2E — scripted 5-node run; each node shows running → success
   - File(s): `tests/e2e/run-workflow.spec.ts`
   - Contents: Mount editor with `FakeExecutionEventSource`; emit events through the test harness; assert visible badge state per node.
   - Test: Green.
@@ -29,6 +30,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 6
+
 - All 4 steps `[x]` with score ≥ 90.
 - Phase 6 scored ≥ 90 overall.
 - Full E2E matrix green in nightly.

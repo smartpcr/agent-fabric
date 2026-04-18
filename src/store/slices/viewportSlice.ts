@@ -20,6 +20,7 @@ export interface ViewportSlice {
   toggleSnap: () => void;
   setSnapGridSize: (size: number) => void;
   openInspector: (nodeId: string) => void;
+  closeInspector: () => void;
   toggleInteractive: () => void;
   /** Serialize current viewport for persistence */
   getViewportState: () => ViewportState;
@@ -53,6 +54,9 @@ export function createViewportSlice(
     },
     openInspector: (nodeId: string) => {
       set({ inspectorNodeId: nodeId });
+    },
+    closeInspector: () => {
+      set({ inspectorNodeId: null });
     },
     toggleInteractive: () => {
       set((prev) => ({ interactive: !prev.interactive }));

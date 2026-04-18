@@ -59,6 +59,7 @@ function buildInitialRuns(runId: string): Map<string, RunState> {
     edges,
     status: "running",
     startedAt: Date.now(),
+    eventLog: [],
   });
   return runs;
 }

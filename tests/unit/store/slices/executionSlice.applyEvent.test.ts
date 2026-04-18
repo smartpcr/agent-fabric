@@ -21,6 +21,7 @@ function runsWithStarted(runId = "run-1", at = NOW): Map<string, RunState> {
         edges: new Map(),
         status: "running" as const,
         startedAt: at,
+        eventLog: [],
       },
     ],
   ]);

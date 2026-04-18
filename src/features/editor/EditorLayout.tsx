@@ -11,6 +11,10 @@ import { useGraphPersistence } from "@/features/canvas/useGraphPersistence";
 import { ConnectedPalette } from "@/features/palette/ConnectedPalette";
 import { PropertyGrid } from "@/features/property-grid/PropertyGrid";
 import { Toolbar } from "@/features/editor/Toolbar";
+import { RunInspector } from "@/features/execution/RunInspector";
+import { EventTimeline, type NodeExecutionEvent } from "@/features/execution/EventTimeline";
+import { useWorkflowStore } from "@/store/hooks";
+import type { ExecutionEvent } from "@/domain/models/executionEvent";
 
 /**
  * CSS grid baseline: 240px | 1fr | 320px
@@ -35,6 +39,28 @@ export function EditorLayout() {
   const paletteRef = usePanelRef();
   const propertyGridRef = usePanelRef();
   const [sidePanelsCollapsed, setSidePanelsCollapsed] = useState(false);
+
+  // Inspector state from store
+  const inspectorNodeId = useWorkflowStore((s) => s.inspectorNodeId);
+  const closeInspector = useWorkflowStore((s) => s.closeInspector);
+  const activeRunId = useWorkflowStore((s) => s.activeRunId);
+  const runs = useWorkflowStore((s) => s.runs);
+
+  // Collect events for the inspected node from the active run's event log
+  const inspectorEvents: NodeExecutionEvent[] = [];
+  if (inspectorNodeId !== null && activeRunId !== undefined) {
+    const run = runs.get(activeRunId);
+    if (run) {
+      for (const ev of run.eventLog) {
+        if (
+          "nodeId" in ev &&
+          (ev as ExecutionEvent & { nodeId: string }).nodeId === inspectorNodeId
+        ) {
+          inspectorEvents.push(ev as NodeExecutionEvent);
+        }
+      }
+    }
+  }
 
   const toggleSidePanels = useCallback(() => {
     const palette: PanelImperativeHandle | null = paletteRef.current;
@@ -68,59 +94,64 @@ export function EditorLayout() {
   }, [toggleSidePanels]);
 
   return (
-    <div style={EDITOR_GRID_STYLE} data-testid="editor-grid">
-      <div style={{ gridColumn: "1 / -1" }}>
-        <Toolbar />
+    <>
+      <div style={EDITOR_GRID_STYLE} data-testid="editor-grid">
+        <div style={{ gridColumn: "1 / -1" }}>
+          <Toolbar />
+        </div>
+        <Group
+          orientation="horizontal"
+          style={{ gridColumn: "1 / -1", width: "100%", height: "100%" }}
+        >
+          <Panel
+            panelRef={paletteRef}
+            defaultSize={PALETTE_DEFAULT_SIZE}
+            minSize={PALETTE_MIN_SIZE}
+            collapsible
+            data-collapsed={sidePanelsCollapsed}
+          >
+            <ConnectedPalette />
+          </Panel>
+
+          <Separator
+            className="editor-resize-handle"
+            style={{
+              width: "4px",
+              background: "var(--color-border)",
+              cursor: "col-resize",
+            }}
+          />
+
+          <Panel
+            defaultSize={100 - PALETTE_DEFAULT_SIZE - PROPERTY_GRID_DEFAULT_SIZE}
+            minSize={CANVAS_MIN_SIZE}
+          >
+            <Canvas />
+          </Panel>
+
+          <Separator
+            className="editor-resize-handle"
+            style={{
+              width: "4px",
+              background: "var(--color-border)",
+              cursor: "col-resize",
+            }}
+          />
+
+          <Panel
+            panelRef={propertyGridRef}
+            defaultSize={PROPERTY_GRID_DEFAULT_SIZE}
+            minSize={PROPERTY_GRID_MIN_SIZE}
+            collapsible
+            data-collapsed={sidePanelsCollapsed}
+          >
+            <PropertyGrid />
+          </Panel>
+        </Group>
       </div>
-      <Group
-        orientation="horizontal"
-        style={{ gridColumn: "1 / -1", width: "100%", height: "100%" }}
-      >
-        <Panel
-          panelRef={paletteRef}
-          defaultSize={PALETTE_DEFAULT_SIZE}
-          minSize={PALETTE_MIN_SIZE}
-          collapsible
-          data-collapsed={sidePanelsCollapsed}
-        >
-          <ConnectedPalette />
-        </Panel>
-
-        <Separator
-          className="editor-resize-handle"
-          style={{
-            width: "4px",
-            background: "var(--color-border)",
-            cursor: "col-resize",
-          }}
-        />
-
-        <Panel
-          defaultSize={100 - PALETTE_DEFAULT_SIZE - PROPERTY_GRID_DEFAULT_SIZE}
-          minSize={CANVAS_MIN_SIZE}
-        >
-          <Canvas />
-        </Panel>
-
-        <Separator
-          className="editor-resize-handle"
-          style={{
-            width: "4px",
-            background: "var(--color-border)",
-            cursor: "col-resize",
-          }}
-        />
-
-        <Panel
-          panelRef={propertyGridRef}
-          defaultSize={PROPERTY_GRID_DEFAULT_SIZE}
-          minSize={PROPERTY_GRID_MIN_SIZE}
-          collapsible
-          data-collapsed={sidePanelsCollapsed}
-        >
-          <PropertyGrid />
-        </Panel>
-      </Group>
-    </div>
+      <RunInspector open={inspectorNodeId !== null} onClose={closeInspector}>
+        <EventTimeline events={inspectorEvents} />
+      </RunInspector>
+    </>
   );
 }
