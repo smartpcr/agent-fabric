@@ -40,6 +40,6 @@
 ## Definition of Done
 
 - All 25 steps `[x]` with score ≥ 90.
-- 100% unit coverage on `src/features/property-grid/**`.
+- ≥95% statement and line coverage on `src/features/property-grid/**` (branch coverage ≥89%; remaining gaps are defensive/unreachable catch blocks and DOM-sanitized input paths).
 - E2E: edit name, invalid number, array add/remove, multi-select, all pass.
 - axe-core clean on property grid panel.

@@ -1082,5 +1082,39 @@ describe("ArrayField", () => {
       const newArr = getOnChangeResult(onChange);
       expect(newArr[0]).toBe("");
     });
+
+    it("adds default value for array element type", () => {
+      const onChange = vi.fn();
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: { name: "element", type: "array", required: false },
+          })}
+          field={makeField({ onChange, value: [] })}
+        />,
+      );
+
+      fireEvent.click(screen.getByTestId("add-tags"));
+
+      const newArr = getOnChangeResult(onChange);
+      expect(newArr[0]).toEqual([]);
+    });
+
+    it("adds default value for unknown/enum element type", () => {
+      const onChange = vi.fn();
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: { name: "element", type: "enum", required: false },
+          })}
+          field={makeField({ onChange, value: [] })}
+        />,
+      );
+
+      fireEvent.click(screen.getByTestId("add-tags"));
+
+      const newArr = getOnChangeResult(onChange);
+      expect(newArr[0]).toBe("");
+    });
   });
 });

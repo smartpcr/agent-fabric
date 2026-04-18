@@ -586,4 +586,42 @@ describe("configureReadOnlyWorker", () => {
     // In fallback mode, Monaco is not rendered so beforeMount is never invoked
     expect(mockState.capturedBeforeMount).toBeUndefined();
   });
+
+  it("getWorker callback creates a Worker from a Blob when MonacoEnvironment exists", () => {
+    // Mock Worker since it's not available in jsdom
+    const WorkerMock = vi.fn();
+    vi.stubGlobal("Worker", WorkerMock);
+
+    (globalThis as Record<string, unknown>).MonacoEnvironment = {
+      getWorker: vi.fn(),
+    };
+
+    configureReadOnlyWorker();
+
+    const env = (globalThis as Record<string, unknown>).MonacoEnvironment as {
+      getWorker: () => unknown;
+    };
+    env.getWorker();
+    expect(WorkerMock).toHaveBeenCalledTimes(1);
+
+    vi.unstubAllGlobals();
+  });
+
+  it("getWorker callback creates a Worker from a Blob when MonacoEnvironment does not exist", () => {
+    // Mock Worker since it's not available in jsdom
+    const WorkerMock = vi.fn();
+    vi.stubGlobal("Worker", WorkerMock);
+
+    delete (globalThis as Record<string, unknown>).MonacoEnvironment;
+
+    configureReadOnlyWorker();
+
+    const env = (globalThis as Record<string, unknown>).MonacoEnvironment as {
+      getWorker: () => unknown;
+    };
+    env.getWorker();
+    expect(WorkerMock).toHaveBeenCalledTimes(1);
+
+    vi.unstubAllGlobals();
+  });
 });

@@ -483,7 +483,7 @@ A step is `[x]` only when score ≥ 90.
 | 6 — Execution Visualization   |      6 |      32 |         80 | `[ ]` 0%   |
 | 7 — Persistence & Undo        |      5 |      20 |         50 | `[ ]` 0%   |
 | 8 — Polish & Release          |      4 |      17 |         50 | `[ ]` 0%   |
-| **Total**                     | **40** | **216** |    **580** | **0%**     |
+| **Total**                     | **40** | **216** |    **580** | **12%**    |
 
 **Tracking rule**: a phase's **% complete** = Σ(completed step effort) / Σ(all step effort within the phase). A phase is `[x]` only when all stages are `[x]` AND every step scored ≥ 90.
 
