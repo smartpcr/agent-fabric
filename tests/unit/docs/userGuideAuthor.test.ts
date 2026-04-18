@@ -31,11 +31,45 @@ describe("User guide — Author a Workflow", () => {
     }
   });
 
-  it("references screenshot placeholders", () => {
+  it("references screenshot images", () => {
     const content = readFileSync(docPath, "utf8");
     expect(content).toContain("screenshots/");
     const screenshotRefs = content.match(/screenshots\/[\w-]+\.png/g) ?? [];
     expect(screenshotRefs.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("all referenced screenshot PNGs exist on disk", () => {
+    const screenshotsDir = resolve(ROOT, "docs/user-guide/screenshots");
+    const requiredImages = [
+      "editor-layout.png",
+      "add-node.png",
+      "connect-nodes.png",
+      "property-grid.png",
+      "save-workflow.png",
+      "run-workflow.png",
+    ];
+    for (const img of requiredImages) {
+      const imgPath = resolve(screenshotsDir, img);
+      expect(existsSync(imgPath), `Missing screenshot: ${img}`).toBe(true);
+    }
+  });
+
+  it("screenshot PNGs are valid PNG files", () => {
+    const screenshotsDir = resolve(ROOT, "docs/user-guide/screenshots");
+    const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+    const images = [
+      "editor-layout.png",
+      "add-node.png",
+      "connect-nodes.png",
+      "property-grid.png",
+      "save-workflow.png",
+      "run-workflow.png",
+    ];
+    for (const img of images) {
+      const data = readFileSync(resolve(screenshotsDir, img));
+      expect(data.length).toBeGreaterThan(100);
+      expect(data.subarray(0, 8).equals(pngSignature), `${img} has valid PNG header`).toBe(true);
+    }
   });
 
   it("mentions keyboard accessibility", () => {

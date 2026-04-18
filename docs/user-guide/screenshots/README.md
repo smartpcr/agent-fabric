@@ -1,11 +1,9 @@
-# Screenshot Placeholders
+# User Guide Screenshots
 
-This directory holds screenshots for the "Author a Workflow" user guide.
+This directory contains screenshot images for the "Author a Workflow"
+tutorial at `docs/user-guide/author.md`.
 
-Replace each placeholder with an actual screenshot captured from the running
-application.
-
-## Required screenshots
+## Included screenshots
 
 | File                | Description                                                      |
 | ------------------- | ---------------------------------------------------------------- |
@@ -16,13 +14,13 @@ application.
 | `save-workflow.png` | Toolbar with Save button highlighted and a toast confirmation    |
 | `run-workflow.png`  | Workflow mid-execution with Start succeeded and Task running     |
 
-## How to capture
+## Regenerating
 
 ```bash
-# Option 1: Manual — run the dev server and use browser DevTools
-npm run dev
-# Navigate to http://localhost:5173, use browser screenshot tools
+# Regenerate placeholder images
+node scripts/generate-doc-screenshots.mjs
 
-# Option 2: Automated — use Playwright
-npx playwright test --project=chromium -g "screenshot"
+# Or capture real screenshots from the running app
+npm run dev
+# Then use browser DevTools or Playwright to capture
 ```

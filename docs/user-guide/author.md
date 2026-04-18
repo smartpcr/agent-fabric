@@ -218,20 +218,7 @@ Congratulations — you've authored and run your first workflow! 🎉
 
 ---
 
-## Screenshot Placeholders
-
-> The `screenshots/` directory should contain the following images. Until
-> real screenshots are captured, the tutorial references placeholder paths:
->
-> | File                | Description                                         |
-> | ------------------- | --------------------------------------------------- |
-> | `editor-layout.png` | Full editor with palette, canvas, and property grid |
-> | `add-node.png`      | Dragging a node from palette to canvas              |
-> | `connect-nodes.png` | Dragging an edge between two node ports             |
-> | `property-grid.png` | Property Grid panel with fields for a Task node     |
-> | `save-workflow.png` | Toolbar Save button with toast confirmation         |
-> | `run-workflow.png`  | Workflow mid-execution with status indicators       |
->
-> To capture screenshots, run the app with `npm run dev` and use your
-> browser's built-in screenshot tools or a tool like
-> [Playwright's `page.screenshot()`](https://playwright.dev/docs/screenshots).
+> **Updating screenshots**: To regenerate the screenshot images, run
+> `node scripts/generate-doc-screenshots.mjs`. To replace them with real
+> application captures, use Playwright or your browser's screenshot tools
+> while the app is running (`npm run dev`).
