@@ -173,6 +173,12 @@ export function applyEvent(
 
 export type ExecutionStatus = "idle" | "running" | "paused" | "completed" | "failed";
 
+/** Options for `startRun`. */
+export interface StartRunOptions {
+  /** When true, prior runs are retained instead of cleared. Default: false. */
+  readonly retainPriorRuns?: boolean;
+}
+
 export interface ExecutionSlice {
   executionStatus: ExecutionStatus;
   executionLog: unknown[];
@@ -189,6 +195,12 @@ export interface ExecutionSlice {
   clearRun: (runId: string) => void;
   /** Apply an execution event to the runs state. */
   applyExecutionEvent: (event: ExecutionEvent) => void;
+  /**
+   * Start a new execution run. By default clears all prior runs.
+   * Pass `{ retainPriorRuns: true }` to keep them.
+   * Sets `activeRunId` to the new run.
+   */
+  startRun: (runId: string, options?: StartRunOptions) => void;
 }
 
 export function createExecutionSlice(
@@ -225,6 +237,18 @@ export function createExecutionSlice(
       if (nextRuns !== state.runs) {
         set({ runs: nextRuns });
       }
+    },
+    startRun: (runId: string, options?: StartRunOptions) => {
+      const state = _get();
+      const base = options?.retainPriorRuns ? new Map(state.runs) : new Map<string, RunState>();
+      const newRun: RunState = {
+        nodes: new Map(),
+        edges: new Map(),
+        status: "running",
+        startedAt: Date.now(),
+      };
+      base.set(runId, newRun);
+      set({ runs: base, activeRunId: runId });
     },
   };
 }
