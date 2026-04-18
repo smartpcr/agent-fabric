@@ -17,11 +17,34 @@ vi.mock("@xyflow/react", () => ({
   MiniMap: () => null,
 }));
 
-// Mock store hooks for openInspector
+// Mock store hooks
 const mockOpenInspector = vi.fn();
+const mockSelect = vi.fn();
+const mockDeleteSelected = vi.fn();
+
+const startPort = {
+  id: "out",
+  kind: "out",
+  label: "Out",
+  dataType: "any",
+  cardinality: "multi",
+  required: false,
+};
+const startSpec = { kind: "start", ports: [startPort] };
+
 vi.mock("@/store/hooks", () => ({
   useWorkflowStore: (selector: (state: Record<string, unknown>) => unknown) =>
-    selector({ openInspector: mockOpenInspector }),
+    selector({
+      openInspector: mockOpenInspector,
+      select: mockSelect,
+      deleteSelected: mockDeleteSelected,
+      registry: { get: (kind: string) => (kind === "start" ? startSpec : undefined) },
+      edges: [],
+    }),
+}));
+
+vi.mock("@/features/canvas/KeyboardConnectContext", () => ({
+  useStartKeyboardConnect: () => vi.fn(),
 }));
 
 afterEach(() => {

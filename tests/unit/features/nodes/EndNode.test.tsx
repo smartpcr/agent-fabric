@@ -17,11 +17,30 @@ vi.mock("@xyflow/react", () => ({
   MiniMap: () => null,
 }));
 
-// Mock store hooks for openInspector
+// Mock store hooks
 const mockOpenInspector = vi.fn();
+const mockSelect = vi.fn();
+const mockDeleteSelected = vi.fn();
+
+const endPort = {
+  id: "in",
+  kind: "in",
+  label: "In",
+  dataType: "any",
+  cardinality: "single",
+  required: false,
+};
+const endSpec = { kind: "end", ports: [endPort] };
+
 vi.mock("@/store/hooks", () => ({
   useWorkflowStore: (selector: (state: Record<string, unknown>) => unknown) =>
-    selector({ openInspector: mockOpenInspector }),
+    selector({
+      openInspector: mockOpenInspector,
+      select: mockSelect,
+      deleteSelected: mockDeleteSelected,
+      registry: { get: (kind: string) => (kind === "end" ? endSpec : undefined) },
+      edges: [],
+    }),
 }));
 
 afterEach(() => {
