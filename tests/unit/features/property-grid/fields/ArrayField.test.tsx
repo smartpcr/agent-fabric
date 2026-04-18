@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach, beforeAll } from "vitest";
 import { render, screen, cleanup, fireEvent, within } from "@testing-library/react";
-import { ArrayField } from "@/features/property-grid/fields/ArrayField";
+import { ArrayField, reorderArray } from "@/features/property-grid/fields/ArrayField";
 import {
   FieldRegistry,
   type FieldComponentProps,
@@ -196,6 +196,55 @@ describe("ArrayField", () => {
       const result = getOnChangeResult(onChange);
       expect(result).toEqual([99]);
     });
+
+    it("recursively renders object-type items with child fields", () => {
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: {
+              name: "element",
+              type: "object",
+              required: true,
+              children: [
+                { name: "firstName", type: "string", required: true },
+                { name: "age", type: "number", required: false },
+              ],
+            },
+          })}
+          field={makeField({ value: [{ firstName: "Alice", age: 30 }] })}
+        />,
+      );
+
+      // Object items should render with child fields via recursive form path
+      expect(screen.getByTestId("object-fields-tags-0")).toBeInTheDocument();
+      // Each child field gets a testid with the item name + child name
+      expect(screen.getByTestId("array-input-tags-0-firstName")).toBeInTheDocument();
+      expect(screen.getByTestId("array-input-tags-0-age")).toBeInTheDocument();
+    });
+
+    it("propagates changes from nested object child fields to onChange", () => {
+      const onChange = vi.fn();
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: {
+              name: "element",
+              type: "object",
+              required: true,
+              children: [{ name: "name", type: "string", required: true }],
+            },
+          })}
+          field={makeField({ onChange, value: [{ name: "Bob" }] })}
+        />,
+      );
+
+      const input = screen.getByTestId("array-input-tags-0-name");
+      fireEvent.change(input, { target: { value: "Charlie" } });
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      const result = getOnChangeResult(onChange);
+      expect(result).toEqual([{ name: "Charlie" }]);
+    });
   });
 
   describe("add", () => {
@@ -375,7 +424,38 @@ describe("ArrayField", () => {
     });
   });
 
-  describe("reorder", () => {
+  describe("reorder (reorderArray utility)", () => {
+    it("moves an item forward in the array", () => {
+      expect(reorderArray(["a", "b", "c"], 0, 2)).toEqual(["b", "c", "a"]);
+    });
+
+    it("moves an item backward in the array", () => {
+      expect(reorderArray(["a", "b", "c"], 2, 0)).toEqual(["c", "a", "b"]);
+    });
+
+    it("returns identical array when fromIndex equals toIndex", () => {
+      expect(reorderArray(["a", "b", "c"], 1, 1)).toEqual(["a", "b", "c"]);
+    });
+
+    it("handles single-element array", () => {
+      expect(reorderArray(["a"], 0, 0)).toEqual(["a"]);
+    });
+
+    it("handles adjacent swap", () => {
+      expect(reorderArray(["a", "b", "c"], 0, 1)).toEqual(["b", "a", "c"]);
+    });
+
+    it("preserves object identity in reordered items", () => {
+      const items = [
+        { id: "1", value: "first" },
+        { id: "2", value: "second" },
+        { id: "3", value: "third" },
+      ];
+      const result = reorderArray(items, 0, 2);
+      expect(result.map((i) => i.value)).toEqual(["second", "third", "first"]);
+      expect(result[2]).toBe(items[0]); // same reference
+    });
+
     it("renders drag handles for each item", () => {
       render(
         <ArrayField descriptor={makeDescriptor()} field={makeField({ value: ["a", "b", "c"] })} />,
@@ -396,43 +476,22 @@ describe("ArrayField", () => {
     it("uses dnd-kit with sortable context for items", () => {
       render(<ArrayField descriptor={makeDescriptor()} field={makeField({ value: ["a", "b"] })} />);
 
-      // Each item is wrapped in a sortable container — verify the list structure
       const list = screen.getByTestId("array-list-tags");
       const items = within(list).getAllByRole("listitem");
       expect(items).toHaveLength(2);
     });
 
-    it("reorders items when handleDragEnd is triggered (swap first and last)", () => {
-      const onChange = vi.fn();
-      render(
-        <ArrayField
-          descriptor={makeDescriptor()}
-          field={makeField({ onChange, value: ["first", "second", "third"] })}
-        />,
-      );
-
-      // Verify initial order
-      expect(screen.getByTestId("array-input-tags-0")).toHaveDisplayValue("first");
-      expect(screen.getByTestId("array-input-tags-1")).toHaveDisplayValue("second");
-      expect(screen.getByTestId("array-input-tags-2")).toHaveDisplayValue("third");
-
-      // dnd-kit DndContext exposes an onDragEnd callback. We can't easily
-      // simulate full pointer drag in jsdom, so we trigger the add/remove
-      // sequence that exercises the reorder path indirectly:
-      // Add then remove proves the machinery works. For a real drag test,
-      // we verify the structural wiring above.
-      // However, we CAN test by triggering add + programmatic reorder via
-      // the state management: add an item, then remove the first one.
-      // This proves the items array stays in sync.
-
-      // Add a fourth item
-      fireEvent.click(screen.getByTestId("add-tags"));
-      expect(onChange).toHaveBeenCalled();
-      const afterAdd = getOnChangeResult(onChange);
-      expect(afterAdd).toEqual(["first", "second", "third", ""]);
-
-      // Verify four items rendered
-      expect(screen.getByTestId("array-item-tags-3")).toBeInTheDocument();
+    it("reorderArray produces correct onChange values for field.onChange", () => {
+      // This tests the exact data path: reorderArray produces the values
+      // that handleDragEnd passes to field.onChange
+      const items = [
+        { id: "id-a", value: "alpha" },
+        { id: "id-b", value: "beta" },
+        { id: "id-c", value: "gamma" },
+      ];
+      const reordered = reorderArray(items, 2, 0);
+      const onChangePayload = reordered.map((i) => i.value);
+      expect(onChangePayload).toEqual(["gamma", "alpha", "beta"]);
     });
   });
 

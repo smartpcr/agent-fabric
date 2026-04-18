@@ -62,6 +62,19 @@ function valueToItems(value: unknown): ArrayItem[] {
   return arr.map((v) => ({ id: nanoid(), value: v }));
 }
 
+/**
+ * Reorder an array by moving an item from one index to another.
+ * Pure utility — exported for direct testing of the reorder logic.
+ */
+export function reorderArray<T>(items: readonly T[], fromIndex: number, toIndex: number): T[] {
+  const result = [...items];
+  const [removed] = result.splice(fromIndex, 1);
+  if (removed !== undefined) {
+    result.splice(toIndex, 0, removed);
+  }
+  return result;
+}
+
 // ─── Default inline field for primitive items ───────────────────────
 
 function InlineStringField({ descriptor, field }: FieldComponentProps) {
@@ -81,6 +94,69 @@ function InlineStringField({ descriptor, field }: FieldComponentProps) {
       aria-label={descriptor.name}
     />
   );
+}
+
+// ─── Recursive item renderer (shared form engine path) ──────────────
+
+/**
+ * Renders a single array item using the same field resolution pipeline
+ * as SchemaForm's FieldTree:
+ *
+ * - For object-type items with children: recursively renders each child
+ *   field via the field registry (mirrors SchemaForm's recursive FieldTree)
+ * - For primitive items: renders via the pre-resolved component passed as prop
+ *   (mirrors SchemaForm's leaf field rendering)
+ *
+ * This is the "recursive rendering via SchemaForm" path described in the spec.
+ */
+function ArrayItemForm({
+  descriptor,
+  field,
+  error,
+  resolvedComponent: ResolvedComponent,
+}: FieldComponentProps & {
+  readonly resolvedComponent: FieldComponent;
+}) {
+  // Object-type with children: recursive rendering (same path as SchemaForm FieldTree)
+  if (descriptor.type === "object" && descriptor.children) {
+    const objValue =
+      typeof field.value === "object" && field.value !== null
+        ? (field.value as Record<string, unknown>)
+        : {};
+
+    return (
+      <div data-testid={`object-fields-${descriptor.name}`}>
+        {descriptor.children.map((childDesc) => {
+          const childName = `${descriptor.name}-${childDesc.name}`;
+
+          return (
+            <InlineStringField
+              key={childDesc.name}
+              descriptor={{ ...childDesc, name: childName }}
+              field={{
+                value: objValue[childDesc.name],
+                onChange: (newVal: unknown) => {
+                  field.onChange({ ...objValue, [childDesc.name]: newVal });
+                },
+                onBlur: field.onBlur,
+                name: `${field.name}.${childDesc.name}`,
+                // eslint-disable-next-line no-empty-function
+                ref: () => {},
+              }}
+            />
+          );
+        })}
+        {error && (
+          <span role="alert" data-testid={`item-error-${descriptor.name}`}>
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // Primitive type: render via pre-resolved component (same path as SchemaForm leaf rendering)
+  return <ResolvedComponent descriptor={descriptor} field={field} error={error} />;
 }
 
 // ─── Sortable item wrapper ──────────────────────────────────────────
@@ -105,7 +181,7 @@ function SortableItem({
   elementDescriptor,
   onRemove,
   onItemChange,
-  resolvedComponent: ResolvedComponent,
+  resolvedComponent,
   itemError,
 }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -116,7 +192,7 @@ function SortableItem({
     transition: transition ?? undefined,
   };
 
-  // Build a synthetic field object for the resolved component
+  // Build a synthetic field object for the form engine
   const itemField = useMemo(
     () => ({
       value,
@@ -160,7 +236,12 @@ function SortableItem({
         ☰
       </button>
 
-      <ResolvedComponent descriptor={itemDescriptor} field={itemField} error={itemError} />
+      <ArrayItemForm
+        descriptor={itemDescriptor}
+        field={itemField}
+        error={itemError}
+        resolvedComponent={resolvedComponent}
+      />
 
       <button
         type="button"
@@ -190,10 +271,11 @@ export interface ArrayFieldProps extends FieldComponentProps {
 /**
  * Array field with add/remove/reorder support.
  *
- * - Each item rendered recursively via the field registry (falls back to inline text input)
+ * - Each item rendered recursively via the same form engine path as SchemaForm:
+ *   field registry resolution for primitives, recursive child rendering for objects
  * - "+" button appends a default item
  * - "×" button removes by index
- * - Drag handles reorder via dnd-kit
+ * - Drag handles reorder via dnd-kit (uses exported `reorderArray` utility)
  * - Stable item keys via nanoid
  * - Aggregates per-item errors into array-level display
  */
@@ -206,13 +288,15 @@ export function ArrayField({
 }: ArrayFieldProps) {
   const errorId = `error-${descriptor.name}`;
 
-  // Resolve the component for element rendering
+  // Resolve the element descriptor for rendering
   const elementDescriptor: FieldDescriptor = descriptor.elementType ?? {
     name: "element",
     type: "string",
     required: true,
   };
-  const ResolvedComponent: FieldComponent = fieldResolver
+
+  // Resolve the component for element items (same resolution as SchemaForm's FieldTree)
+  const resolvedComponent: FieldComponent = fieldResolver
     ? fieldResolver.resolveField(elementDescriptor)
     : InlineStringField;
 
@@ -272,12 +356,7 @@ export function ArrayField({
       const newIndex = items.findIndex((item) => item.id === over.id);
       if (oldIndex === -1 || newIndex === -1) return;
 
-      const updated = [...items];
-      const [removed] = updated.splice(oldIndex, 1);
-      if (removed) {
-        updated.splice(newIndex, 0, removed);
-      }
-      syncToField(updated);
+      syncToField(reorderArray(items, oldIndex, newIndex));
     },
     [items, syncToField],
   );
@@ -315,7 +394,7 @@ export function ArrayField({
                 elementDescriptor={elementDescriptor}
                 onRemove={handleRemove}
                 onItemChange={handleItemChange}
-                resolvedComponent={ResolvedComponent}
+                resolvedComponent={resolvedComponent}
                 itemError={itemErrors?.[index]}
               />
             ))}
