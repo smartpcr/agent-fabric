@@ -1,4 +1,5 @@
 import { Clock, Loader2, CheckCircle2, XCircle, SkipForward } from "lucide-react";
+import "@/styles/animations.css";
 
 /** The five possible execution states for a node's status badge. */
 export type BadgeStatus = "pending" | "running" | "success" | "error" | "skipped";
@@ -18,7 +19,12 @@ const LABEL_MAP: Record<BadgeStatus, string> = {
 
 const ICON_MAP: Record<
   BadgeStatus,
-  React.ComponentType<{ size?: number; "aria-hidden"?: boolean; "data-testid"?: string }>
+  React.ComponentType<{
+    size?: number;
+    "aria-hidden"?: boolean;
+    "data-testid"?: string;
+    className?: string;
+  }>
 > = {
   pending: Clock,
   running: Loader2,
@@ -64,7 +70,12 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       data-status={status}
       style={{ ...BADGE_STYLE, color }}
     >
-      <Icon size={12} aria-hidden={true} data-testid={`badge-icon-${status}`} />
+      <Icon
+        size={12}
+        aria-hidden={true}
+        data-testid={`badge-icon-${status}`}
+        className={status === "running" ? "badge-spin" : undefined}
+      />
       <span data-testid="badge-label">{label}</span>
     </span>
   );

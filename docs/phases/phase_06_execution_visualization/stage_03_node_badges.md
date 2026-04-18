@@ -1,10 +1,11 @@
 # Phase 6 — Stage 3: Node Badges
+
 > Status badges driven by execution store subscriptions, with iteration counters for loops.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: `StatusBadge` component (5 states)
+- [x] **Step 1**: `StatusBadge` component (5 states)
   - File(s): `src/features/nodes/badges/StatusBadge.tsx`, `tests/unit/features/nodes/badges/StatusBadge.test.tsx`
   - Contents: Renders icon + text for each of `pending`, `running`, `success`, `error`, `skipped`; `role="status"`; `aria-label` describes state.
   - Test: 100% — each state renders correct icon; ARIA correct.
@@ -41,6 +42,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 3
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/features/nodes/badges/**`.
 - Reduced-motion behavior manually verified.
