@@ -17,7 +17,7 @@
   - Test: 100% — selection toggle does not create a history entry.
   - Effort: 2h
 
-- [ ] **Step 3**: Group consecutive drag-position updates into one history entry
+- [x] **Step 3**: Group consecutive drag-position updates into one history entry
   - File(s): `src/store/historyGroup.ts`, `src/store/createStore.ts` (extend), `tests/unit/store/historyGroup.test.ts`
   - Contents: Pending-timer debouncer (200ms idle) that coalesces position updates; one undo reverses entire drag.
   - Test: 100% — drag of 20 position changes → 1 history step.
