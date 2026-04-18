@@ -23,7 +23,7 @@
   - Test: 100% — drag of 20 position changes → 1 history step.
   - Effort: 3h
 
-- [ ] **Step 4**: `UndoRedoButtons` toolbar + disabled states
+- [x] **Step 4**: `UndoRedoButtons` toolbar + disabled states
   - File(s): `src/features/history/UndoRedoButtons.tsx`, `tests/unit/features/history/UndoRedoButtons.test.tsx`
   - Contents: Icons + tooltips; disabled when no history / no future.
   - Test: 100%.
