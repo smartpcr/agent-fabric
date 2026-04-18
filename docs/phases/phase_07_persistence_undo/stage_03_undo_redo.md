@@ -29,7 +29,7 @@
   - Test: 100%.
   - Effort: 2h
 
-- [ ] **Step 5**: Keyboard shortcuts (Ctrl/Cmd+Z, Shift+Ctrl/Cmd+Z, Ctrl+Y)
+- [x] **Step 5**: Keyboard shortcuts (Ctrl/Cmd+Z, Shift+Ctrl/Cmd+Z, Ctrl+Y)
   - File(s): `src/features/history/useHistoryShortcut.ts`, `tests/unit/features/history/useHistoryShortcut.test.ts`
   - Contents: Global listener that ignores when focus is inside input/textarea/contenteditable.
   - Test: 100% — fires outside inputs; suppressed inside.
