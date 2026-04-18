@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "fixture-v1-graph",
+  "name": "V1 Fixture Graph",
+  "nodes": [
+    {
+      "id": "n-start",
+      "kind": "start",
+      "position": { "x": 0, "y": 0 },
+      "data": {}
+    },
+    {
+      "id": "n-task",
+      "kind": "task",
+      "position": { "x": 200, "y": 0 },
+      "data": { "name": "Process" }
+    },
+    {
+      "id": "n-end",
+      "kind": "end",
+      "position": { "x": 400, "y": 0 },
+      "data": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "kind": "default",
+      "source": "n-start",
+      "sourcePort": "out",
+      "target": "n-task",
+      "targetPort": "in"
+    },
+    {
+      "id": "e2",
+      "kind": "default",
+      "source": "n-task",
+      "sourcePort": "out",
+      "target": "n-end",
+      "targetPort": "in"
+    }
+  ]
+}
