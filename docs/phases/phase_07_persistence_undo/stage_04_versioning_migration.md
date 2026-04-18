@@ -11,7 +11,7 @@
   - Test: 100% — unknown version rejected; known passes through.
   - Effort: 2h
 
-- [ ] **Step 2**: Migration registry + composition
+- [x] **Step 2**: Migration registry + composition
   - File(s): `src/domain/serialization/migrate.ts` (extend), `tests/unit/domain/serialization/migrate.registry.test.ts`
   - Contents: `registerMigration(fromVersion, fn)`; `migrate(json)` composes steps until current; idempotent when already current.
   - Test: 100% — v1→v2→v3 composition; missing step throws; already-current is identity.
