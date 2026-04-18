@@ -128,6 +128,31 @@ vi.mock("@/store/selectors/graphSelectors", () => ({
         ],
       };
     }
+    if (kind === "decision-switch") {
+      return {
+        kind: "decision-switch",
+        variant: "switch",
+        icon: "git-branch",
+        ports: [
+          { id: "in", kind: "in", label: "In", dataType: "any", cardinality: "single" },
+          {
+            id: "branch-case-a",
+            kind: "out",
+            label: "Case A",
+            dataType: "any",
+            cardinality: "single",
+          },
+          {
+            id: "branch-case-b",
+            kind: "out",
+            label: "Case B",
+            dataType: "any",
+            cardinality: "single",
+          },
+          { id: "default", kind: "out", label: "default", dataType: "any", cardinality: "single" },
+        ],
+      };
+    }
     return { icon: "cog" };
   },
   selectIsPortMissing: () => false,
@@ -153,12 +178,13 @@ function setupStore() {
 }
 
 describe("nodeTypes", () => {
-  it("exports start, end, task, and decision entries", () => {
+  it("exports start, end, task, decision, and decision-switch entries", () => {
     expect(nodeTypes).toHaveProperty("start");
     expect(nodeTypes).toHaveProperty("end");
     expect(nodeTypes).toHaveProperty("task");
     expect(nodeTypes).toHaveProperty("decision");
-    expect(Object.keys(nodeTypes)).toHaveLength(4);
+    expect(nodeTypes).toHaveProperty("decision-switch");
+    expect(Object.keys(nodeTypes)).toHaveLength(5);
   });
 });
 

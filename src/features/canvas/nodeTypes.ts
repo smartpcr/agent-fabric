@@ -9,4 +9,5 @@ export const nodeTypes: NodeTypes = {
   end: EndNode,
   task: TaskNode,
   decision: DecisionNode,
+  "decision-switch": DecisionNode,
 };
