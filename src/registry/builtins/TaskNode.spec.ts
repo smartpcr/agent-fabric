@@ -6,7 +6,7 @@ const taskPropertySchema = z.object({
   name: z.string().min(1),
   retries: z.number()["int"]().min(0)["default"](3),
   tags: z.array(z.string())["default"]([]),
-  params: z.record(z.string(), z.unknown())["default"]({}),
+  params: z.array(z.string())["default"]([]),
   apiKey: z.string()["default"]("").describe("{ secret: true }"),
 });
 
@@ -22,6 +22,6 @@ export const TaskNodeSpec: NodeSpec<TaskData> = {
     makeOutputPort({ id: "out", label: "Out", dataType: "any" }),
   ],
   propertySchema: taskPropertySchema,
-  defaultData: { name: "Task", retries: 3, tags: [], params: {}, apiKey: "" },
+  defaultData: { name: "Task", retries: 3, tags: [], params: [], apiKey: "" },
   capabilities: [],
 };

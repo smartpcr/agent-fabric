@@ -296,7 +296,7 @@ describe("PropertyGrid → TaskNode live update (300ms debounce)", () => {
 
     // Give second node a distinct name
     act(() => {
-      store.current.updateNodeData(nodeId2, { name: "Node B", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId2, { name: "Node B", params: [], apiKey: "" });
     });
 
     // Select first node

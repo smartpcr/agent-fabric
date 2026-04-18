@@ -201,7 +201,7 @@ test.describe("Property Grid — array field (add, remove, reorder)", () => {
     await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
   });
 
-  test("add 3 items, remove middle, drag to reorder, verify order", async ({ page }) => {
+  test("add 3 params items, remove middle, drag to reorder, verify order", async ({ page }) => {
     const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
     await expect(canvas).toBeVisible();
     const canvasBox = await getBox(canvas);
@@ -222,11 +222,11 @@ test.describe("Property Grid — array field (add, remove, reorder)", () => {
     const propertyGrid = page.locator('[role="complementary"][aria-label="Property Grid"]');
     await expect(propertyGrid).toBeVisible({ timeout: 10000 });
 
-    // 4. Find the tags array field
-    const tagsField = propertyGrid.locator('[data-testid="array-field-tags"]');
-    await expect(tagsField).toBeVisible({ timeout: 10000 });
+    // 4. Find the params array field
+    const paramsField = propertyGrid.locator('[data-testid="array-field-params"]');
+    await expect(paramsField).toBeVisible({ timeout: 10000 });
 
-    const addBtn = tagsField.locator('[data-testid="add-tags"]');
+    const addBtn = paramsField.locator('[data-testid="add-params"]');
 
     // 5. Add 3 items
     await addBtn.click();
@@ -237,20 +237,20 @@ test.describe("Property Grid — array field (add, remove, reorder)", () => {
     await page.waitForTimeout(200);
 
     // Verify 3 items exist
-    const items = tagsField.locator('[role="listitem"]');
+    const items = paramsField.locator('[role="listitem"]');
     await expect(items).toHaveCount(3, { timeout: 5000 });
 
     // 6. Type values into each item
-    const input0 = tagsField.locator('[data-testid="array-input-tags-0"]');
-    const input1 = tagsField.locator('[data-testid="array-input-tags-1"]');
-    const input2 = tagsField.locator('[data-testid="array-input-tags-2"]');
+    const input0 = paramsField.locator('[data-testid="array-input-params-0"]');
+    const input1 = paramsField.locator('[data-testid="array-input-params-1"]');
+    const input2 = paramsField.locator('[data-testid="array-input-params-2"]');
 
     await input0.fill("alpha");
     await input1.fill("beta");
     await input2.fill("gamma");
 
     // 7. Remove the middle item (index 1 = "beta")
-    const removeBtn1 = tagsField.locator('[data-testid="remove-tags-1"]');
+    const removeBtn1 = paramsField.locator('[data-testid="remove-params-1"]');
     await removeBtn1.click();
     await page.waitForTimeout(300);
 
@@ -258,14 +258,14 @@ test.describe("Property Grid — array field (add, remove, reorder)", () => {
     await expect(items).toHaveCount(2, { timeout: 5000 });
 
     // After removing "beta", items should be: ["alpha", "gamma"]
-    const updatedInput0 = tagsField.locator('[data-testid="array-input-tags-0"]');
-    const updatedInput1 = tagsField.locator('[data-testid="array-input-tags-1"]');
+    const updatedInput0 = paramsField.locator('[data-testid="array-input-params-0"]');
+    const updatedInput1 = paramsField.locator('[data-testid="array-input-params-1"]');
     await expect(updatedInput0).toHaveValue("alpha");
     await expect(updatedInput1).toHaveValue("gamma");
 
     // 8. Reorder: drag item 1 ("gamma") above item 0 ("alpha")
-    const dragHandle1 = tagsField.locator('[data-testid="drag-handle-tags-1"]');
-    const dragHandle0 = tagsField.locator('[data-testid="drag-handle-tags-0"]');
+    const dragHandle1 = paramsField.locator('[data-testid="drag-handle-params-1"]');
+    const dragHandle0 = paramsField.locator('[data-testid="drag-handle-params-0"]');
 
     const handle1Box = await getBox(dragHandle1);
     const handle0Box = await getBox(dragHandle0);
@@ -282,8 +282,8 @@ test.describe("Property Grid — array field (add, remove, reorder)", () => {
     await page.waitForTimeout(500);
 
     // 9. Verify final order: should now be ["gamma", "alpha"]
-    const finalInput0 = tagsField.locator('[data-testid="array-input-tags-0"]');
-    const finalInput1 = tagsField.locator('[data-testid="array-input-tags-1"]');
+    const finalInput0 = paramsField.locator('[data-testid="array-input-params-0"]');
+    const finalInput1 = paramsField.locator('[data-testid="array-input-params-1"]');
     await expect(finalInput0).toHaveValue("gamma");
     await expect(finalInput1).toHaveValue("alpha");
   });

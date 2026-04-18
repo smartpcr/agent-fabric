@@ -166,10 +166,10 @@ describe("PropertyGrid multi-select", () => {
 
     // Give them different names
     act(() => {
-      store.current.updateNodeData(nodeId1, { name: "Alpha", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId1, { name: "Alpha", params: [], apiKey: "" });
     });
     act(() => {
-      store.current.updateNodeData(nodeId2, { name: "Beta", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId2, { name: "Beta", params: [], apiKey: "" });
     });
 
     // Multi-select
@@ -341,10 +341,10 @@ describe("PropertyGrid multi-select", () => {
 
     // Give them different names to trigger mixed state
     act(() => {
-      store.current.updateNodeData(nodeId1, { name: "Alpha", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId1, { name: "Alpha", params: [], apiKey: "" });
     });
     act(() => {
-      store.current.updateNodeData(nodeId2, { name: "Beta", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId2, { name: "Beta", params: [], apiKey: "" });
     });
 
     act(() => {
@@ -412,10 +412,10 @@ describe("PropertyGrid multi-select", () => {
 
     // Different names → mixed
     act(() => {
-      store.current.updateNodeData(nodeId1, { name: "Alpha", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId1, { name: "Alpha", params: [], apiKey: "" });
     });
     act(() => {
-      store.current.updateNodeData(nodeId2, { name: "Beta", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId2, { name: "Beta", params: [], apiKey: "" });
     });
 
     act(() => {

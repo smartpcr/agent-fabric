@@ -27,30 +27,33 @@ describe("TaskNodeSpec", () => {
 
   describe("propertySchema", () => {
     it("accepts valid data with name and params", () => {
-      const result = TaskNodeSpec.propertySchema.safeParse({ name: "MyTask", params: { key: 1 } });
+      const result = TaskNodeSpec.propertySchema.safeParse({
+        name: "MyTask",
+        params: ["key1", "key2"],
+      });
       expect(result.success).toBe(true);
     });
 
-    it("accepts data with name only (params defaults to {})", () => {
+    it("accepts data with name only (params defaults to [])", () => {
       const result = TaskNodeSpec.propertySchema.safeParse({ name: "MyTask" });
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.params).toEqual({});
+        expect(result.data.params).toEqual([]);
       }
     });
 
     it("rejects empty name", () => {
-      const result = TaskNodeSpec.propertySchema.safeParse({ name: "", params: {} });
+      const result = TaskNodeSpec.propertySchema.safeParse({ name: "", params: [] });
       expect(result.success).toBe(false);
     });
 
     it("rejects missing name", () => {
-      const result = TaskNodeSpec.propertySchema.safeParse({ params: {} });
+      const result = TaskNodeSpec.propertySchema.safeParse({ params: [] });
       expect(result.success).toBe(false);
     });
 
     it("rejects non-string name", () => {
-      const result = TaskNodeSpec.propertySchema.safeParse({ name: 42, params: {} });
+      const result = TaskNodeSpec.propertySchema.safeParse({ name: 42, params: [] });
       expect(result.success).toBe(false);
     });
   });
@@ -61,7 +64,7 @@ describe("TaskNodeSpec", () => {
         name: "Task",
         retries: 3,
         tags: [],
-        params: {},
+        params: [],
         apiKey: "",
       });
     });
