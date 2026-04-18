@@ -73,7 +73,40 @@ vi.mock("@/features/canvas/Background", () => ({
 }));
 
 vi.mock("@/store/selectors/graphSelectors", () => ({
-  selectNodeSpec: () => ({ icon: "cog" }),
+  selectNodeSpec: (_state: unknown, kind: string) => {
+    if (kind === "start")
+      return {
+        kind: "start",
+        icon: "play",
+        ports: [
+          {
+            id: "out",
+            kind: "out",
+            label: "Out",
+            dataType: "any",
+            cardinality: "multi",
+            required: false,
+          },
+        ],
+      };
+    if (kind === "end")
+      return {
+        kind: "end",
+        icon: "square",
+        ports: [
+          {
+            id: "in",
+            kind: "in",
+            label: "In",
+            dataType: "any",
+            cardinality: "single",
+            required: false,
+          },
+        ],
+      };
+    return { icon: "cog" };
+  },
+  selectIsPortMissing: () => false,
 }));
 
 afterEach(() => {

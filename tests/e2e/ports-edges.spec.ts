@@ -284,3 +284,115 @@ test.describe("Ports & Edges — invalid drop triggers rejection toast", () => {
     await expect(toastDescription).toBeVisible({ timeout: 5000 });
   });
 });
+
+test.describe("Ports & Edges — keyboard-only connection path", () => {
+  test.beforeEach(async ({ page }) => {
+    await page["goto"]("/");
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+  });
+
+  test("Tab to output handle, Enter, arrow to target, Enter creates edge", async ({ page }) => {
+    const canvas = page.locator('[role="application"][aria-label="Workflow Canvas"]');
+    const canvasBox = await getBox(canvas);
+
+    // Drop a Start node and two Task nodes to have multiple targets for arrow navigation
+    const startItem = page.locator('[role="option"][data-kind="start"]');
+    await dragPaletteToCanvas(
+      startItem,
+      canvas,
+      canvasBox.x + canvasBox.width / 4,
+      canvasBox.y + canvasBox.height / 2,
+    );
+
+    const taskItem = page.locator('[role="option"][data-kind="task"]');
+    await dragPaletteToCanvas(
+      taskItem,
+      canvas,
+      canvasBox.x + canvasBox.width / 2,
+      canvasBox.y + canvasBox.height / 3,
+    );
+
+    await dragPaletteToCanvas(
+      taskItem,
+      canvas,
+      canvasBox.x + (canvasBox.width * 3) / 4,
+      canvasBox.y + (canvasBox.height * 2) / 3,
+    );
+
+    const allNodes = page.locator(".react-flow__node[data-id]");
+    await expect(allNodes).toHaveCount(3, { timeout: 5000 });
+
+    // Verify no edges exist yet
+    await expect(page.locator(".react-flow__edge")).toHaveCount(0);
+
+    // Find the source (output) handle on the Start node
+    const startNode = page.locator(".react-flow__node-start");
+    const outputHandle = startNode.locator(".react-flow__handle.source");
+    await expect(outputHandle).toBeVisible();
+
+    // Focus the canvas, then Tab until the source handle receives focus
+    await canvas.focus();
+    let foundHandle = false;
+    for (let i = 0; i < 40; i++) {
+      await page.keyboard.press("Tab");
+      const isSource = await page.evaluate(() => {
+        const el = document.activeElement;
+        if (!el) return false;
+        return el.classList.contains("react-flow__handle") && el.classList.contains("source");
+      });
+      if (isSource) {
+        foundHandle = true;
+        break;
+      }
+    }
+    expect(foundHandle).toBe(true);
+
+    // Press Enter to enter keyboard connect mode
+    await page.keyboard.press("Enter");
+
+    // Wait for connect mode
+    await page.waitForTimeout(500);
+
+    // Check announcement shows connect mode with targets
+    const announcement = page.locator('[data-testid="connect-announcement"]');
+    await expect(announcement).toContainText(/Connect mode/i, { timeout: 5000 });
+    // Should show "1 of" indicating first target is selected
+    await expect(announcement).toContainText(/1 of/i, { timeout: 5000 });
+
+    // Focus the canvas for arrow-key navigation
+    await canvas.focus();
+
+    // ArrowDown to navigate to the second target
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+
+    // Verify announcement updated to show "2 of" (second target)
+    await expect(announcement).toContainText(/2 of/i, { timeout: 5000 });
+
+    // ArrowUp to go back to the first target
+    await page.keyboard.press("ArrowUp");
+    await page.waitForTimeout(200);
+
+    // Verify announcement shows "1 of" again
+    await expect(announcement).toContainText(/1 of/i, { timeout: 5000 });
+
+    // Navigate to second target again with ArrowDown
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    await expect(announcement).toContainText(/2 of/i, { timeout: 5000 });
+
+    // Press Enter to confirm connection to the second target
+    await page.keyboard.press("Enter");
+
+    // Verify a new edge was created
+    const edgeLocator = page.locator(".react-flow__edge");
+    await expect(edgeLocator).toHaveCount(1, { timeout: 5000 });
+
+    // Verify the edge path is visible
+    const edgePath = edgeLocator.locator(".react-flow__edge-path");
+    await expect(edgePath).toBeVisible();
+
+    // Verify the announcement confirms the connection
+    await expect(announcement).toContainText(/Connected to/i, { timeout: 5000 });
+  });
+});

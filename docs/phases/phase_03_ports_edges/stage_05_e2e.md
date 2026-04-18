@@ -11,7 +11,7 @@
   - Test: Green.
   - Effort: 2h
 
-- [ ] **Step 2**: E2E — invalid drop triggers rejection toast
+- [x] **Step 2**: E2E — invalid drop triggers rejection toast
   - File(s): `tests/e2e/ports-edges.spec.ts` (extend)
   - Contents: Drag to incompatible handle; release; assert toast with rejection message.
   - Test: Green.
