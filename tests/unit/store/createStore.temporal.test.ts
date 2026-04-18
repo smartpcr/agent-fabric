@@ -1,8 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { StoreApi } from "zustand";
 import type { TemporalState } from "zundo";
 import { z } from "zod";
+import { renderHook, cleanup, act } from "@testing-library/react";
 import { createStore, UNDO_LIMIT, type WorkflowState } from "@/store/createStore";
+import { useWorkflowStore } from "@/store/hooks";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
 import { makeInputPort, makeOutputPort } from "@/domain/models/port";
 
@@ -214,5 +216,92 @@ describe("createStore temporal middleware", () => {
     store.temporal.getState().undo();
     expect(store.getState().nodes).toHaveLength(1);
     expect(store.getState().nodes[0].id).toBe(node.id);
+  });
+});
+
+// ─── useWorkflowStore.temporal API tests ─────────────────────────────
+
+describe("useWorkflowStore.temporal API", () => {
+  beforeEach(() => {
+    // Clear the singleton store's nodes and temporal history
+    const temporal = useWorkflowStore.temporal.getState();
+    temporal.clear();
+    const state = useWorkflowStore.temporal.getState();
+    // Ensure clean state
+    expect(state.pastStates).toHaveLength(0);
+    expect(state.futureStates).toHaveLength(0);
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("useWorkflowStore.temporal is defined and has getState", () => {
+    expect(useWorkflowStore.temporal).toBeDefined();
+    expect(typeof useWorkflowStore.temporal.getState).toBe("function");
+  });
+
+  it("useWorkflowStore.temporal.getState() exposes undo and redo", () => {
+    const temporal = useWorkflowStore.temporal.getState();
+    expect(typeof temporal.undo).toBe("function");
+    expect(typeof temporal.redo).toBe("function");
+    expect(typeof temporal.clear).toBe("function");
+  });
+
+  it("undo via useWorkflowStore.temporal reverts a mutation", () => {
+    const { result, unmount } = renderHook(() => useWorkflowStore());
+
+    act(() => {
+      result.current.addNode(taskSpec, { x: 10, y: 20 });
+    });
+    expect(result.current.nodes).toHaveLength(1);
+
+    act(() => {
+      useWorkflowStore.temporal.getState().undo();
+    });
+    expect(result.current.nodes).toHaveLength(0);
+
+    unmount();
+  });
+
+  it("redo via useWorkflowStore.temporal re-applies after undo", () => {
+    const { result, unmount } = renderHook(() => useWorkflowStore());
+
+    act(() => {
+      result.current.addNode(taskSpec, { x: 10, y: 20 });
+    });
+    const nodeId = result.current.nodes[0].id;
+
+    act(() => {
+      useWorkflowStore.temporal.getState().undo();
+    });
+    expect(result.current.nodes).toHaveLength(0);
+
+    act(() => {
+      useWorkflowStore.temporal.getState().redo();
+    });
+    expect(result.current.nodes).toHaveLength(1);
+    expect(result.current.nodes[0].id).toBe(nodeId);
+
+    unmount();
+  });
+
+  it("useWorkflowStore.temporal tracks pastStates and futureStates", () => {
+    const { result, unmount } = renderHook(() => useWorkflowStore());
+
+    act(() => {
+      result.current.addNode(taskSpec, { x: 0, y: 0 });
+    });
+
+    expect(useWorkflowStore.temporal.getState().pastStates.length).toBeGreaterThan(0);
+    expect(useWorkflowStore.temporal.getState().futureStates).toHaveLength(0);
+
+    act(() => {
+      useWorkflowStore.temporal.getState().undo();
+    });
+
+    expect(useWorkflowStore.temporal.getState().futureStates.length).toBeGreaterThan(0);
+
+    unmount();
   });
 });
