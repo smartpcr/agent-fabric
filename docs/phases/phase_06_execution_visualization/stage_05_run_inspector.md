@@ -17,7 +17,7 @@
   - Test: 100% — events in order; payload rendered; copy works.
   - Effort: 3h
 
-- [ ] **Step 3**: `RunControls` — Start / Pause / Cancel → `IExecutionCommandSink`
+- [x] **Step 3**: `RunControls` — Start / Pause / Cancel → `IExecutionCommandSink`
   - File(s): `src/features/execution/runControls.tsx`, `src/hooks/useExecutionCommand.ts`, `tests/unit/features/execution/runControls.test.tsx`
   - Contents: Buttons dispatch typed commands; disabled states based on run status; keyboard shortcuts (Ctrl+R run, Ctrl+. cancel).
   - Test: 100% — each dispatch; disabled states correct.
