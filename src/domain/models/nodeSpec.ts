@@ -3,6 +3,7 @@ import type { PortSpec } from "@/domain/models/port";
 
 export interface NodeSpec<TData = unknown> {
   readonly kind: string;
+  readonly variant?: string;
   readonly category: string;
   readonly label: string;
   readonly icon: string;

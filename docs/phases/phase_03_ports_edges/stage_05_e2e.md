@@ -17,7 +17,7 @@
   - Test: Green.
   - Effort: 2h
 
-- [ ] **Step 3**: E2E — keyboard-only connection path
+- [x] **Step 3**: E2E — keyboard-only connection path
   - File(s): `tests/e2e/ports-edges.spec.ts` (extend)
   - Contents: Tab to output handle; Enter to enter connect mode; arrow keys to target; Enter to commit; assert new edge.
   - Test: Green.
