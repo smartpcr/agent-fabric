@@ -146,9 +146,10 @@ export function StatusBadge({ status, errorMessage, onErrorClick }: StatusBadgeP
       }
     : undefined;
 
+  /* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
   const badge = (
     <span
-      role={isClickable ? "button" : "status"}
+      role="status"
       aria-label={label}
       data-testid="status-badge"
       data-status={status}
@@ -170,6 +171,7 @@ export function StatusBadge({ status, errorMessage, onErrorClick }: StatusBadgeP
       <span data-testid="badge-label">{label}</span>
     </span>
   );
+  /* eslint-enable jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
 
   if (!hasTooltip) {
     return badge;

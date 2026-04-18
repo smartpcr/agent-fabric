@@ -2,9 +2,30 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StatusBadge } from "@/features/nodes/badges/StatusBadge";
+import type { NodeExecutionState } from "@/store/slices/executionSlice";
+
+// ─── Mock for BaseNode openInspector integration test ────────────────
+
+let mockExecState: NodeExecutionState | undefined;
+const mockOpenInspector = vi.fn();
+
+vi.mock("@/features/execution/useExecutionState", () => ({
+  useExecutionState: (_nodeId: string) => mockExecState,
+}));
+
+vi.mock("@/store/hooks", () => ({
+  useWorkflowStore: (selector: (state: Record<string, unknown>) => unknown) =>
+    selector({
+      openInspector: mockOpenInspector,
+    }),
+}));
+
+const { BaseNode } = await import("@/features/nodes/BaseNode");
 
 afterEach(() => {
   cleanup();
+  mockExecState = undefined;
+  mockOpenInspector.mockClear();
 });
 
 describe("StatusBadge — error tooltip", () => {
@@ -129,5 +150,58 @@ describe("StatusBadge — error tooltip", () => {
     render(<StatusBadge status="running" />);
     expect(screen.getByTestId("status-badge")).toHaveAttribute("data-status", "running");
     expect(screen.getByTestId("badge-label").textContent).toBe("Running");
+  });
+
+  // ── role="status" preserved even when clickable ────────────────
+
+  it("keeps role=status on clickable error badge", () => {
+    const handleClick = vi.fn();
+    render(<StatusBadge status="error" errorMessage="oops" onErrorClick={handleClick} />);
+    const badge = screen.getByTestId("status-badge");
+    expect(badge).toHaveAttribute("role", "status");
+  });
+});
+
+// ─── Integration: error badge click dispatches openInspector ─────────
+
+describe("BaseNode error badge → openInspector integration", () => {
+  it("clicking error badge dispatches openInspector(nodeId)", () => {
+    mockExecState = { status: "failed", startedAt: 100, finishedAt: 200, error: "some error" };
+    render(<BaseNode title="Task" icon="square-check" nodeId="node-42" />);
+
+    const badge = screen.getByTestId("status-badge");
+    expect(badge).toHaveAttribute("data-status", "error");
+    fireEvent.click(badge);
+
+    expect(mockOpenInspector).toHaveBeenCalledTimes(1);
+    expect(mockOpenInspector).toHaveBeenCalledWith("node-42");
+  });
+
+  it("clicking non-error badge does not dispatch openInspector", () => {
+    mockExecState = { status: "running", startedAt: 100 };
+    render(<BaseNode title="Task" icon="square-check" nodeId="node-42" />);
+
+    const badge = screen.getByTestId("status-badge");
+    fireEvent.click(badge);
+
+    expect(mockOpenInspector).not.toHaveBeenCalled();
+  });
+
+  it("error badge shows tooltip with error message from execution state", async () => {
+    mockExecState = {
+      status: "failed",
+      startedAt: 100,
+      finishedAt: 200,
+      error: "Connection timeout",
+    };
+    render(<BaseNode title="Task" icon="square-check" nodeId="node-42" />);
+
+    const badge = screen.getByTestId("status-badge");
+    await userEvent.hover(badge);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("error-tooltip")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("error-tooltip").textContent).toContain("Connection timeout");
   });
 });
