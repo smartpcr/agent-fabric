@@ -1,10 +1,11 @@
 # Phase 5 — Stage 2: Field Primitives
+
 > Eight accessible field components: string, number, boolean, enum, array, object, code, secret.
 > Status: `[ ]` not started · **Effort**: 20h
 
 ## Steps
 
-- [ ] **Step 1**: `StringField` (single-line)
+- [x] **Step 1**: `StringField` (single-line)
   - File(s): `src/features/property-grid/fields/StringField.tsx`, `tests/unit/features/property-grid/fields/StringField.test.tsx`
   - Contents: `<input type="text">`; `aria-describedby` for error; placeholder from schema description.
   - Test: 100% — value, onChange, error visibility.
@@ -53,6 +54,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 2
+
 - All 8 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/features/property-grid/fields/**`.
 - axe-core clean for each field in isolation.
