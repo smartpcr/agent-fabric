@@ -23,7 +23,7 @@
   - Test: 100% — resolution order; override precedence; fallback.
   - Effort: 2h
 
-- [ ] **Step 4**: `react-hook-form` + `zodResolver` wiring
+- [x] **Step 4**: `react-hook-form` + `zodResolver` wiring
   - File(s): `src/features/property-grid/SchemaForm.tsx` (extend), `tests/unit/features/property-grid/SchemaForm.validation.test.tsx`
   - Contents: Inline validation via `zodResolver`; errors surfaced per field; `mode: 'onChange'`.
   - Test: 100% — invalid value shows error; corrected value clears error.
