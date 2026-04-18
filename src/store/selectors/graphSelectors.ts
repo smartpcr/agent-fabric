@@ -27,6 +27,20 @@ export function selectNodeSpec(state: WorkflowState, kind: string): NodeSpec | u
   return next;
 }
 
+/**
+ * Returns true if the given input port is required and has no inbound edge.
+ * Used to show a "missing" indicator on required, unconnected input handles.
+ */
+export function selectIsPortMissing(
+  state: WorkflowState,
+  nodeId: string,
+  portId: string,
+  required?: boolean,
+): boolean {
+  if (!required) return false;
+  return !state.edges.some((e) => e.target === nodeId && e.targetPort === portId);
+}
+
 /** Reset the memoization cache (useful in tests). */
 export function clearSelectorCache(): void {
   cache.clear();

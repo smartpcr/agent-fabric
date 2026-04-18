@@ -30,6 +30,7 @@ vi.mock("@/store/hooks", () => ({
       openInspector: vi.fn(),
       select: vi.fn(),
       deleteSelected: vi.fn(),
+      edges: [],
     }),
 }));
 
@@ -37,7 +38,6 @@ vi.mock("@/store/hooks", () => ({
 vi.mock("@/store/selectors/graphSelectors", () => ({
   selectNodeSpec: (_state: unknown, kind: string) => {
     if (kind === "task-multi") {
-      // Import inline to avoid circular — return the actual spec shape
       return {
         kind: "task-multi",
         icon: "cog",
@@ -52,6 +52,7 @@ vi.mock("@/store/selectors/graphSelectors", () => ({
     }
     return { kind: "task", icon: "cog" };
   },
+  selectIsPortMissing: () => false,
 }));
 
 afterEach(() => {

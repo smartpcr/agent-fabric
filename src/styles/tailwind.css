@@ -42,4 +42,11 @@
     outline: 2px solid var(--color-primary);
     outline-offset: -1px;
   }
+
+  /* Required port indicator: red outline when unconnected */
+  .port-handle[data-missing="true"] {
+    outline: 2px solid var(--color-danger);
+    outline-offset: 1px;
+    border-radius: var(--radius-full);
+  }
 }
