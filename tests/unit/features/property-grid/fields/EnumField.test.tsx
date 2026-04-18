@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach, beforeAll } from "vitest";
 import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { EnumField } from "@/features/property-grid/fields/EnumField";
 import type { FieldComponentProps } from "@/features/property-grid/registry";
 import type { FieldDescriptor } from "@/features/property-grid/introspect";
@@ -362,7 +363,8 @@ describe("EnumField", () => {
   });
 
   describe("keyboard-only selection", () => {
-    it("selects a different option via ArrowDown + Enter on the content (no pointer)", async () => {
+    it("navigates with ArrowDown and confirms with Enter after opening via Enter", async () => {
+      const user = userEvent.setup();
       const onChange = vi.fn();
       render(
         <EnumField descriptor={makeDescriptor()} field={makeField({ onChange, value: "red" })} />,
@@ -372,53 +374,24 @@ describe("EnumField", () => {
       trigger.focus();
 
       // Open dropdown via keyboard Enter
-      fireEvent.keyDown(trigger, { key: "Enter" });
+      await user.keyboard("{Enter}");
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
-      // Navigate using keyboard on the content/focused element
-      const content = screen.getByTestId("content-testField");
-      const activeEl = (document.activeElement ?? content) as HTMLElement;
+      // After opening, Radix focuses the current value's option element
+      expect(document.activeElement?.getAttribute("role")).toBe("option");
 
-      // ArrowDown to move to the next option, then Enter to select
-      fireEvent.keyDown(activeEl, { key: "ArrowDown" });
-      fireEvent.keyDown(activeEl, { key: "Enter" });
+      // Navigate down one option and confirm via Enter
+      await user.keyboard("{ArrowDown}{Enter}");
 
-      // If Radix's native navigation selected the next item, onChange is called
-      // with a value different from the initial one. If Radix's ArrowDown doesn't
-      // move the highlight in jsdom, simulate it via our data-highlighted handler.
-      const hasNewSelection = onChange.mock.calls.some((c: unknown[]) => c[0] !== "red");
-      if (hasNewSelection) {
-        // Radix native keyboard worked — assert value changed
-        const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1] as unknown[];
-        expect(["green", "blue"]).toContain(lastCall[0]);
-      } else {
-        // Reset to test our explicit handler path
-        onChange.mockClear();
-
-        // Re-open dropdown
-        fireEvent.keyDown(trigger, { key: "Enter" });
-        await waitFor(() => {
-          expect(screen.getByRole("listbox")).toBeInTheDocument();
-        });
-
-        // Set data-highlighted on the target option
-        const greenOption = screen.getByTestId("option-testField-green");
-        greenOption.setAttribute("data-highlighted", "");
-
-        // Remove data-highlighted from the current item so ours is the only one
-        const redOption = screen.getByTestId("option-testField-red");
-        redOption.removeAttribute("data-highlighted");
-
-        const content2 = screen.getByTestId("content-testField");
-        fireEvent.keyDown(content2, { key: "Enter" });
-
-        expect(onChange).toHaveBeenCalledWith("green");
-      }
+      // Exactly one onChange call with the next enum value
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith("green");
     });
 
-    it("selects via Space on content with highlighted option", async () => {
+    it("navigates with ArrowDown and confirms with Enter after opening via ArrowDown", async () => {
+      const user = userEvent.setup();
       const onChange = vi.fn();
       render(
         <EnumField descriptor={makeDescriptor()} field={makeField({ onChange, value: "red" })} />,
@@ -427,28 +400,47 @@ describe("EnumField", () => {
       const trigger = screen.getByTestId("field-testField");
       trigger.focus();
 
-      // Open dropdown via ArrowDown
-      fireEvent.keyDown(trigger, { key: "ArrowDown" });
+      // Open dropdown via ArrowDown on trigger
+      await user.keyboard("{ArrowDown}");
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
-      // Set data-highlighted on the blue option
-      const blueOption = screen.getByTestId("option-testField-blue");
-      blueOption.setAttribute("data-highlighted", "");
+      // Navigate down two and confirm via Enter — should select "blue"
+      await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
 
-      // Remove from the currently selected item
-      const redOption = screen.getByTestId("option-testField-red");
-      redOption.removeAttribute("data-highlighted");
-
-      const content = screen.getByTestId("content-testField");
-      fireEvent.keyDown(content, { key: " " });
-
-      // Our handler should fire onChange with "blue"
+      expect(onChange).toHaveBeenCalledTimes(1);
       expect(onChange).toHaveBeenCalledWith("blue");
     });
 
-    it("does not fire custom handler when no option is highlighted", async () => {
+    it("renders proper ARIA roles for full keyboard navigation support", async () => {
+      const user = userEvent.setup();
+      render(<EnumField descriptor={makeDescriptor()} field={makeField({ value: "red" })} />);
+
+      // Trigger has combobox role — required for keyboard accessibility
+      const trigger = screen.getByTestId("field-testField");
+      expect(trigger.getAttribute("role")).toBe("combobox");
+
+      // Open via keyboard
+      trigger.focus();
+      await user.keyboard("{Enter}");
+      await waitFor(() => {
+        expect(screen.getByRole("listbox")).toBeInTheDocument();
+      });
+
+      // Listbox with option roles enables arrow-key navigation
+      const listbox = screen.getByRole("listbox");
+      expect(listbox).toBeInTheDocument();
+
+      const opts = screen.getAllByRole("option");
+      expect(opts).toHaveLength(3);
+      expect(opts[0]?.textContent).toContain("red");
+      expect(opts[1]?.textContent).toContain("green");
+      expect(opts[2]?.textContent).toContain("blue");
+    });
+
+    it("does not fire onChange when dropdown is opened and closed via Escape", async () => {
+      const user = userEvent.setup();
       const onChange = vi.fn();
       render(
         <EnumField descriptor={makeDescriptor()} field={makeField({ onChange, value: "red" })} />,
@@ -456,25 +448,18 @@ describe("EnumField", () => {
 
       const trigger = screen.getByTestId("field-testField");
       trigger.focus();
-      fireEvent.keyDown(trigger, { key: "Enter" });
+
+      // Open via Enter
+      await user.keyboard("{Enter}");
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
-      // Remove all data-highlighted attributes
-      const options = screen.getAllByRole("option");
-      for (const opt of options) {
-        opt.removeAttribute("data-highlighted");
-      }
+      // Close via Escape without selecting
+      await user.keyboard("{Escape}");
 
-      const content = screen.getByTestId("content-testField");
-      const callCountBefore = onChange.mock.calls.length;
-      fireEvent.keyDown(content, { key: "Enter" });
-
-      // Our handler should NOT have added a new call
-      // (Radix's own handler might fire, so we just check our handler didn't add extra)
-      // The call count should stay the same or only include Radix-native calls
-      expect(onChange.mock.calls.length).toBeLessThanOrEqual(callCountBefore + 1);
+      // No onChange should have fired
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 

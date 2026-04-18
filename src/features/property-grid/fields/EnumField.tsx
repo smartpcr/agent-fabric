@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import * as Select from "@radix-ui/react-select";
 import type { FieldComponentProps } from "@/features/property-grid/registry";
 
@@ -8,7 +7,7 @@ import type { FieldComponentProps } from "@/features/property-grid/registry";
  * - Options sourced from `descriptor.enumValues`
  * - Default value from schema
  * - `aria-label` from descriptor description (falls back to name)
- * - Keyboard navigation via Radix Select (arrows, Enter)
+ * - Keyboard navigation delegated to Radix Select (arrows, Enter)
  */
 export function EnumField({ descriptor, field, error }: FieldComponentProps) {
   const errorId = `error-${descriptor.name}`;
@@ -22,25 +21,6 @@ export function EnumField({ descriptor, field, error }: FieldComponentProps) {
   // Enum values are always strings — cast safely after null check
   const currentValue =
     rawValue !== null && rawValue !== undefined ? (rawValue as string) : undefined;
-
-  // Explicit keyboard selection handler for the content area.
-  // Radix Select handles keyboard navigation natively in real browsers
-  // but this ensures Enter/Space on a highlighted item triggers selection
-  // even in environments where focus management is limited (e.g., jsdom).
-  const handleContentKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === "Enter" || e.key === " ") {
-        const highlighted = e.currentTarget.querySelector<HTMLElement>("[data-highlighted]");
-        if (highlighted) {
-          const value = highlighted.getAttribute("data-value");
-          if (value) {
-            field.onChange(value);
-          }
-        }
-      }
-    },
-    [field],
-  );
 
   return (
     <>
@@ -64,18 +44,13 @@ export function EnumField({ descriptor, field, error }: FieldComponentProps) {
         </Select.Trigger>
 
         <Select.Portal>
-          <Select.Content
-            data-testid={`content-${descriptor.name}`}
-            position="popper"
-            onKeyDown={handleContentKeyDown}
-          >
+          <Select.Content data-testid={`content-${descriptor.name}`} position="popper">
             <Select.Viewport data-testid={`viewport-${descriptor.name}`}>
               {options.map((option) => (
                 <Select.Item
                   key={option}
                   value={option}
                   data-testid={`option-${descriptor.name}-${option}`}
-                  data-value={option}
                 >
                   <Select.ItemText>{option}</Select.ItemText>
                   <Select.ItemIndicator />
