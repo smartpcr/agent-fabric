@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { StoreApi } from "zustand";
 import type { TemporalState } from "zundo";
 import { createStore, type WorkflowState } from "@/store/createStore";
@@ -8,6 +8,8 @@ import { StartNodeSpec } from "@/registry/builtins/StartNode.spec";
 import { TaskNodeSpec } from "@/registry/builtins/TaskNode.spec";
 import { EndNodeSpec } from "@/registry/builtins/EndNode.spec";
 import type { WorkflowEdge } from "@/domain/models/edge";
+
+import { HISTORY_GROUP_DELAY } from "@/store/historyGroup";
 
 type StoreWithTemporal = StoreApi<WorkflowState> & {
   temporal: StoreApi<TemporalState<Pick<WorkflowState, "nodes" | "edges">>>;
@@ -23,12 +25,21 @@ function edgeAt(edges: WorkflowEdge[], index: number): WorkflowEdge {
 describe("Integration: edge deletion via keyboard", () => {
   let store: StoreWithTemporal;
 
+  function flush(): void {
+    vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
+  }
+
   beforeEach(() => {
+    vi.useFakeTimers();
     const registry = new NodeRegistry();
     registerBuiltins(registry);
     store = createStore() as StoreWithTemporal;
     store.getState().setRegistry(registry);
     store.temporal.getState().clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("selected edge + Delete → edge removed from state", () => {
@@ -61,7 +72,9 @@ describe("Integration: edge deletion via keyboard", () => {
 
   it("selected edge + Delete → undo restores edge", () => {
     const start = store.getState().addNode(StartNodeSpec, { x: 0, y: 0 });
+    flush();
     const task = store.getState().addNode(TaskNodeSpec, { x: 200, y: 0 });
+    flush();
 
     store.getState().tryConnect({
       source: start.id,
@@ -69,11 +82,13 @@ describe("Integration: edge deletion via keyboard", () => {
       target: task.id,
       targetPort: "in",
     });
+    flush();
     const edgeId = edgeAt(store.getState().edges, 0).id;
 
     store.getState().selectEdge(edgeId, "replace");
     store.getState().deleteSelected();
     expect(store.getState().edges).toHaveLength(0);
+    flush();
 
     // Undo → edge is restored
     store.temporal.getState().undo();
@@ -86,7 +101,9 @@ describe("Integration: edge deletion via keyboard", () => {
 
   it("selected edge + Delete → undo → redo re-deletes edge", () => {
     const start = store.getState().addNode(StartNodeSpec, { x: 0, y: 0 });
+    flush();
     const task = store.getState().addNode(TaskNodeSpec, { x: 200, y: 0 });
+    flush();
 
     store.getState().tryConnect({
       source: start.id,
@@ -94,10 +111,12 @@ describe("Integration: edge deletion via keyboard", () => {
       target: task.id,
       targetPort: "in",
     });
+    flush();
     const edgeId = edgeAt(store.getState().edges, 0).id;
 
     store.getState().selectEdge(edgeId, "replace");
     store.getState().deleteSelected();
+    flush();
 
     store.temporal.getState().undo();
     expect(store.getState().edges).toHaveLength(1);
@@ -139,8 +158,11 @@ describe("Integration: edge deletion via keyboard", () => {
 
   it("multi-edge deletion is a single undo step", () => {
     const start = store.getState().addNode(StartNodeSpec, { x: 0, y: 0 });
+    flush();
     const task = store.getState().addNode(TaskNodeSpec, { x: 200, y: 0 });
+    flush();
     const end = store.getState().addNode(EndNodeSpec, { x: 400, y: 0 });
+    flush();
 
     store.getState().tryConnect({
       source: start.id,
@@ -148,17 +170,20 @@ describe("Integration: edge deletion via keyboard", () => {
       target: task.id,
       targetPort: "in",
     });
+    flush();
     store.getState().tryConnect({
       source: task.id,
       sourcePort: "out",
       target: end.id,
       targetPort: "in",
     });
+    flush();
 
     store.getState().selectEdge(edgeAt(store.getState().edges, 0).id, "replace");
     store.getState().selectEdge(edgeAt(store.getState().edges, 1).id, "add");
     store.getState().deleteSelected();
     expect(store.getState().edges).toHaveLength(0);
+    flush();
 
     // Single undo restores both edges
     store.temporal.getState().undo();

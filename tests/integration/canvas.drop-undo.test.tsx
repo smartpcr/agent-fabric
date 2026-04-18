@@ -7,6 +7,7 @@ import { DragProvider, useDragContext } from "@/features/palette/DragContext";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
 import { useWorkflowStore, useTemporalStore } from "@/store/hooks";
+import { HISTORY_GROUP_DELAY } from "@/store/historyGroup";
 
 vi.mock("@xyflow/react", () => ({
   ReactFlow: ({ children }: { children?: ReactNode }) => (
@@ -81,8 +82,26 @@ function renderCanvasWithDrag(kind = "task") {
 }
 
 describe("Canvas drop → undo → node gone", () => {
+  function flush(): void {
+    vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
+  }
+
   beforeEach(() => {
+    vi.useFakeTimers();
     setupStore();
+    // Drain any stale debounce from setupStore and re-clear history
+    act(() => {
+      vi.advanceTimersByTime(HISTORY_GROUP_DELAY + 50);
+    });
+    const { result: t, unmount: u } = renderHook(() => useTemporalStore());
+    act(() => {
+      t.current.clear();
+    });
+    u();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("undo removes a node created via drop", () => {
@@ -100,6 +119,7 @@ describe("Canvas drop → undo → node gone", () => {
     // Undo via temporal middleware
     const { result: temporal, unmount } = renderHook(() => useTemporalStore());
     act(() => {
+      flush();
       temporal.current.undo();
     });
     unmount();
@@ -121,12 +141,14 @@ describe("Canvas drop → undo → node gone", () => {
     // Undo
     const { result: temporal, unmount } = renderHook(() => useTemporalStore());
     act(() => {
+      flush();
       temporal.current.undo();
     });
     expect(getStoreNodes()).toHaveLength(0);
 
     // Redo
     act(() => {
+      flush();
       temporal.current.redo();
     });
     unmount();
@@ -145,6 +167,11 @@ describe("Canvas drop → undo → node gone", () => {
     fireEvent.pointerUp(canvas, { clientX: 100, clientY: 100 });
     expect(getStoreNodes()).toHaveLength(1);
 
+    // Commit first drop to history
+    act(() => {
+      flush();
+    });
+
     // Drop second node
     fireEvent.click(screen.getByTestId("start-drag"));
     fireEvent.pointerUp(canvas, { clientX: 200, clientY: 200 });
@@ -153,12 +180,14 @@ describe("Canvas drop → undo → node gone", () => {
     // Undo last drop
     const { result: temporal, unmount } = renderHook(() => useTemporalStore());
     act(() => {
+      flush();
       temporal.current.undo();
     });
     expect(getStoreNodes()).toHaveLength(1);
 
     // Undo first drop
     act(() => {
+      flush();
       temporal.current.undo();
     });
     unmount();
