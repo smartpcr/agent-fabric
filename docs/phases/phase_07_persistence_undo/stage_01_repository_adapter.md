@@ -17,7 +17,7 @@
   - Test: 100%.
   - Effort: 2h
 
-- [ ] **Step 3**: `useWorkflowRepo` hook
+- [x] **Step 3**: `useWorkflowRepo` hook
   - File(s): `src/hooks/useWorkflowRepo.ts` (extend from Phase 0), `tests/unit/hooks/useWorkflowRepo.test.tsx`
   - Contents: Wraps repository; exposes `save`, `load` returning `Result`s; throws if used outside provider.
   - Test: 100%.
