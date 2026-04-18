@@ -11,7 +11,7 @@
   - Test: 100% — value, onChange, error visibility.
   - Effort: 2h
 
-- [ ] **Step 2**: `NumberField` with min/max/step from schema
+- [x] **Step 2**: `NumberField` with min/max/step from schema
   - File(s): `src/features/property-grid/fields/NumberField.tsx`, `tests/unit/features/property-grid/fields/NumberField.test.tsx`
   - Contents: `<input type="number">`; reads `min`, `max`, `step` from Zod schema checks; clamps non-numeric to previous valid.
   - Test: 100% — clamp; step increments via keyboard; invalid input rejected.
