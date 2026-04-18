@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useForm, Controller, type Control, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -244,17 +244,50 @@ export function SchemaFormFields({ schema, value, onChange, fieldRegistry }: Sch
     mode: "onChange",
   });
 
-  // Reset form when external value changes (e.g., undo/redo)
+  // Track previous value to detect external changes (undo/redo)
+  const prevValueRef = useRef(value);
+  // Guard to suppress watch callback during external reset
+  const resettingRef = useRef(false);
+
+  // Reset form when external value changes (e.g., undo/redo), preserving focused field
   useEffect(() => {
-    reset(value);
+    if (prevValueRef.current === value) return;
+    prevValueRef.current = value;
+
+    // Capture the currently focused element's identity before reset
+    const focused = document.activeElement;
+    const focusTestId = focused instanceof HTMLElement ? focused.getAttribute("data-testid") : null;
+    const focusName = focused instanceof HTMLElement ? focused.getAttribute("name") : null;
+
+    resettingRef.current = true;
+    reset(value, { keepDirtyValues: false });
+
+    // Clear the guard after microtask so the watch callback from reset is suppressed
+    queueMicrotask(() => {
+      resettingRef.current = false;
+    });
+
+    // Restore focus after react-hook-form re-renders
+    if (focusTestId ?? focusName) {
+      const savedTestId = focusTestId;
+      const savedName = focusName;
+      requestAnimationFrame(() => {
+        const selector = savedTestId
+          ? `[data-testid="${savedTestId}"]`
+          : `[name="${savedName ?? ""}"]`;
+        const el = document.querySelector<HTMLElement>(selector);
+        el?.focus();
+      });
+    }
   }, [value, reset]);
 
   // Stable onChange ref to avoid subscription churn
   const onChangeRef = useCallback(onChange, [onChange]);
 
-  // Watch all fields and propagate changes
+  // Watch all fields and propagate changes (suppressed during external reset)
   useEffect(() => {
     const subscription = watch((formValues) => {
+      if (resettingRef.current) return;
       onChangeRef(formValues as Record<string, unknown>);
     });
     return () => {
