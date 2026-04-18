@@ -11,7 +11,7 @@
   - Test: 100% — re-renders only on own state change.
   - Effort: 2h
 
-- [ ] **Step 2**: Flowing-dash animation (`stroke-dashoffset`)
+- [x] **Step 2**: Flowing-dash animation (`stroke-dashoffset`)
   - File(s): `src/features/edges/edgeAnimations.css`, `src/features/edges/DefaultEdge.tsx` (extend), `tests/unit/features/edges/DefaultEdge.dashAnimation.test.tsx`
   - Contents: `@keyframes flow { to { stroke-dashoffset: -16 } }`; applied on `state.status === 'active'`; respects reduced-motion.
   - Test: 100% — class applied/removed; reduced-motion opts out.
