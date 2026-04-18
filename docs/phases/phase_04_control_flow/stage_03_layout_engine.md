@@ -47,7 +47,7 @@
   - Test: Benchmark passes on CI hardware; correctness verified via fixture graphs.
   - Effort: 4h
 
-- [ ] **Step 8**: E2E — auto-layout on 20-node mixed graph produces no overlap
+- [x] **Step 8**: E2E — auto-layout on 20-node mixed graph produces no overlap
   - File(s): `tests/e2e/auto-layout.spec.ts`
   - Contents: Scripted graph build; click auto-layout; assert node bounding boxes don't intersect.
   - Test: Green.
