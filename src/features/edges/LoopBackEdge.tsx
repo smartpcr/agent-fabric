@@ -24,7 +24,7 @@ function useIterationPulse(iteration: number | undefined): string | undefined {
       return;
     }
 
-    if (iteration !== undefined && iteration !== prev) {
+    if (iteration !== undefined && iteration > prev) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: pulse is derived from iteration transition
       setPulseClass("loop-back-pulse");
     }

@@ -239,6 +239,63 @@ describe("LoopBackEdge — pulse on iteration increment", () => {
     const pathEl = screen.getByTestId("base-edge");
     expect(pathEl.classList.contains("loop-back-edge")).toBe(true);
   });
+
+  it("does NOT apply pulse on iteration decrement (e.g. 3 → 1)", () => {
+    act(() => {
+      store.getState().startRun(RUN_ID);
+      setRunWithEdge(RUN_ID, "edge-loop-1", {
+        status: "active",
+        activatedAt: 100,
+        iteration: 3,
+      });
+    });
+
+    render(
+      <svg>
+        <LoopBackEdge {...makeEdgeProps({ id: "edge-loop-1" })} />
+      </svg>,
+    );
+
+    act(() => {
+      setRunWithEdge(RUN_ID, "edge-loop-1", {
+        status: "active",
+        activatedAt: 100,
+        iteration: 1,
+      });
+    });
+
+    const pathEl = screen.getByTestId("base-edge");
+    expect(pathEl.classList.contains("loop-back-pulse")).toBe(false);
+  });
+
+  it("does NOT apply pulse when iteration stays the same", () => {
+    act(() => {
+      store.getState().startRun(RUN_ID);
+      setRunWithEdge(RUN_ID, "edge-loop-1", {
+        status: "active",
+        activatedAt: 100,
+        iteration: 2,
+      });
+    });
+
+    render(
+      <svg>
+        <LoopBackEdge {...makeEdgeProps({ id: "edge-loop-1" })} />
+      </svg>,
+    );
+
+    // Re-set with same iteration value
+    act(() => {
+      setRunWithEdge(RUN_ID, "edge-loop-1", {
+        status: "active",
+        activatedAt: 200,
+        iteration: 2,
+      });
+    });
+
+    const pathEl = screen.getByTestId("base-edge");
+    expect(pathEl.classList.contains("loop-back-pulse")).toBe(false);
+  });
 });
 
 // ─── Pulse auto-cleared after timer ─────────────────────────────────
