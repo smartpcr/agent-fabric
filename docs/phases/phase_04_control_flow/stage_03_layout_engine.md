@@ -41,7 +41,7 @@
   - Test: Integration — click → positions change; one undo restores prior.
   - Effort: 2h
 
-- [ ] **Step 7**: Incremental layout (only affected subgraph)
+- [x] **Step 7**: Incremental layout (only affected subgraph)
   - File(s): `src/domain/layout/incrementalLayout.ts`, `tests/unit/domain/layout/incrementalLayout.test.ts`, `tests/performance/layout.bench.ts`
   - Contents: Given a node change, compute minimum bounding subgraph and layout just that; benchmark target < 200ms for 100-node graph.
   - Test: Benchmark passes on CI hardware; correctness verified via fixture graphs.
