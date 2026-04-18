@@ -29,7 +29,7 @@
   - Test: 100% — correct keys for each strategy.
   - Effort: 2h
 
-- [ ] **Step 5**: Loop-back routing options
+- [x] **Step 5**: Loop-back routing options
   - File(s): `src/domain/layout/layoutOptions.ts` (extend), `tests/unit/domain/layout/layoutOptions.loop.test.ts`
   - Contents: `edgeRouting: ORTHOGONAL`, `cycleBreaking.strategy: GREEDY`, `layered.considerModelOrder.strategy: NODES_AND_EDGES`.
   - Test: 100% — options include loop-relevant keys.
