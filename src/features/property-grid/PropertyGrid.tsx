@@ -3,6 +3,7 @@ import { useWorkflowStore } from "@/store/hooks";
 import { selectNodeSpec } from "@/store/selectors/graphSelectors";
 import { SchemaForm } from "@/features/property-grid/SchemaForm";
 import { PropertyGridHeader } from "@/features/property-grid/PropertyGridHeader";
+import { useValidation } from "@/features/property-grid/ValidationContext";
 
 /**
  * Property grid panel bound to the current node selection.
@@ -11,12 +12,15 @@ import { PropertyGridHeader } from "@/features/property-grid/PropertyGridHeader"
  * - Resolves the node's spec (with `propertySchema`) from the registry
  * - Renders `PropertyGridHeader` (kind badge, editable label, copyable id)
  * - Renders `SchemaForm` for the node's data
+ * - Shows error count badge when validation errors exist
+ * - Reports validation state via `ValidationContext` for Toolbar integration
  * - Shows "Select a node" empty state when nothing is selected
  */
 export function PropertyGrid() {
   const lastSelectedNodeId = useWorkflowStore((s) => s.lastSelectedNodeId);
   const nodes = useWorkflowStore((s) => s.nodes);
   const updateNodeData = useWorkflowStore((s) => s.updateNodeData);
+  const { errorCount, setValidation } = useValidation();
 
   const node = useMemo(
     () => (lastSelectedNodeId ? nodes.find((n) => n.id === lastSelectedNodeId) : undefined),
@@ -44,6 +48,13 @@ export function PropertyGrid() {
     [node, updateNodeData],
   );
 
+  const handleValidationChange = useCallback(
+    (count: number, messages: string[]) => {
+      setValidation(count, messages);
+    },
+    [setValidation],
+  );
+
   const nodeData = node?.data as Record<string, unknown> | undefined;
   const nodeLabel = nodeData && typeof nodeData.name === "string" ? nodeData.name : undefined;
 
@@ -54,7 +65,26 @@ export function PropertyGrid() {
       style={{ height: "100%", padding: "8px" }}
       data-testid="property-grid"
     >
-      <h2>Properties</h2>
+      <h2>
+        Properties
+        {errorCount > 0 && (
+          <span
+            data-testid="error-count-badge"
+            style={{
+              marginLeft: "8px",
+              padding: "2px 6px",
+              borderRadius: "10px",
+              backgroundColor: "#e53e3e",
+              color: "#fff",
+              fontSize: "0.75rem",
+              fontWeight: 600,
+            }}
+            aria-label={`${String(errorCount)} validation error${errorCount === 1 ? "" : "s"}`}
+          >
+            {errorCount}
+          </span>
+        )}
+      </h2>
       {node && spec && nodeData ? (
         <div data-testid="property-grid-fields">
           <PropertyGridHeader
@@ -63,7 +93,12 @@ export function PropertyGrid() {
             label={nodeLabel}
             onLabelChange={handleLabelChange}
           />
-          <SchemaForm schema={spec.propertySchema} value={nodeData} onChange={handleChange} />
+          <SchemaForm
+            schema={spec.propertySchema}
+            value={nodeData}
+            onChange={handleChange}
+            onValidationChange={handleValidationChange}
+          />
         </div>
       ) : (
         <p data-testid="property-grid-empty">Select a node</p>

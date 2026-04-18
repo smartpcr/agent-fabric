@@ -209,6 +209,25 @@ function FieldTree({ descriptors, control, registry, errors, prefix = "" }: Fiel
   );
 }
 
+/**
+ * Recursively collect all error messages from a react-hook-form FieldErrors object.
+ */
+function collectErrorMessages(errors: FieldErrors): string[] {
+  const messages: string[] = [];
+  for (const key of Object.keys(errors)) {
+    const entry = errors[key];
+    if (entry === undefined) continue;
+    if (typeof entry === "object" && "message" in entry && typeof entry.message === "string") {
+      messages.push(entry.message);
+    }
+    if (typeof entry === "object" && !("message" in entry)) {
+      // Nested errors (object fields)
+      messages.push(...collectErrorMessages(entry as FieldErrors));
+    }
+  }
+  return messages;
+}
+
 // ─── SchemaForm ──────────────────────────────────────────────────────
 
 export interface SchemaFormProps {
@@ -217,6 +236,8 @@ export interface SchemaFormProps {
   readonly onChange: (value: Record<string, unknown>) => void;
   /** Optional field resolver/registry; defaults to built-in type-based registry. */
   readonly fieldRegistry?: FieldResolver;
+  /** Called when validation error count changes. Receives count and messages. */
+  readonly onValidationChange?: (errorCount: number, errorMessages: string[]) => void;
 }
 
 /**
@@ -229,7 +250,13 @@ export interface SchemaFormProps {
  * fields through a registry, and propagates changes via `onChange`.
  */
 /* eslint-disable react-hooks/incompatible-library -- react-hook-form watch API */
-export function SchemaFormFields({ schema, value, onChange, fieldRegistry }: SchemaFormProps) {
+export function SchemaFormFields({
+  schema,
+  value,
+  onChange,
+  fieldRegistry,
+  onValidationChange,
+}: SchemaFormProps) {
   const fields = introspect(schema);
   const registry = fieldRegistry ?? defaultFieldRegistry;
 
@@ -294,6 +321,14 @@ export function SchemaFormFields({ schema, value, onChange, fieldRegistry }: Sch
       subscription.unsubscribe();
     };
   }, [watch, onChangeRef]);
+
+  // Report validation errors to parent
+  useEffect(() => {
+    if (onValidationChange) {
+      const messages = collectErrorMessages(errors);
+      onValidationChange(messages.length, messages);
+    }
+  }, [errors, onValidationChange]);
 
   return <FieldTree descriptors={fields} control={control} registry={registry} errors={errors} />;
 }
