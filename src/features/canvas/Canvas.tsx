@@ -6,6 +6,7 @@ import {
   SelectionMode,
   type NodeMouseHandler,
   type Connection,
+  type FinalConnectionState,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Grid3X3 } from "lucide-react";
@@ -286,9 +287,37 @@ export function Canvas() {
     [],
   );
 
-  const handleConnectEnd = useCallback(() => {
-    connectDragSourceRef.current = null;
-  }, []);
+  const handleConnectEnd = useCallback(
+    (_event: MouseEvent | TouchEvent, state?: FinalConnectionState) => {
+      const source = connectDragSourceRef.current;
+      connectDragSourceRef.current = null;
+
+      // Show rejection toast when connection was attempted on a handle but validation failed
+      if (source && state && state.isValid === false && state.toHandle) {
+        const graph = {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          id: "store",
+          name: "store",
+          nodes,
+          edges,
+        };
+        const result = validateConnection(
+          graph,
+          { nodeId: source.nodeId, portId: source.portId },
+          { nodeId: state.toHandle.nodeId, portId: state.toHandle.id ?? "in" },
+          registry,
+        );
+        if (!result.ok) {
+          showToast({
+            title: "Connection rejected",
+            description: result.error.message,
+            variant: "error",
+          });
+        }
+      }
+    },
+    [nodes, edges, registry, showToast],
+  );
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     lastPointerRef.current = { x: e.clientX, y: e.clientY };
