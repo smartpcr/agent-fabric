@@ -129,7 +129,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
               transform: "translate(100%, -50%)",
             }}
           >
-            T
+            true
           </span>
         </>
       ) : null}
@@ -152,7 +152,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
               transform: "translate(-50%, 100%)",
             }}
           >
-            F
+            false
           </span>
         </>
       ) : null}

@@ -136,16 +136,16 @@ describe("DecisionNode", () => {
   });
 
   describe("labels", () => {
-    it("renders a 'T' label for the true branch", () => {
+    it("renders a 'true' label for the true branch", () => {
       renderDecisionNode();
       const label = screen.getByTestId("decision-label-true");
-      expect(label.textContent).toBe("T");
+      expect(label.textContent).toBe("true");
     });
 
-    it("renders an 'F' label for the false branch", () => {
+    it("renders a 'false' label for the false branch", () => {
       renderDecisionNode();
       const label = screen.getByTestId("decision-label-false");
-      expect(label.textContent).toBe("F");
+      expect(label.textContent).toBe("false");
     });
 
     it("true label has green color", () => {
