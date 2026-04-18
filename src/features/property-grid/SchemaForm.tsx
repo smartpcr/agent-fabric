@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useMemo } from "react";
+import { useEffect, useCallback, useRef, useMemo, useState } from "react";
 import { useForm, Controller, type Control, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -132,6 +132,67 @@ defaultFieldRegistry.registerField("number", NumberField);
 defaultFieldRegistry.registerField("boolean", BooleanField);
 defaultFieldRegistry.registerField("enum", EnumField);
 
+// ─── Mixed-field input component ─────────────────────────────────────
+
+/** Sentinel value for mixed fields – must match PropertyGrid.MIXED_SENTINEL */
+const MIXED_VALUE = "__mixed__";
+
+/**
+ * Input for fields with mixed values across multi-selected nodes.
+ * Shows "mixed" placeholder while the sentinel is active; once the user
+ * types, the input binds to form state so keystrokes are reflected.
+ */
+function MixedFieldInput({
+  descriptor,
+  field,
+}: {
+  readonly descriptor: FieldDescriptor;
+  readonly field: {
+    value: unknown;
+    onChange: (v: unknown) => void;
+    onBlur: () => void;
+    name: string;
+  };
+}) {
+  const isMixed = field.value === MIXED_VALUE;
+  const [editing, setEditing] = useState(false);
+
+  const displayValue =
+    isMixed && !editing
+      ? ""
+      : typeof field.value === "string" || typeof field.value === "number"
+        ? String(field.value)
+        : "";
+  const showPlaceholder = isMixed && !editing;
+
+  return (
+    <input
+      type="text"
+      placeholder={showPlaceholder ? "mixed" : undefined}
+      value={displayValue}
+      onChange={(e) => {
+        if (!editing) setEditing(true);
+        field.onChange(e.target.value);
+      }}
+      onFocus={() => {
+        if (isMixed) setEditing(true);
+      }}
+      onBlur={() => {
+        field.onBlur();
+        // If user cleared to empty, revert to mixed sentinel so placeholder reappears
+        if (editing && (field.value === "" || field.value === undefined)) {
+          setEditing(false);
+        }
+      }}
+      name={field.name}
+      aria-label={descriptor.name}
+      data-testid={`field-${descriptor.name}`}
+      data-mixed={isMixed && !editing ? "true" : undefined}
+      style={isMixed && !editing ? { fontStyle: "italic", color: "#999" } : undefined}
+    />
+  );
+}
+
 // ─── Recursive field tree renderer ───────────────────────────────────
 
 interface FieldTreeProps {
@@ -207,22 +268,7 @@ function FieldTree({
               <Controller
                 name={fieldPath}
                 control={control}
-                render={({ field }) => (
-                  <input
-                    type="text"
-                    placeholder="mixed"
-                    value=""
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                    }}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    aria-label={descriptor.name}
-                    data-testid={`field-${descriptor.name}`}
-                    data-mixed="true"
-                    style={{ fontStyle: "italic", color: "#999" }}
-                  />
-                )}
+                render={({ field }) => <MixedFieldInput descriptor={descriptor} field={field} />}
               />
             </div>
           );

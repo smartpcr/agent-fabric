@@ -325,4 +325,75 @@ describe("PropertyGrid multi-select", () => {
 
     expect(screen.getByTestId("header-kind-badge").textContent).toContain("task");
   });
+
+  it("typing into a mixed field reflects keystrokes and applies to all nodes", async () => {
+    const { result: store } = renderHook(() => useWorkflowStore());
+
+    let nodeId1 = "";
+    let nodeId2 = "";
+    act(() => {
+      const spec = store.current.registry.get("task");
+      if (spec) {
+        nodeId1 = store.current.addNode(spec, { x: 0, y: 0 }).id;
+        nodeId2 = store.current.addNode(spec, { x: 100, y: 0 }).id;
+      }
+    });
+
+    // Give them different names to trigger mixed state
+    act(() => {
+      store.current.updateNodeData(nodeId1, { name: "Alpha", params: {}, apiKey: "" });
+    });
+    act(() => {
+      store.current.updateNodeData(nodeId2, { name: "Beta", params: {}, apiKey: "" });
+    });
+
+    act(() => {
+      store.current.selectMany([nodeId1, nodeId2]);
+    });
+
+    render(<PropertyGrid />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("field-name")).toBeInTheDocument();
+    });
+
+    const nameInput = screen.getByTestId("field-name");
+
+    // Initially shows mixed placeholder
+    expect(nameInput.placeholder).toBe("mixed");
+    expect(nameInput.value).toBe("");
+
+    // Simulate keystroke-by-keystroke typing
+    act(() => {
+      fireEvent.focus(nameInput);
+    });
+    act(() => {
+      fireEvent.change(nameInput, { target: { value: "N" } });
+    });
+
+    // After first keystroke, the input should reflect the typed value
+    await waitFor(() => {
+      const input = screen.getByTestId("field-name");
+      expect(input.value).toBe("N");
+    });
+
+    // Re-query input (it may have been replaced after field exited mixed state)
+    const updatedInput = screen.getByTestId("field-name");
+    act(() => {
+      fireEvent.change(updatedInput, { target: { value: "New" } });
+    });
+
+    await waitFor(() => {
+      const input = screen.getByTestId("field-name");
+      expect(input.value).toBe("New");
+    });
+
+    // Final value should be applied to both nodes
+    await waitFor(() => {
+      const node1 = store.current.nodes.find((n) => n.id === nodeId1);
+      const node2 = store.current.nodes.find((n) => n.id === nodeId2);
+      expect((node1?.data as Record<string, unknown>).name).toBe("New");
+      expect((node2?.data as Record<string, unknown>).name).toBe("New");
+    });
+  });
 });
