@@ -29,7 +29,7 @@
   - Test: 100% — opacity + filter applied.
   - Effort: 1h
 
-- [ ] **Step 5**: Loop-back pulse variant
+- [x] **Step 5**: Loop-back pulse variant
   - File(s): `src/features/edges/LoopBackEdge.tsx` (extend), `tests/unit/features/edges/LoopBackEdge.pulse.test.tsx`
   - Contents: Distinct pulse animation on iteration boundary.
   - Test: 100% — class applied on `iteration` increments.
