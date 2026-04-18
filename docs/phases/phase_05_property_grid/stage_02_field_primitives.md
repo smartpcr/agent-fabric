@@ -23,7 +23,7 @@
   - Test: 100% — toggle state; keyboard activation (Space).
   - Effort: 1h
 
-- [ ] **Step 4**: `EnumField` (Radix Select)
+- [x] **Step 4**: `EnumField` (Radix Select)
   - File(s): `src/features/property-grid/fields/EnumField.tsx`, `tests/unit/features/property-grid/fields/EnumField.test.tsx`
   - Contents: Options from `ZodEnum` values; default from schema; keyboard navigation (arrows, Enter).
   - Test: 100% — options rendered; selection; keyboard only.
