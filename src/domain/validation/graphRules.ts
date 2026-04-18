@@ -10,6 +10,7 @@ export type GraphValidationErrorCode =
   | "REQUIRED_PORT_UNCONNECTED"
   | "LOOP_NODE_MISSING_BACK_EDGE"
   | "LOOP_NODE_MULTIPLE_BACK_EDGES"
+  | "LOOP_BACK_EDGE_WRONG_TARGET"
   | "DECISION_ORPHAN_EDGE"
   | "DECISION_DUPLICATE_BRANCH"
   | "DECISION_MISSING_DEFAULT";
@@ -159,9 +160,8 @@ function checkLoopNodes(graph: WorkflowGraph, registry: NodeSpecRegistry): Graph
       continue;
     }
 
-    const loopBackCount = graph.edges.filter(
-      (e) => e.source === node.id && e.target === node.id,
-    ).length;
+    const loopBackEdges = graph.edges.filter((e) => e.source === node.id && e.target === node.id);
+    const loopBackCount = loopBackEdges.length;
 
     if (loopBackCount === 0) {
       errors.push({
@@ -173,6 +173,16 @@ function checkLoopNodes(graph: WorkflowGraph, registry: NodeSpecRegistry): Graph
         code: "LOOP_NODE_MULTIPLE_BACK_EDGES",
         message: `Loop node "${node.id}" (kind: ${node.kind}) must have exactly one loop-back edge but has ${String(loopBackCount)}`,
       });
+    }
+
+    // Validate that every loop-back edge targets the `body-in` port
+    for (const edge of loopBackEdges) {
+      if (edge.targetPort !== "body-in") {
+        errors.push({
+          code: "LOOP_BACK_EDGE_WRONG_TARGET",
+          message: `Loop-back edge "${edge.id}" on node "${node.id}" (kind: ${node.kind}) targets port "${edge.targetPort}" but must target "body-in"`,
+        });
+      }
     }
   }
   return errors;
