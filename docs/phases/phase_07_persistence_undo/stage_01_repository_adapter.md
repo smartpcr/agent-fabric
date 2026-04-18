@@ -11,7 +11,7 @@
   - Test: 100% — MSW-mocked for each status code.
   - Effort: 4h
 
-- [ ] **Step 2**: `InMemoryWorkflowRepository`
+- [x] **Step 2**: `InMemoryWorkflowRepository`
   - File(s): `src/adapters/InMemoryWorkflowRepository.ts`, `tests/unit/adapters/InMemoryWorkflowRepository.test.ts`
   - Contents: Map-backed; simulates ETags via version counter.
   - Test: 100%.
