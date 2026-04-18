@@ -4,6 +4,10 @@ import type { NodeSpec } from "@/domain/models/nodeSpec";
 
 const cache = new Map<string, NodeSpec | undefined>();
 
+/** Cache for selectIsPortMissing: tracks last edges reference + per-port results. */
+let portMissingEdgesRef: readonly unknown[] | null = null;
+const portMissingCache = new Map<string, boolean>();
+
 /**
  * Memoized selector that resolves a NodeSpec by kind from the store's
  * registry. Returns the same reference when the resolved spec has not
@@ -30,6 +34,9 @@ export function selectNodeSpec(state: WorkflowState, kind: string): NodeSpec | u
 /**
  * Returns true if the given input port is required and has no inbound edge.
  * Used to show a "missing" indicator on required, unconnected input handles.
+ *
+ * Memoized: caches results per (nodeId, portId) pair and invalidates when
+ * the edges array reference changes.
  */
 export function selectIsPortMissing(
   state: WorkflowState,
@@ -38,10 +45,25 @@ export function selectIsPortMissing(
   required?: boolean,
 ): boolean {
   if (!required) return false;
-  return !state.edges.some((e) => e.target === nodeId && e.targetPort === portId);
+
+  // Invalidate cache when edges array reference changes
+  if (state.edges !== portMissingEdgesRef) {
+    portMissingEdgesRef = state.edges;
+    portMissingCache.clear();
+  }
+
+  const key = `${nodeId}\0${portId}`;
+  const cached = portMissingCache.get(key);
+  if (cached !== undefined) return cached;
+
+  const result = !state.edges.some((e) => e.target === nodeId && e.targetPort === portId);
+  portMissingCache.set(key, result);
+  return result;
 }
 
 /** Reset the memoization cache (useful in tests). */
 export function clearSelectorCache(): void {
   cache.clear();
+  portMissingEdgesRef = null;
+  portMissingCache.clear();
 }

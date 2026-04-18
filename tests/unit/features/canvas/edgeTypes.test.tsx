@@ -22,11 +22,16 @@ describe("edgeTypes", () => {
     expect(edgeTypes.conditional).toBe(ConditionalEdge);
   });
 
-  it("resolves every EdgeKind to a component", () => {
+  it("resolves every EdgeKind to a renderable component", () => {
     const kinds: EdgeKind[] = ["default", "loop-back", "conditional"];
     for (const kind of kinds) {
-      expect(edgeTypes[kind]).toBeDefined();
-      expect(typeof edgeTypes[kind]).toBe("function");
+      const component = edgeTypes[kind];
+      expect(component).toBeDefined();
+      // React.memo components have $$typeof; plain components are functions.
+      // Both are valid React component types that ReactFlow can render.
+      const memoSymbol = Symbol.for("react.memo");
+      const hasType = (component as unknown as { $$typeof?: symbol }).$$typeof === memoSymbol;
+      expect(typeof component === "function" || hasType).toBe(true);
     }
   });
 
