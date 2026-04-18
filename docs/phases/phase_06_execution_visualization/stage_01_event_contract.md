@@ -29,7 +29,7 @@
   - Test: 100% — MSW-mocked SSE stream; reconnect with backoff; invalid event dropped with warning; passes contract tests.
   - Effort: 4h
 
-- [ ] **Step 5**: `WsExecutionEventSource`
+- [x] **Step 5**: `WsExecutionEventSource`
   - File(s): `src/adapters/WsExecutionEventSource.ts`, `tests/unit/adapters/WsExecutionEventSource.test.ts`
   - Contents: `reconnecting-websocket`; same Zod validation; ping/pong heartbeat.
   - Test: 100% — mock `WebSocket`; reconnect; heartbeat timeout; passes contract tests.
