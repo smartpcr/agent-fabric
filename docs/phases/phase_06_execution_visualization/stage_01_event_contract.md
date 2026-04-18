@@ -1,10 +1,11 @@
 # Phase 6 — Stage 1: Execution Event Contract
+
 > Execution event types, the `IExecutionEventSource` port, and SSE / WebSocket adapters.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: `ExecutionEvent` discriminated union
+- [x] **Step 1**: `ExecutionEvent` discriminated union
   - File(s): `src/domain/models/executionEvent.ts`, `tests/unit/domain/models/executionEvent.test.ts`
   - Contents: Event types — `node.started`, `node.succeeded`, `node.failed`, `node.skipped`, `edge.activated`, `edge.taken`, `run.started`, `run.completed`, `run.failed`, `run.cancelled`; each carries `runId`, `at`, optional payload; Zod schema for runtime validation.
   - Test: 100% — each variant; exhaustive match via `assertNever`; Zod accepts/rejects.
@@ -35,6 +36,7 @@
   - Effort: 3h
 
 ## Acceptance for Stage 1
+
 - All 5 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/adapters/*ExecutionEventSource*` and event models.
 - All adapters share a single contract test suite.
