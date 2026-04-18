@@ -11,13 +11,13 @@
   - Test: 100% — renders a simple flat schema; `onChange` fires on field edit.
   - Effort: 4h
 
-- [ ] **Step 2**: Zod schema introspection
+- [x] **Step 2**: Zod schema introspection
   - File(s): `src/features/property-grid/introspect.ts`, `tests/unit/features/property-grid/introspect.test.ts`
   - Contents: `introspect(schema): FieldDescriptor[]`; handles `ZodString`, `ZodNumber`, `ZodBoolean`, `ZodEnum`, `ZodObject`, `ZodArray`, `ZodOptional`, `ZodDefault`, `ZodRecord`.
   - Test: 100% — each Zod type → correct descriptor; unwrap Optional/Default.
   - Effort: 3h
 
-- [ ] **Step 3**: Field registry
+- [x] **Step 3**: Field registry
   - File(s): `src/features/property-grid/registry.ts`, `tests/unit/features/property-grid/registry.test.ts`
   - Contents: `registerField(type, component)`, `resolveField(descriptor)`; descriptor-level override (`fieldName → component`) beats type-level; unknown falls back to `StringField`.
   - Test: 100% — resolution order; override precedence; fallback.

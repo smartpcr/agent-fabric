@@ -5,7 +5,7 @@ import {
   SchemaForm,
   introspectSchema,
   defaultFieldRegistry,
-  type FieldRegistry,
+  type FieldResolver,
   type FieldComponentProps,
 } from "@/features/property-grid/SchemaForm";
 
@@ -120,22 +120,34 @@ describe("introspectSchema", () => {
 
 describe("defaultFieldRegistry", () => {
   it("resolves string type to a component", () => {
-    const Component = defaultFieldRegistry.resolve({ name: "x", type: "string", required: true });
+    const Component = defaultFieldRegistry.resolveField({
+      name: "x",
+      type: "string",
+      required: true,
+    });
     expect(Component).toBeDefined();
   });
 
   it("resolves number type to a component", () => {
-    const Component = defaultFieldRegistry.resolve({ name: "x", type: "number", required: true });
+    const Component = defaultFieldRegistry.resolveField({
+      name: "x",
+      type: "number",
+      required: true,
+    });
     expect(Component).toBeDefined();
   });
 
   it("resolves boolean type to a component", () => {
-    const Component = defaultFieldRegistry.resolve({ name: "x", type: "boolean", required: true });
+    const Component = defaultFieldRegistry.resolveField({
+      name: "x",
+      type: "boolean",
+      required: true,
+    });
     expect(Component).toBeDefined();
   });
 
   it("resolves enum type to a component", () => {
-    const Component = defaultFieldRegistry.resolve({
+    const Component = defaultFieldRegistry.resolveField({
       name: "x",
       type: "enum",
       required: true,
@@ -145,8 +157,12 @@ describe("defaultFieldRegistry", () => {
   });
 
   it("falls back to string component for unknown types", () => {
-    const Component = defaultFieldRegistry.resolve({ name: "x", type: "unknown", required: true });
-    const StringComponent = defaultFieldRegistry.resolve({
+    const Component = defaultFieldRegistry.resolveField({
+      name: "x",
+      type: "unknown",
+      required: true,
+    });
+    const StringComponent = defaultFieldRegistry.resolveField({
       name: "x",
       type: "string",
       required: true,
@@ -400,8 +416,8 @@ describe("SchemaForm", () => {
       return <span data-testid={`custom-${descriptor.name}`}>custom</span>;
     }
 
-    const customRegistry: FieldRegistry = {
-      resolve: () => CustomString,
+    const customRegistry: FieldResolver = {
+      resolveField: () => CustomString,
     };
 
     const schema = z.object({ name: z.string() });

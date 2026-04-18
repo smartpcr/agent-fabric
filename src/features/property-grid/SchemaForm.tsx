@@ -1,19 +1,21 @@
 import { useEffect, useCallback } from "react";
-import { useForm, Controller, type ControllerRenderProps, type Control } from "react-hook-form";
+import { useForm, Controller, type Control } from "react-hook-form";
 import type { z } from "zod";
 import { introspect, type FieldDescriptor } from "@/features/property-grid/introspect";
+import {
+  FieldRegistry,
+  type FieldComponentProps,
+  type FieldResolver,
+} from "@/features/property-grid/registry";
 
 export type { FieldDescriptor } from "@/features/property-grid/introspect";
 export { introspect as introspectSchema } from "@/features/property-grid/introspect";
-
-/** Props passed to every field component resolved from the registry. */
-export interface FieldComponentProps {
-  readonly descriptor: FieldDescriptor;
-  readonly field: ControllerRenderProps;
-}
-
-/** A React component that renders a form field for a given descriptor. */
-export type FieldComponent = React.ComponentType<FieldComponentProps>;
+export {
+  FieldRegistry,
+  type FieldComponentProps,
+  type FieldComponent,
+  type FieldResolver,
+} from "@/features/property-grid/registry";
 
 // ─── Built-in field components ───────────────────────────────────────
 
@@ -87,33 +89,22 @@ function EnumField({ descriptor, field }: FieldComponentProps) {
   );
 }
 
-// ─── Field registry ──────────────────────────────────────────────────
+// ─── Default field registry ──────────────────────────────────────────
 
-/** Map from field type → React component that renders it. */
-export interface FieldRegistry {
-  readonly resolve: (descriptor: FieldDescriptor) => FieldComponent;
-}
-
-const DEFAULT_FIELD_MAP: Record<string, FieldComponent> = {
-  string: StringField,
-  number: NumberField,
-  boolean: BooleanField,
-  enum: EnumField,
-};
-
-/** Default field registry that maps type names to built-in components. */
-export const defaultFieldRegistry: FieldRegistry = {
-  resolve(descriptor: FieldDescriptor): FieldComponent {
-    return DEFAULT_FIELD_MAP[descriptor.type] ?? StringField;
-  },
-};
+/** Pre-built registry mapping built-in types to their components.
+ *  Falls back to StringField for any unrecognised type. */
+export const defaultFieldRegistry = new FieldRegistry(StringField);
+defaultFieldRegistry.registerField("string", StringField);
+defaultFieldRegistry.registerField("number", NumberField);
+defaultFieldRegistry.registerField("boolean", BooleanField);
+defaultFieldRegistry.registerField("enum", EnumField);
 
 // ─── Recursive field tree renderer ───────────────────────────────────
 
 interface FieldTreeProps {
   readonly descriptors: readonly FieldDescriptor[];
   readonly control: Control;
-  readonly registry: FieldRegistry;
+  readonly registry: FieldResolver;
   readonly prefix?: string;
 }
 
@@ -142,7 +133,7 @@ function FieldTree({ descriptors, control, registry, prefix = "" }: FieldTreePro
           );
         }
 
-        const Component = registry.resolve(descriptor);
+        const Component = registry.resolveField(descriptor);
         return (
           <div key={descriptor.name} data-testid={`field-wrapper-${descriptor.name}`}>
             <label htmlFor={`field-${descriptor.name}`}>{descriptor.name}</label>
@@ -164,8 +155,8 @@ export interface SchemaFormProps {
   readonly schema: z.ZodType;
   readonly value: Record<string, unknown>;
   readonly onChange: (value: Record<string, unknown>) => void;
-  /** Optional field registry; defaults to built-in type-based registry. */
-  readonly fieldRegistry?: FieldRegistry;
+  /** Optional field resolver/registry; defaults to built-in type-based registry. */
+  readonly fieldRegistry?: FieldResolver;
 }
 
 /**
