@@ -117,7 +117,7 @@ describe("Toolbar snap toggle", () => {
     render(<Toolbar />);
 
     expect(screen.getByTestId("snap-grid-toggle")).toBeDefined();
-    expect(screen.getByRole("toolbar")).toBeDefined();
+    expect(screen.getByRole("toolbar", { name: "Editor toolbar" })).toBeDefined();
   });
 
   it("clicking toggle flips snapEnabled state", () => {
@@ -165,7 +165,7 @@ describe("Toolbar snap toggle", () => {
     setupStore(false);
     render(<Toolbar />);
 
-    const toolbar = screen.getByRole("toolbar");
-    expect(toolbar.getAttribute("aria-label")).toBe("Editor toolbar");
+    const toolbar = screen.getByRole("toolbar", { name: "Editor toolbar" });
+    expect(toolbar).toBeDefined();
   });
 });
