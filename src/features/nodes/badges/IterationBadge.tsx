@@ -30,7 +30,7 @@ export function IterationBadge({ iteration, total }: IterationBadgeProps) {
   }
 
   const iterStr = String(iteration);
-  const text = total === undefined ? iterStr : `${iterStr} / ${String(total)}`;
+  const text = total === undefined ? `${iterStr} / ?` : `${iterStr} / ${String(total)}`;
   const label =
     total === undefined ? `Iteration ${iterStr}` : `Iteration ${iterStr} of ${String(total)}`;
 
