@@ -1,17 +1,10 @@
 import { useEffect, useCallback } from "react";
 import { useForm, Controller, type ControllerRenderProps, type Control } from "react-hook-form";
 import type { z } from "zod";
+import { introspect, type FieldDescriptor } from "@/features/property-grid/introspect";
 
-/** Descriptor for a single field extracted from a Zod schema. */
-export interface FieldDescriptor {
-  readonly name: string;
-  readonly type: "string" | "number" | "boolean" | "enum" | "object" | "array" | "unknown";
-  readonly required: boolean;
-  readonly defaultValue?: unknown;
-  readonly enumValues?: readonly string[];
-  /** Child descriptors for nested object fields. */
-  readonly children?: readonly FieldDescriptor[];
-}
+export type { FieldDescriptor } from "@/features/property-grid/introspect";
+export { introspect as introspectSchema } from "@/features/property-grid/introspect";
 
 /** Props passed to every field component resolved from the registry. */
 export interface FieldComponentProps {
@@ -21,75 +14,6 @@ export interface FieldComponentProps {
 
 /** A React component that renders a form field for a given descriptor. */
 export type FieldComponent = React.ComponentType<FieldComponentProps>;
-
-/** Extract the underlying Zod type, unwrapping optional/default wrappers. */
-function unwrapZodType(schema: z.ZodType): {
-  type: string;
-  inner: z.ZodType;
-  required: boolean;
-  defaultValue?: unknown;
-} {
-  const def = (schema as unknown as { _zod?: { def?: Record<string, unknown> } })._zod?.def;
-  if (!def) return { type: "unknown", inner: schema, required: true };
-
-  const zodType = def.type as string | undefined;
-
-  if (zodType === "optional") {
-    const inner = def.innerType as z.ZodType;
-    const result = unwrapZodType(inner);
-    return { ...result, required: false };
-  }
-
-  if (zodType === "default") {
-    const inner = def.innerType as z.ZodType;
-    const result = unwrapZodType(inner);
-    return { ...result, required: false, defaultValue: def.defaultValue };
-  }
-
-  return { type: zodType ?? "unknown", inner: schema, required: true };
-}
-
-const ZOD_TYPE_MAP: Record<string, FieldDescriptor["type"]> = {
-  string: "string",
-  number: "number",
-  boolean: "boolean",
-  enum: "enum",
-  object: "object",
-  array: "array",
-};
-
-/** Introspect a Zod object schema into a list of field descriptors (recursive). */
-export function introspectSchema(schema: z.ZodType): FieldDescriptor[] {
-  const def = (schema as unknown as { _zod?: { def?: Record<string, unknown> } })._zod?.def;
-  if (!def || def.type !== "object") return [];
-
-  const shape = def.shape as Record<string, z.ZodType> | undefined;
-  if (!shape) return [];
-
-  const fields: FieldDescriptor[] = [];
-  for (const [name, fieldSchema] of Object.entries(shape)) {
-    const unwrapped = unwrapZodType(fieldSchema);
-    const type: FieldDescriptor["type"] = ZOD_TYPE_MAP[unwrapped.type] ?? "unknown";
-
-    const innerDef = (unwrapped.inner as unknown as { _zod?: { def?: Record<string, unknown> } })
-      ._zod?.def;
-    const enumEntries = innerDef?.entries as Record<string, string> | undefined;
-
-    // Recursively introspect nested object schemas
-    const children = type === "object" ? introspectSchema(unwrapped.inner) : undefined;
-
-    fields.push({
-      name,
-      type,
-      required: unwrapped.required,
-      defaultValue: unwrapped.defaultValue,
-      enumValues: type === "enum" && enumEntries ? Object.values(enumEntries) : undefined,
-      children: children && children.length > 0 ? children : undefined,
-    });
-  }
-
-  return fields;
-}
 
 // ─── Built-in field components ───────────────────────────────────────
 
@@ -253,7 +177,7 @@ export interface SchemaFormProps {
  */
 /* eslint-disable react-hooks/incompatible-library -- react-hook-form watch API */
 export function SchemaForm({ schema, value, onChange, fieldRegistry }: SchemaFormProps) {
-  const fields = introspectSchema(schema);
+  const fields = introspect(schema);
   const registry = fieldRegistry ?? defaultFieldRegistry;
 
   const { control, watch, reset } = useForm({

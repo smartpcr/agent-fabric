@@ -1,10 +1,11 @@
 # Phase 5 — Stage 1: Form Engine
+
 > SchemaForm that introspects Zod schemas and renders registered field components; react-hook-form integration with debounced commit.
 > Status: `[ ]` not started · **Effort**: 16h
 
 ## Steps
 
-- [ ] **Step 1**: `SchemaForm` component
+- [x] **Step 1**: `SchemaForm` component
   - File(s): `src/features/property-grid/SchemaForm.tsx`, `tests/unit/features/property-grid/SchemaForm.test.tsx`
   - Contents: Props `{ schema: ZodSchema, value, onChange }`; introspects schema → renders tree of fields via registry; tracks form state via `react-hook-form`.
   - Test: 100% — renders a simple flat schema; `onChange` fires on field edit.
@@ -35,6 +36,7 @@
   - Effort: 3h
 
 ## Acceptance for Stage 1
+
 - All 5 steps `[x]` with score ≥ 90.
 - 100% unit coverage on form engine.
 - No memory leaks on rapid schema switching (verified via test lifecycle).
