@@ -21,6 +21,8 @@ export interface FieldDescriptor {
   readonly required: boolean;
   readonly defaultValue?: unknown;
   readonly enumValues?: readonly string[];
+  /** Schema description (from `.describe()`), used for placeholders/hints. */
+  readonly description?: string;
   /** Child descriptors for nested object fields. */
   readonly children?: readonly FieldDescriptor[];
   /** Descriptor for array element type. */
@@ -109,10 +111,17 @@ function introspectType(schema: z.ZodType): Omit<FieldDescriptor, "name"> {
       ? { name: "value", ...introspectType(innerDef.valueType as z.ZodType) }
       : undefined;
 
+  // Extract description from Zod's .describe() — stored on the schema object itself
+  const description =
+    typeof (schema as { description?: unknown }).description === "string"
+      ? (schema as { description: string }).description
+      : undefined;
+
   return {
     type,
     required: unwrapped.required,
     defaultValue: unwrapped.defaultValue,
+    description,
     enumValues: type === "enum" && enumEntries ? Object.values(enumEntries) : undefined,
     children: children && children.length > 0 ? children : undefined,
     elementType,
