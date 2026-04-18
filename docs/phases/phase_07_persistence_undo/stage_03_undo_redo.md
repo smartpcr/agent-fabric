@@ -1,10 +1,11 @@
 # Phase 7 — Stage 3: Undo / Redo
+
 > Wire zundo temporal middleware, group drag updates, add keyboard shortcuts, prove 50-step chain.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: `zundo` middleware wired in `createStore`
+- [x] **Step 1**: `zundo` middleware wired in `createStore`
   - File(s): `src/store/createStore.ts` (extend), `tests/unit/store/createStore.temporal.test.ts`
   - Contents: `temporal(immer(...), { limit: 50 })`; expose `useWorkflowStore.temporal.getState().undo()` / `.redo()`.
   - Test: 100% — undo / redo actions present; limit enforced.
@@ -41,5 +42,6 @@
   - Effort: 2h
 
 ## Acceptance for Stage 3
+
 - All 6 steps `[x]` with score ≥ 90.
 - 100% unit coverage on history helpers + shortcuts.
