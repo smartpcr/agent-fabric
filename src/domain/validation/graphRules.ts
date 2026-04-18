@@ -293,29 +293,40 @@ function checkDecisionNodes(
 
 /**
  * Detect unexpected cycles via DFS.
- * Cycles that pass through a loop node (canHaveBackEdge) via a loop-back edge
- * are expected and excluded. Any other cycle is flagged as UNEXPECTED_CYCLE.
+ * Runs DFS on the full directed graph (all edges). When a cycle is found,
+ * it checks whether any node in the cycle is a loop-capable node
+ * (canHaveBackEdge). Cycles involving at least one loop node are expected;
+ * cycles with no loop node are flagged as UNEXPECTED_CYCLE.
  */
 function checkUnexpectedCycles(
   graph: WorkflowGraph,
-  _registry: NodeSpecRegistry,
+  registry: NodeSpecRegistry,
 ): GraphValidationError[] {
   const errors: GraphValidationError[] = [];
 
-  // Build adjacency excluding loop-back edges (kind === "loop-back")
-  // because those represent intentional cycles through loop nodes.
+  // Build full adjacency (all edges, including loop-back)
   const adj = new Map<string, string[]>();
   for (const node of graph.nodes) {
     adj.set(node.id, []);
   }
   for (const edge of graph.edges) {
-    if (edge.kind === "loop-back") {
-      continue;
-    }
     const successors = adj.get(edge.source);
     if (successors) {
       successors.push(edge.target);
     }
+  }
+
+  const nodeMap = new Map(graph.nodes.map((n) => [n.id, n]));
+  const reportedCycles = new Set<string>();
+
+  // Helper: check if a node kind has canHaveBackEdge capability
+  function isLoopCapable(nodeId: string): boolean {
+    const node = nodeMap.get(nodeId);
+    if (!node) {
+      return false;
+    }
+    const spec = registry.get(node.kind);
+    return spec !== undefined && spec.capabilities.includes("canHaveBackEdge");
   }
 
   // Standard DFS-based cycle detection using white/gray/black coloring
@@ -327,9 +338,6 @@ function checkUnexpectedCycles(
   for (const node of graph.nodes) {
     color.set(node.id, WHITE);
   }
-
-  const nodeMap = new Map(graph.nodes.map((n) => [n.id, n]));
-  const reportedCycles = new Set<string>();
 
   function dfs(nodeId: string): void {
     color.set(nodeId, GRAY);
@@ -345,6 +353,13 @@ function checkUnexpectedCycles(
           cycleNodeIds.push(cur);
           cur = parent.get(cur);
         }
+
+        // Only flag if NO node in the cycle is loop-capable
+        const hasLoopNode = cycleNodeIds.some((id) => isLoopCapable(id));
+        if (hasLoopNode) {
+          return;
+        }
+
         const sortedKey = [...cycleNodeIds].sort().join(",");
         if (!reportedCycles.has(sortedKey)) {
           reportedCycles.add(sortedKey);

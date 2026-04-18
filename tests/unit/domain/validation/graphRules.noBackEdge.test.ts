@@ -323,7 +323,51 @@ describe("validateGraph — no back-edges on non-loop nodes", () => {
       expect(result.ok).toBe(true);
     });
 
-    it("non-loop-back self-edge on loop node is flagged as unexpected cycle", () => {
+    it("loop-back edge kind on non-loop nodes does not suppress cycle detection", () => {
+      const start = makeNode({ kind: "start", data: {} });
+      const taskA = makeNode({ kind: "task", data: {} });
+      const taskB = makeNode({ kind: "task", data: {} });
+      const end = makeNode({ kind: "end", data: {} });
+      let g = makeGraph("loop-back-non-loop");
+      g = addNodeToGraph(g, start);
+      g = addNodeToGraph(g, taskA);
+      g = addNodeToGraph(g, taskB);
+      g = addNodeToGraph(g, end);
+      g = addEdgeToGraph(
+        g,
+        makeEdge({ source: start.id, sourcePort: "out", target: taskA.id, targetPort: "in" }),
+      );
+      g = addEdgeToGraph(
+        g,
+        makeEdge({ source: taskA.id, sourcePort: "out", target: taskB.id, targetPort: "in" }),
+      );
+      // B → A with kind "loop-back" — but neither node is a loop node
+      g = addEdgeToGraph(
+        g,
+        makeEdge({
+          source: taskB.id,
+          sourcePort: "out",
+          target: taskA.id,
+          targetPort: "in",
+          kind: "loop-back",
+        }),
+      );
+      g = addEdgeToGraph(
+        g,
+        makeEdge({ source: taskB.id, sourcePort: "out", target: end.id, targetPort: "in" }),
+      );
+
+      const result = validateGraph(g, registry);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        const cycles = result.error.filter(
+          (e: GraphValidationError) => e.code === "UNEXPECTED_CYCLE",
+        );
+        expect(cycles.length).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it("cycle through a loop node is allowed regardless of edge kind", () => {
       const start = makeNode({ kind: "start", data: {} });
       const loop = makeNode({ kind: "loop-while", data: { condition: "x" } });
       const end = makeNode({ kind: "end", data: {} });
@@ -335,7 +379,8 @@ describe("validateGraph — no back-edges on non-loop nodes", () => {
         g,
         makeEdge({ source: start.id, sourcePort: "out", target: loop.id, targetPort: "in" }),
       );
-      // Self-edge with kind "default" (not "loop-back") — unexpected
+      // Self-edge with kind "default" (not "loop-back") on loop node — allowed
+      // because the cycle involves a loop-capable node
       g = addEdgeToGraph(
         g,
         makeEdge({
@@ -343,17 +388,6 @@ describe("validateGraph — no back-edges on non-loop nodes", () => {
           sourcePort: "body-out",
           target: loop.id,
           targetPort: "body-in",
-        }),
-      );
-      // Also add a proper loop-back edge so loop node check doesn't fail separately
-      g = addEdgeToGraph(
-        g,
-        makeEdge({
-          source: loop.id,
-          sourcePort: "body-out",
-          target: loop.id,
-          targetPort: "body-in",
-          kind: "loop-back",
         }),
       );
       g = addEdgeToGraph(
@@ -362,13 +396,10 @@ describe("validateGraph — no back-edges on non-loop nodes", () => {
       );
 
       const result = validateGraph(g, registry);
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        const cycles = result.error.filter(
-          (e: GraphValidationError) => e.code === "UNEXPECTED_CYCLE",
-        );
-        expect(cycles.length).toBeGreaterThanOrEqual(1);
-      }
+      // May fail for other reasons (e.g. LOOP_NODE_MISSING_BACK_EDGE) but not UNEXPECTED_CYCLE
+      const allErrors = result.ok ? result.value : result.error;
+      const cycles = allErrors.filter((e: GraphValidationError) => e.code === "UNEXPECTED_CYCLE");
+      expect(cycles.length).toBe(0);
     });
   });
 });
