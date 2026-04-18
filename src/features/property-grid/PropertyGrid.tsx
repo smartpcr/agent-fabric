@@ -2,12 +2,14 @@ import { useCallback, useMemo } from "react";
 import { useWorkflowStore } from "@/store/hooks";
 import { selectNodeSpec } from "@/store/selectors/graphSelectors";
 import { SchemaForm } from "@/features/property-grid/SchemaForm";
+import { PropertyGridHeader } from "@/features/property-grid/PropertyGridHeader";
 
 /**
  * Property grid panel bound to the current node selection.
  *
  * - Reads `lastSelectedNodeId` from the selection slice
  * - Resolves the node's spec (with `propertySchema`) from the registry
+ * - Renders `PropertyGridHeader` (kind badge, editable label, copyable id)
  * - Renders `SchemaForm` for the node's data
  * - Shows "Select a node" empty state when nothing is selected
  */
@@ -32,7 +34,18 @@ export function PropertyGrid() {
     [node, updateNodeData],
   );
 
+  const handleLabelChange = useCallback(
+    (newLabel: string) => {
+      if (node) {
+        const current = node.data as Record<string, unknown>;
+        updateNodeData(node.id, { ...current, name: newLabel });
+      }
+    },
+    [node, updateNodeData],
+  );
+
   const nodeData = node?.data as Record<string, unknown> | undefined;
+  const nodeLabel = nodeData && typeof nodeData.name === "string" ? nodeData.name : undefined;
 
   return (
     <div
@@ -44,9 +57,12 @@ export function PropertyGrid() {
       <h2>Properties</h2>
       {node && spec && nodeData ? (
         <div data-testid="property-grid-fields">
-          <div data-testid="property-grid-kind">
-            <strong>Kind:</strong> {node.kind}
-          </div>
+          <PropertyGridHeader
+            kind={node.kind}
+            nodeId={node.id}
+            label={nodeLabel}
+            onLabelChange={handleLabelChange}
+          />
           <SchemaForm schema={spec.propertySchema} value={nodeData} onChange={handleChange} />
         </div>
       ) : (

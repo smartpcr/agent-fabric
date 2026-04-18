@@ -102,9 +102,7 @@ describe("PropertyGrid", () => {
       });
 
       // Should show the node kind
-      expect(screen.getByTestId("property-grid-kind").textContent).toContain("task");
-
-      // SchemaForm should be rendered
+      expect(screen.getByTestId("header-kind-badge").textContent).toContain("task");
       expect(screen.getByTestId("schema-form")).toBeInTheDocument();
     });
 
@@ -169,7 +167,7 @@ describe("PropertyGrid", () => {
       const { rerender } = render(<PropertyGrid />);
 
       await waitFor(() => {
-        expect(screen.getByTestId("property-grid-kind").textContent).toContain("task");
+        expect(screen.getByTestId("header-kind-badge").textContent).toContain("task");
       });
 
       // Switch to decision node
@@ -180,7 +178,7 @@ describe("PropertyGrid", () => {
       rerender(<PropertyGrid />);
 
       await waitFor(() => {
-        expect(screen.getByTestId("property-grid-kind").textContent).toContain("decision");
+        expect(screen.getByTestId("header-kind-badge").textContent).toContain("decision");
       });
     });
 
@@ -359,7 +357,7 @@ describe("PropertyGrid", () => {
       render(<PropertyGrid />);
 
       await waitFor(() => {
-        expect(screen.getByTestId("property-grid-kind").textContent).toContain("decision");
+        expect(screen.getByTestId("header-kind-badge").textContent).toContain("decision");
       });
     });
   });

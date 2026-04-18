@@ -86,7 +86,7 @@ describe("Loop inline edit → PropertyGrid sync (store integration)", () => {
     render(<PropertyGrid />);
 
     expect(screen.getByTestId("property-grid-fields")).toBeInTheDocument();
-    expect(screen.getByTestId("property-grid-kind").textContent).toContain("loop-while");
+    expect(screen.getByTestId("header-kind-badge").textContent).toContain("loop-while");
     // SchemaForm renders field wrappers for schema fields
     expect(screen.getByTestId("field-wrapper-condition")).toBeInTheDocument();
   });
