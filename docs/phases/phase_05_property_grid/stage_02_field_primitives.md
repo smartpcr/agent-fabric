@@ -29,7 +29,7 @@
   - Test: 100% — options rendered; selection; keyboard only.
   - Effort: 2h
 
-- [ ] **Step 5**: `ArrayField` with add/remove/reorder
+- [x] **Step 5**: `ArrayField` with add/remove/reorder
   - File(s): `src/features/property-grid/fields/ArrayField.tsx`, `tests/unit/features/property-grid/fields/ArrayField.test.tsx`
   - Contents: Render each item recursively via `SchemaForm`; "+" adds default item; "×" removes; drag handle reorders (uses `dnd-kit`); stable item keys via nanoid.
   - Test: 100% — add appends; remove by index; reorder; errors aggregate to array.
