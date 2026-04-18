@@ -29,7 +29,7 @@
   - Test: 100% — click Save dispatches; displays dirty state.
   - Effort: 2h
 
-- [ ] **Step 5**: Optimistic-concurrency via ETag
+- [x] **Step 5**: Optimistic-concurrency via ETag
   - File(s): `src/adapters/HttpWorkflowRepository.ts` (extend), `src/features/persistence/useSave.ts`, `tests/integration/persistence.conflict.test.tsx`
   - Contents: `If-Match` header; on 409, show "workflow changed elsewhere" toast with Reload / Force-save options.
   - Test: Integration — simulated conflict flow.
