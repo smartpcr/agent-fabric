@@ -166,5 +166,10 @@
     "title": "Something went wrong",
     "description": "An unexpected error occurred.",
     "recover": "Recover"
+  },
+  "localeSwitcher": {
+    "ariaLabel": "Change language",
+    "en": "English",
+    "fr": "Français"
   }
 }

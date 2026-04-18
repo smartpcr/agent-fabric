@@ -17,7 +17,7 @@
   - Test: 100% — `t('key')` returns correct string; missing key falls back.
   - Effort: 3h
 
-- [ ] **Step 3**: Replace hard-coded strings with `t()`
+- [x] **Step 3**: Replace hard-coded strings with `t()`
   - File(s): `src/features/**`, `.eslintrc.cjs` (add `i18n-json` rule)
   - Contents: Custom ESLint rule rejects hard-coded strings in JSX text nodes; all existing strings migrated to `t()`.
   - Test: 100% — lint fails on a new hard-coded string; passes on migrated code.

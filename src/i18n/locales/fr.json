@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Éditeur de flux"
+  },
+  "toolbar": {
+    "ariaLabel": "Barre d'outils de l'éditeur",
+    "save": "Enregistrer",
+    "autoLayout": "Mise en page auto",
+    "disableSnap": "Désactiver l'accrochage à la grille",
+    "enableSnap": "Activer l'accrochage à la grille",
+    "switchToDark": "Passer au thème sombre",
+    "switchToLight": "Passer au thème clair"
+  },
+  "undoRedo": {
+    "ariaLabel": "Annuler / Rétablir",
+    "undo": "Annuler",
+    "redo": "Rétablir"
+  },
+  "propertyGrid": {
+    "ariaLabel": "Grille de propriétés",
+    "title": "Propriétés",
+    "selectNode": "Sélectionner un nœud",
+    "differentKinds": "Les nœuds sélectionnés sont de types différents. Sélectionnez des nœuds du même type pour modifier les propriétés partagées.",
+    "editingNodes": "Modification de {{count}} nœuds",
+    "copy": "Copier",
+    "loadingEditor": "Chargement de l'éditeur de code",
+    "noSchema": "Aucun schéma fourni",
+    "nodeIdCopied": "ID du nœud copié",
+    "nodeLabel": "Libellé du nœud",
+    "editNodeLabel": "Modifier le libellé du nœud",
+    "copyNodeId": "Copier l'ID du nœud",
+    "mixed": "mixte",
+    "selectPlaceholder": "Sélectionner…",
+    "expand": "Développer {{name}}",
+    "collapse": "Réduire {{name}}",
+    "nestedErrors_one": "{{count}} erreur imbriquée",
+    "nestedErrors_other": "{{count}} erreurs imbriquées",
+    "errorCount_one": "{{count}} erreur",
+    "errorCount_other": "{{count}} erreurs",
+    "validationErrors_one": "{{count}} erreur de validation",
+    "validationErrors_other": "{{count}} erreurs de validation",
+    "fields": "Champs de {{name}}",
+    "dragItem": "Glisser {{label}}",
+    "removeItem": "Supprimer l'élément {{index}}",
+    "addItem": "Ajouter un élément {{name}}",
+    "itemFallback": "Élément {{index}}",
+    "itemsWithErrors_one": "{{count}} élément avec des erreurs",
+    "itemsWithErrors_other": "{{count}} éléments avec des erreurs"
+  },
+  "palette": {
+    "ariaLabel": "Palette de nœuds",
+    "searchPlaceholder": "Rechercher des nœuds…",
+    "searchAriaLabel": "Rechercher dans la palette",
+    "nodeTypes": "Types de nœuds",
+    "noMatching": "Aucun nœud correspondant"
+  },
+  "execution": {
+    "start": "Démarrer",
+    "pause": "Pause",
+    "cancel": "Annuler",
+    "startRun": "Démarrer l'exécution",
+    "pauseRun": "Mettre en pause l'exécution",
+    "cancelRun": "Annuler l'exécution",
+    "runControlsLabel": "Contrôles d'exécution",
+    "runInspector": "Inspecteur d'exécution",
+    "closeInspector": "Fermer l'inspecteur",
+    "eventTimeline": "Chronologie des événements",
+    "copyPayload": "Copier le contenu pour {{type}}",
+    "noEvents": "Aucun événement enregistré pour ce nœud.",
+    "copied": "Copié !",
+    "copyAction": "Copier",
+    "connectionStatus": "État de la connexion : {{state}}",
+    "connected": "Connecté",
+    "reconnecting": "Reconnexion",
+    "disconnected": "Déconnecté"
+  },
+  "persistence": {
+    "saving": "Enregistrement…",
+    "save": "Enregistrer",
+    "load": "Charger",
+    "new": "Nouveau",
+    "export": "Exporter",
+    "import": "Importer",
+    "saved": "Enregistré {{timestamp}}",
+    "workflowName": "Nom du flux",
+    "unsavedChanges": "Modifications non enregistrées",
+    "exportWorkflow": "Exporter le flux",
+    "importWorkflow": "Importer le flux",
+    "importFailed": "Échec de l'importation",
+    "importConfirm": "Importer « {{name}} » ? Cela remplacera le flux actuel.",
+    "invalidJson": "Le fichier n'est pas un JSON valide.",
+    "migrationFailed": "Échec de la migration : {{error}}",
+    "invalidWorkflow": "Flux invalide : {{errors}}",
+    "conflictTitle": "Flux modifié ailleurs",
+    "conflictDescription": "Un autre utilisateur a enregistré ce flux. Rechargez la dernière version ou forcez l'enregistrement.",
+    "reload": "Recharger",
+    "forceSave": "Forcer l'enregistrement"
+  },
+  "canvas": {
+    "ariaLabel": "Canevas de flux",
+    "miniMap": "Mini carte",
+    "dropToImport": "Déposez un JSON de flux pour importer",
+    "connectionCreated": "Connexion créée",
+    "connectionRejected": "Connexion rejetée",
+    "connectionRejectedReason": "Connexion rejetée : {{reason}}",
+    "noCompatibleTargets": "Aucune cible compatible disponible",
+    "connectMode": "Mode connexion : {{count}} cibles. {{label}} ({{current}} sur {{total}})",
+    "connectionCancelled": "Connexion annulée",
+    "targetPosition": "{{label}} ({{current}} sur {{total}})",
+    "connectedTo": "Connecté à {{label}}",
+    "connectionToRejected": "Connexion à {{label}} rejetée"
+  },
+  "canvasControls": {
+    "ariaLabel": "Contrôles du canevas",
+    "zoomIn": "Zoom avant (+)",
+    "zoomOut": "Zoom arrière (-)",
+    "fitView": "Ajuster la vue (f)",
+    "lockCanvas": "Verrouiller le canevas (l)",
+    "unlockCanvas": "Déverrouiller le canevas (l)"
+  },
+  "toast": {
+    "dismiss": "Fermer"
+  },
+  "nodes": {
+    "start": "Début",
+    "end": "Fin",
+    "decision": "Décision",
+    "switch": "Aiguillage"
+  },
+  "secretField": {
+    "hide": "Masquer",
+    "reveal": "Révéler",
+    "copy": "Copier",
+    "hideSecret": "Masquer le secret",
+    "revealSecret": "Révéler le secret",
+    "copyToClipboard": "Copier dans le presse-papiers",
+    "copiedToClipboard": "Copié dans le presse-papiers",
+    "failedToCopy": "Échec de la copie"
+  },
+  "loop": {
+    "iteration": "itération {{count}}",
+    "body": "corps",
+    "back": "retour",
+    "done": "terminé",
+    "break": "sortie",
+    "indicator": "indicateur de boucle"
+  },
+  "decision": {
+    "branchCount": "{{count}} branches",
+    "default": "défaut",
+    "true": "vrai",
+    "false": "faux"
+  },
+  "statusBadge": {
+    "pending": "En attente",
+    "running": "En cours",
+    "succeeded": "Réussi",
+    "failed": "Échoué",
+    "skipped": "Ignoré"
+  },
+  "iterationBadge": {
+    "iteration": "Itération {{count}}",
+    "iterationOf": "Itération {{count}} sur {{total}}"
+  },
+  "errorBoundary": {
+    "title": "Une erreur s'est produite",
+    "description": "Une erreur inattendue s'est produite.",
+    "recover": "Récupérer"
+  },
+  "localeSwitcher": {
+    "ariaLabel": "Changer de langue",
+    "en": "English",
+    "fr": "Français"
+  }
+}
