@@ -1,10 +1,64 @@
+import { useRef, useState, useEffect } from "react";
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from "@xyflow/react";
 import { useEdgeExecutionState } from "@/features/execution/useEdgeExecutionState";
 import { usePrefersReducedMotion } from "@/features/edges/usePrefersReducedMotion";
+import type { EdgeExecutionStatus } from "@/store/slices/executionSlice";
 import "@/features/edges/edgeAnimations.css";
 
 const ARROW_MARKER_ID = "default-edge-arrow";
 const MAX_LABEL_LENGTH = 20;
+
+/** Duration of flash animations in ms — must match CSS. */
+const FLASH_DURATION_MS = 500;
+
+/** Map terminal edge statuses to their flash CSS class. */
+const FLASH_CLASS_MAP: Partial<Record<EdgeExecutionStatus, string>> = {
+  taken: "edge-flash-success",
+  succeeded: "edge-flash-success",
+  failed: "edge-flash-error",
+};
+
+/**
+ * Hook that detects edge status transitions and returns a one-shot flash
+ * CSS class name. The class is set on transition to a flash-mapped status
+ * and auto-cleared after `FLASH_DURATION_MS`.
+ */
+function useEdgeFlash(status: EdgeExecutionStatus | undefined): string | undefined {
+  const [flashClass, setFlashClass] = useState<string | undefined>(undefined);
+  const prevStatusRef = useRef<EdgeExecutionStatus | undefined>(undefined);
+
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+
+    if (prev === undefined) {
+      return;
+    }
+
+    if (status !== undefined && status !== prev) {
+      const cls = FLASH_CLASS_MAP[status];
+      if (cls !== undefined) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: flash is derived from status transition
+        setFlashClass(cls);
+      }
+    }
+  }, [status]);
+
+  // Auto-clear flash class after animation duration
+  useEffect(() => {
+    if (flashClass === undefined) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setFlashClass(undefined);
+    }, FLASH_DURATION_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [flashClass]);
+
+  return flashClass;
+}
 
 function truncateLabel(text: string): string {
   if (text.length <= MAX_LABEL_LENGTH) return text;
@@ -28,6 +82,12 @@ export function DefaultEdge({
   const prefersReducedMotion = usePrefersReducedMotion();
   const isActive = edgeExecState?.status === "active";
   const flowClass = isActive && !prefersReducedMotion ? "edge-flow-active" : undefined;
+
+  // ── Flash on success / error ────────────────────────────────────
+  const flashClass = useEdgeFlash(edgeExecState?.status);
+
+  // Combine classes for BaseEdge
+  const combinedClass = [flowClass, flashClass].filter(Boolean).join(" ") || undefined;
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -62,7 +122,7 @@ export function DefaultEdge({
         path={edgePath}
         markerEnd={markerEnd ?? `url(#${ARROW_MARKER_ID})`}
         style={style}
-        className={flowClass}
+        className={combinedClass}
       />
       {labelText && (
         <EdgeLabelRenderer>

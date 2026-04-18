@@ -22,3 +22,35 @@
     animation: none;
   }
 }
+
+/* ─── Flash animations for success / error ───────────────────────── */
+
+@keyframes edge-flash-success {
+  0% {
+    stroke: #22c55e;
+    stroke-width: 3;
+  }
+  100% {
+    stroke: currentColor;
+    stroke-width: inherit;
+  }
+}
+
+@keyframes edge-flash-error {
+  0% {
+    stroke: #ef4444;
+    stroke-width: 3;
+  }
+  100% {
+    stroke: currentColor;
+    stroke-width: inherit;
+  }
+}
+
+.edge-flash-success {
+  animation: edge-flash-success 500ms ease-out forwards;
+}
+
+.edge-flash-error {
+  animation: edge-flash-error 500ms ease-out forwards;
+}
