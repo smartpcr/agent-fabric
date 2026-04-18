@@ -17,7 +17,7 @@
   - Test: 100% — contract tests structured as a reusable function that any adapter can import and run.
   - Effort: 2h
 
-- [ ] **Step 3**: `FakeExecutionEventSource` for tests
+- [x] **Step 3**: `FakeExecutionEventSource` for tests
   - File(s): `src/adapters/FakeExecutionEventSource.ts`, `tests/unit/adapters/FakeExecutionEventSource.test.ts`
   - Contents: In-memory source; `emit(event)` delivers to subscribers; `setConnectionState(state)`; used by integration + E2E tests.
   - Test: 100% — emit / subscribe / multi-subscriber; passes the contract tests.
