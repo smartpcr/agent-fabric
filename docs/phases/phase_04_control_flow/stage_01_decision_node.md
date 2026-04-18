@@ -41,7 +41,7 @@
   - Test: 100% — orphan branch fails; duplicate fails; missing default warns.
   - Effort: 3h
 
-- [ ] **Step 7**: Integration — author if/else + switch; validate; save; reload
+- [x] **Step 7**: Integration — author if/else + switch; validate; save; reload
   - File(s): `tests/integration/decision.end-to-end.test.tsx`
   - Contents: Build graph with both variants; validate; serialize; deserialize; deep-equal.
   - Test: Green.

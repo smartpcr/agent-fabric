@@ -2,7 +2,7 @@ import type { WorkflowGraph } from "@/domain/models/graph";
 import type { NodeSpecRegistry } from "@/domain/validation/connectionRules";
 import { validateGraph } from "@/domain/validation/graphRules";
 import { SerializationError } from "@/domain/validation/errors";
-import type { GraphJsonV1Type } from "@/domain/serialization/schema.v1";
+import type { GraphJsonV1Type, NodeJsonV1Type } from "@/domain/serialization/schema.v1";
 
 function sortKeys(value: unknown): unknown {
   if (value === null || value === undefined || typeof value !== "object") {
@@ -36,7 +36,7 @@ export function serialize(graph: WorkflowGraph, registry: NodeSpecRegistry): Gra
     name: graph.name,
     nodes: graph.nodes.map((n) => ({
       id: n.id,
-      kind: n.kind as "start" | "end" | "task",
+      kind: n.kind as NodeJsonV1Type["kind"],
       position: { x: n.position.x, y: n.position.y },
       data: n.data,
     })),

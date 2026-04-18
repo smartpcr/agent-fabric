@@ -14,8 +14,16 @@ const nodeBase = {
 const StartNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("start") });
 const EndNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("end") });
 const TaskNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("task") });
+const DecisionNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("decision") });
+const DecisionSwitchNodeJsonV1 = z.object({ ...nodeBase, kind: z.literal("decision-switch") });
 
-const NodeJsonV1 = z.discriminatedUnion("kind", [StartNodeJsonV1, EndNodeJsonV1, TaskNodeJsonV1]);
+const NodeJsonV1 = z.discriminatedUnion("kind", [
+  StartNodeJsonV1,
+  EndNodeJsonV1,
+  TaskNodeJsonV1,
+  DecisionNodeJsonV1,
+  DecisionSwitchNodeJsonV1,
+]);
 
 const edgeBase = {
   id: z.string().min(1),
@@ -29,8 +37,13 @@ const edgeBase = {
 
 const DefaultEdgeJsonV1 = z.object({ ...edgeBase, kind: z.literal("default") });
 const LoopBackEdgeJsonV1 = z.object({ ...edgeBase, kind: z.literal("loop-back") });
+const ConditionalEdgeJsonV1 = z.object({ ...edgeBase, kind: z.literal("conditional") });
 
-const EdgeJsonV1 = z.discriminatedUnion("kind", [DefaultEdgeJsonV1, LoopBackEdgeJsonV1]);
+const EdgeJsonV1 = z.discriminatedUnion("kind", [
+  DefaultEdgeJsonV1,
+  LoopBackEdgeJsonV1,
+  ConditionalEdgeJsonV1,
+]);
 
 export const GraphJsonV1 = z.object({
   schemaVersion: z.literal(1),
