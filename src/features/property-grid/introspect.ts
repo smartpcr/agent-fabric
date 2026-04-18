@@ -35,6 +35,8 @@ export interface FieldDescriptor {
   readonly elementType?: FieldDescriptor;
   /** Descriptor for record value type. */
   readonly valueType?: FieldDescriptor;
+  /** When true, this field contains a secret and should be scrubbed before persistence. */
+  readonly secret?: boolean;
 }
 
 // ─── Internal helpers ────────────────────────────────────────────────

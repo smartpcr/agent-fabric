@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useContext } from "react";
 import type { FieldComponentProps } from "@/features/property-grid/registry";
+import type { FieldDescriptor } from "@/features/property-grid/introspect";
 import { ToastContext, type ToastVariant } from "@/features/editor/Toast";
 
 /** Sentinel value used to replace raw secrets in autosave payloads. */
@@ -8,8 +9,9 @@ export const SECRET_SENTINEL = "<secret>";
 // ─── Autosave scrubbing ──────────────────────────────────────────────
 
 /**
- * List of field names that are considered secret.
- * Used by `scrubSecrets` to replace their raw values in autosave payloads.
+ * Global set of field names considered secret.
+ * Populated at mount time by `SecretField` and deterministically by
+ * `collectSecretFieldNames` / `registerSecretField`.
  */
 export const SECRET_FIELD_NAMES = new Set<string>();
 
@@ -19,25 +21,69 @@ export function registerSecretField(name: string): void {
 }
 
 /**
+ * Walk a tree of field descriptors and collect the names of fields
+ * marked with `secret: true`. Recurses into `children`, `elementType`,
+ * and `valueType` so nested secrets are discovered deterministically
+ * at schema-load time — before any component mounts.
+ */
+export function collectSecretFieldNames(descriptors: readonly FieldDescriptor[]): string[] {
+  const result: string[] = [];
+  for (const d of descriptors) {
+    if (d.secret) result.push(d.name);
+    if (d.children) result.push(...collectSecretFieldNames(d.children));
+    if (d.elementType?.children) {
+      result.push(...collectSecretFieldNames(d.elementType.children));
+    }
+    if (d.valueType?.children) {
+      result.push(...collectSecretFieldNames(d.valueType.children));
+    }
+  }
+  return result;
+}
+
+/**
+ * Register secret field names from a tree of descriptors into the global set.
+ * Call this at schema-load / registry-setup time so `scrubSecrets` has a
+ * complete secret-key set before any component mounts or autosave runs.
+ */
+export function registerSecretFieldsFromDescriptors(descriptors: readonly FieldDescriptor[]): void {
+  for (const name of collectSecretFieldNames(descriptors)) {
+    SECRET_FIELD_NAMES.add(name);
+  }
+}
+
+/**
  * Recursively scrub secret field values from a data payload.
  *
- * Replaces the value of any key in `SECRET_FIELD_NAMES` with `SECRET_SENTINEL`.
+ * Replaces the value of any key in `SECRET_FIELD_NAMES` (or the explicit
+ * `secretKeys` set when provided) with `SECRET_SENTINEL`.
  * Returns a new object — does not mutate the input.
+ *
+ * @param data - The data payload to scrub.
+ * @param secretKeys - Optional explicit set of secret key names. When
+ *   provided these are merged with `SECRET_FIELD_NAMES` so callers can
+ *   supply deterministic keys without relying on the global mutable set.
  */
-export function scrubSecrets(data: unknown): unknown {
+export function scrubSecrets(data: unknown, secretKeys?: Iterable<string>): unknown {
+  const keys = secretKeys ? new Set([...SECRET_FIELD_NAMES, ...secretKeys]) : SECRET_FIELD_NAMES;
+
+  return scrubSecretsInner(data, keys);
+}
+
+function scrubSecretsInner(data: unknown, keys: Set<string>): unknown {
   if (data === null || data === undefined) return data;
   if (typeof data !== "object") return data;
 
   if (Array.isArray(data)) {
-    return data.map((item) => scrubSecrets(item));
+    return data.map((item) => scrubSecretsInner(item, keys));
   }
 
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-    if (SECRET_FIELD_NAMES.has(key)) {
+    if (keys.has(key)) {
       result[key] = SECRET_SENTINEL;
     } else if (typeof value === "object" && value !== null) {
-      result[key] = scrubSecrets(value);
+      result[key] = scrubSecretsInner(value, keys);
     } else {
       result[key] = value;
     }

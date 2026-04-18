@@ -6,6 +6,8 @@ import {
   scrubSecrets,
   registerSecretField,
   SECRET_FIELD_NAMES,
+  collectSecretFieldNames,
+  registerSecretFieldsFromDescriptors,
   type SecretFieldProps,
 } from "@/features/property-grid/fields/SecretField";
 import { ToastContext } from "@/features/editor/Toast";
@@ -668,5 +670,183 @@ describe("useAutoSave scrubs secret fields in save payload", () => {
     const nodeData = nodes[0].data;
     expect(nodeData.connectionString).toBe(SECRET_SENTINEL);
     expect(nodeData.name).toBe("test");
+  });
+
+  it("save() scrubs secrets via explicit secretFieldNames without component mount", async () => {
+    // Do NOT register anything in SECRET_FIELD_NAMES — prove deterministic path
+    expect(SECRET_FIELD_NAMES.size).toBe(0);
+
+    const useAutoSave = await getAutoSave();
+    const storeModule = await import("@/store/hooks");
+
+    // Add a node with a secret field
+    const { result: storeResult, unmount: unmountStore } = renderHook(() =>
+      storeModule.useWorkflowStore(),
+    );
+
+    act(() => {
+      storeResult.current.addNode(
+        {
+          kind: "task" as const,
+          label: "Deterministic Node",
+          defaultData: { apiKey: "should-be-scrubbed", label: "safe" },
+        },
+        { x: 0, y: 0 },
+      );
+    });
+    unmountStore();
+
+    // Save with explicit secretFieldNames (no mount needed)
+    const { result } = renderHook(() => useAutoSave({ secretFieldNames: ["apiKey"] }));
+    const payload = result.current.save();
+
+    const nodes = payload.nodes as Array<{ data: Record<string, unknown> }>;
+    expect(nodes.length).toBeGreaterThan(0);
+    // Find the node we just added (store may have prior test nodes)
+    const targetNode = nodes.find((n) => n.data.label === "safe");
+    expect(targetNode).toBeDefined();
+    const targetData = (targetNode as { data: Record<string, unknown> }).data;
+    expect(targetData.apiKey).toBe(SECRET_SENTINEL);
+    expect(targetData.label).toBe("safe");
+  });
+});
+
+// ─── Deterministic secret-key discovery ─────────────────────────────
+
+describe("collectSecretFieldNames", () => {
+  it("returns empty array for descriptors without secret flag", () => {
+    const descriptors: FieldDescriptor[] = [
+      { name: "name", type: "string", required: true },
+      { name: "age", type: "number", required: false },
+    ];
+    expect(collectSecretFieldNames(descriptors)).toEqual([]);
+  });
+
+  it("collects names of descriptors with secret: true", () => {
+    const descriptors: FieldDescriptor[] = [
+      { name: "username", type: "string", required: true },
+      { name: "password", type: "string", required: true, secret: true },
+      { name: "apiKey", type: "string", required: false, secret: true },
+    ];
+    expect(collectSecretFieldNames(descriptors)).toEqual(["password", "apiKey"]);
+  });
+
+  it("recurses into children of object descriptors", () => {
+    const descriptors: FieldDescriptor[] = [
+      {
+        name: "config",
+        type: "object",
+        required: true,
+        children: [
+          { name: "host", type: "string", required: true },
+          { name: "token", type: "string", required: true, secret: true },
+        ],
+      },
+    ];
+    expect(collectSecretFieldNames(descriptors)).toEqual(["token"]);
+  });
+
+  it("recurses into elementType children for arrays", () => {
+    const descriptors: FieldDescriptor[] = [
+      {
+        name: "connections",
+        type: "array",
+        required: true,
+        elementType: {
+          name: "element",
+          type: "object",
+          required: true,
+          children: [
+            { name: "url", type: "string", required: true },
+            { name: "secret", type: "string", required: true, secret: true },
+          ],
+        },
+      },
+    ];
+    expect(collectSecretFieldNames(descriptors)).toEqual(["secret"]);
+  });
+
+  it("handles empty descriptors array", () => {
+    expect(collectSecretFieldNames([])).toEqual([]);
+  });
+});
+
+describe("registerSecretFieldsFromDescriptors", () => {
+  it("populates SECRET_FIELD_NAMES from descriptor metadata", () => {
+    const descriptors: FieldDescriptor[] = [
+      { name: "user", type: "string", required: true },
+      { name: "password", type: "string", required: true, secret: true },
+      { name: "token", type: "string", required: false, secret: true },
+    ];
+
+    registerSecretFieldsFromDescriptors(descriptors);
+
+    expect(SECRET_FIELD_NAMES.has("password")).toBe(true);
+    expect(SECRET_FIELD_NAMES.has("token")).toBe(true);
+    expect(SECRET_FIELD_NAMES.has("user")).toBe(false);
+  });
+
+  it("enables scrubSecrets without any component mount", () => {
+    const descriptors: FieldDescriptor[] = [
+      { name: "apiKey", type: "string", required: true, secret: true },
+    ];
+
+    registerSecretFieldsFromDescriptors(descriptors);
+
+    const data = { apiKey: "raw-secret", name: "safe" };
+    const result = scrubSecrets(data) as Record<string, unknown>;
+
+    expect(result.apiKey).toBe(SECRET_SENTINEL);
+    expect(result.name).toBe("safe");
+  });
+});
+
+describe("scrubSecrets with explicit secretKeys parameter", () => {
+  it("scrubs keys from explicit set even without global registration", () => {
+    expect(SECRET_FIELD_NAMES.size).toBe(0);
+
+    const data = { password: "hunter2", name: "test" };
+    const result = scrubSecrets(data, ["password"]) as Record<string, unknown>;
+
+    expect(result.password).toBe(SECRET_SENTINEL);
+    expect(result.name).toBe("test");
+  });
+
+  it("merges explicit keys with global set", () => {
+    registerSecretField("globalSecret");
+
+    const data = { globalSecret: "g", explicitSecret: "e", name: "ok" };
+    const result = scrubSecrets(data, ["explicitSecret"]) as Record<string, unknown>;
+
+    expect(result.globalSecret).toBe(SECRET_SENTINEL);
+    expect(result.explicitSecret).toBe(SECRET_SENTINEL);
+    expect(result.name).toBe("ok");
+  });
+
+  it("works recursively with explicit keys", () => {
+    const data = {
+      nested: {
+        apiKey: "secret-val",
+        label: "safe",
+      },
+    };
+    const result = scrubSecrets(data, ["apiKey"]) as {
+      nested: Record<string, unknown>;
+    };
+
+    expect(result.nested.apiKey).toBe(SECRET_SENTINEL);
+    expect(result.nested.label).toBe("safe");
+  });
+
+  it("works with arrays and explicit keys", () => {
+    const data = [
+      { token: "t1", name: "a" },
+      { token: "t2", name: "b" },
+    ];
+    const result = scrubSecrets(data, ["token"]) as Array<Record<string, unknown>>;
+
+    expect(result[0].token).toBe(SECRET_SENTINEL);
+    expect(result[1].token).toBe(SECRET_SENTINEL);
+    expect(result[0].name).toBe("a");
   });
 });
