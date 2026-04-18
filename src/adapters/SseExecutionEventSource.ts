@@ -1,3 +1,4 @@
+import { createParser } from "eventsource-parser";
 import type {
   IExecutionEventSource,
   ConnectionState,
@@ -24,60 +25,6 @@ export interface SseExecutionEventSourceOptions {
   readonly fetch?: typeof globalThis.fetch;
   /** Callback invoked when an invalid event is received and dropped. */
   readonly onInvalidEvent?: (raw: string, error: unknown) => void;
-}
-
-// ─── SSE line parser ─────────────────────────────────────────────────
-
-/**
- * Create a minimal SSE line parser.
- *
- * Parses `data:` fields from an SSE text stream. Multi-line `data:` fields
- * are joined with newlines per the SSE spec. Dispatches complete events
- * when a blank line is encountered.
- */
-export function createSseLineParser(onEvent: (data: string) => void) {
-  let dataBuffer = "";
-  let lineBuffer = "";
-
-  function processLine(line: string): void {
-    const trimmed = line.replace(/\r$/, "");
-
-    // Blank line = end of event
-    if (trimmed === "") {
-      if (dataBuffer.length > 0) {
-        onEvent(dataBuffer);
-        dataBuffer = "";
-      }
-      return;
-    }
-
-    // Comment lines
-    if (trimmed.startsWith(":")) return;
-
-    // data: field
-    if (trimmed.startsWith("data:")) {
-      const value = trimmed.startsWith("data: ") ? trimmed.slice(6) : trimmed.slice(5);
-      if (dataBuffer.length > 0) {
-        dataBuffer += "\n";
-      }
-      dataBuffer += value;
-    }
-    // Other fields (event:, id:, retry:) are ignored for this adapter
-  }
-
-  return {
-    /** Feed raw text (possibly partial) into the parser. */
-    feed(chunk: string): void {
-      lineBuffer += chunk;
-      const lines = lineBuffer.split("\n");
-      // The last element is an incomplete line — keep it in the buffer
-      lineBuffer = lines.pop() ?? "";
-
-      for (const line of lines) {
-        processLine(line);
-      }
-    },
-  };
 }
 
 // ─── Backoff helper ──────────────────────────────────────────────────
@@ -264,9 +211,11 @@ export class SseExecutionEventSource implements IExecutionEventSource {
       this.attempt = 0;
       this.resetHeartbeat();
 
-      const parser = createSseLineParser((data) => {
-        this.resetHeartbeat();
-        this.handleSseData(data);
+      const parser = createParser({
+        onEvent: (event) => {
+          this.resetHeartbeat();
+          this.handleSseData(event.data);
+        },
       });
 
       const reader = response.body.getReader();

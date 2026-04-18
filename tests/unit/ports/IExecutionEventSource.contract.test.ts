@@ -57,7 +57,7 @@ export function runExecutionEventSourceContractTests(
   name: string,
   factory: () => {
     source: IExecutionEventSource;
-    emit: (event: ExecutionEvent) => void;
+    emit: (event: ExecutionEvent) => void | Promise<void>;
     setConnectionState?: (state: ConnectionState) => void;
   },
   options: { supportsConnectionStateControl?: boolean } = {},
@@ -66,7 +66,7 @@ export function runExecutionEventSourceContractTests(
 
   describe(`IExecutionEventSource contract — ${name}`, () => {
     let source: IExecutionEventSource;
-    let emit: (event: ExecutionEvent) => void;
+    let emit: (event: ExecutionEvent) => void | Promise<void>;
     let setConnectionState: ((state: ConnectionState) => void) | undefined;
 
     beforeEach(() => {
@@ -83,47 +83,47 @@ export function runExecutionEventSourceContractTests(
     // ── subscribe ──────────────────────────────────────────────────
 
     describe("subscribe(runId, handler)", () => {
-      it("delivers events matching the subscribed runId", () => {
+      it("delivers events matching the subscribed runId", async () => {
         const handler = vi.fn();
         source.subscribe("run-1", handler);
 
         const event = makeEvent("node.started", "run-1");
-        emit(event);
+        await emit(event);
 
         expect(handler).toHaveBeenCalledTimes(1);
         expect(handler).toHaveBeenCalledWith(event);
       });
 
-      it("does not deliver events for a different runId", () => {
+      it("does not deliver events for a different runId", async () => {
         const handler = vi.fn();
         source.subscribe("run-1", handler);
 
-        emit(makeEvent("node.started", "run-2"));
+        await emit(makeEvent("node.started", "run-2"));
 
         expect(handler).not.toHaveBeenCalled();
       });
 
-      it("delivers events to multiple subscribers for the same runId", () => {
+      it("delivers events to multiple subscribers for the same runId", async () => {
         const handler1 = vi.fn();
         const handler2 = vi.fn();
         source.subscribe("run-1", handler1);
         source.subscribe("run-1", handler2);
 
         const event = makeEvent("node.started", "run-1");
-        emit(event);
+        await emit(event);
 
         expect(handler1).toHaveBeenCalledTimes(1);
         expect(handler2).toHaveBeenCalledTimes(1);
       });
 
-      it("delivers events to separate subscribers for different runIds", () => {
+      it("delivers events to separate subscribers for different runIds", async () => {
         const handler1 = vi.fn();
         const handler2 = vi.fn();
         source.subscribe("run-1", handler1);
         source.subscribe("run-2", handler2);
 
-        emit(makeEvent("node.started", "run-1"));
-        emit(makeEvent("node.succeeded", "run-2"));
+        await emit(makeEvent("node.started", "run-1"));
+        await emit(makeEvent("node.succeeded", "run-2"));
 
         expect(handler1).toHaveBeenCalledTimes(1);
         expect(handler2).toHaveBeenCalledTimes(1);
@@ -136,20 +136,20 @@ export function runExecutionEventSourceContractTests(
         expect(typeof unsub).toBe("function");
       });
 
-      it("unsubscribe stops future event delivery", () => {
+      it("unsubscribe stops future event delivery", async () => {
         const handler = vi.fn();
         const unsub = source.subscribe("run-1", handler);
 
-        emit(makeEvent("node.started", "run-1"));
+        await emit(makeEvent("node.started", "run-1"));
         expect(handler).toHaveBeenCalledTimes(1);
 
         unsub();
 
-        emit(makeEvent("node.succeeded", "run-1"));
+        await emit(makeEvent("node.succeeded", "run-1"));
         expect(handler).toHaveBeenCalledTimes(1);
       });
 
-      it("unsubscribing one handler does not affect others", () => {
+      it("unsubscribing one handler does not affect others", async () => {
         const handler1 = vi.fn();
         const handler2 = vi.fn();
         const unsub1 = source.subscribe("run-1", handler1);
@@ -157,32 +157,32 @@ export function runExecutionEventSourceContractTests(
 
         unsub1();
 
-        emit(makeEvent("node.started", "run-1"));
+        await emit(makeEvent("node.started", "run-1"));
 
         expect(handler1).not.toHaveBeenCalled();
         expect(handler2).toHaveBeenCalledTimes(1);
       });
 
-      it("double-unsubscribe is safe (no-op)", () => {
+      it("double-unsubscribe is safe (no-op)", async () => {
         const handler = vi.fn();
         const unsub = source.subscribe("run-1", handler);
 
         unsub();
         unsub(); // second call should not throw
 
-        emit(makeEvent("node.started", "run-1"));
+        await emit(makeEvent("node.started", "run-1"));
         expect(handler).not.toHaveBeenCalled();
       });
 
-      it("delivers multiple event types for the same run", () => {
+      it("delivers multiple event types for the same run", async () => {
         const handler = vi.fn();
         source.subscribe("run-1", handler);
 
-        emit(makeEvent("run.started", "run-1"));
-        emit(makeEvent("node.started", "run-1"));
-        emit(makeEvent("node.succeeded", "run-1"));
-        emit(makeEvent("edge.activated", "run-1"));
-        emit(makeEvent("run.completed", "run-1"));
+        await emit(makeEvent("run.started", "run-1"));
+        await emit(makeEvent("node.started", "run-1"));
+        await emit(makeEvent("node.succeeded", "run-1"));
+        await emit(makeEvent("edge.activated", "run-1"));
+        await emit(makeEvent("run.completed", "run-1"));
 
         expect(handler).toHaveBeenCalledTimes(5);
       });
@@ -250,13 +250,13 @@ export function runExecutionEventSourceContractTests(
     // ── close ──────────────────────────────────────────────────────
 
     describe("close()", () => {
-      it("stops delivering events after close", () => {
+      it("stops delivering events after close", async () => {
         const handler = vi.fn();
         source.subscribe("run-1", handler);
 
         source.close();
 
-        emit(makeEvent("node.started", "run-1"));
+        await emit(makeEvent("node.started", "run-1"));
         expect(handler).not.toHaveBeenCalled();
       });
 
@@ -267,13 +267,13 @@ export function runExecutionEventSourceContractTests(
         }).not.toThrow();
       });
 
-      it("subscribe after close does not throw but handler is not called", () => {
+      it("subscribe after close does not throw but handler is not called", async () => {
         source.close();
 
         const handler = vi.fn();
         expect(() => source.subscribe("run-1", handler)).not.toThrow();
 
-        emit(makeEvent("node.started", "run-1"));
+        await emit(makeEvent("node.started", "run-1"));
         expect(handler).not.toHaveBeenCalled();
       });
 
