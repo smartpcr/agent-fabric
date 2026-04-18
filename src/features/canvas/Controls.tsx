@@ -1,11 +1,13 @@
 import { useCallback } from "react";
 import { useReactFlow } from "@xyflow/react";
-import { ZoomIn, ZoomOut, Maximize, Lock, Unlock } from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize, Lock, Unlock, LayoutGrid } from "lucide-react";
 import { useWorkflowStore } from "@/store/hooks";
 
 export function CanvasControls() {
   const interactive = useWorkflowStore((s) => s.interactive);
   const toggleInteractive = useWorkflowStore((s) => s.toggleInteractive);
+  const layoutRunning = useWorkflowStore((s) => s.layoutRunning);
+  const applyLayout = useWorkflowStore((s) => s.applyLayout);
   const setZoom = useWorkflowStore((s) => s.setZoom);
   const setPan = useWorkflowStore((s) => s.setPan);
   const { zoomIn, zoomOut, fitView, getViewport } = useReactFlow();
@@ -75,6 +77,18 @@ export function CanvasControls() {
         ) : (
           <Lock size={14} aria-hidden="true" />
         )}
+      </button>
+      <button
+        type="button"
+        data-testid="auto-layout-button"
+        aria-label="Auto-layout"
+        title="Auto-layout"
+        disabled={layoutRunning}
+        onClick={() => {
+          void applyLayout();
+        }}
+      >
+        <LayoutGrid size={14} aria-hidden="true" />
       </button>
     </div>
   );
