@@ -8,7 +8,47 @@ afterEach(() => {
   cleanup();
 });
 
-describe("StatusBadge — running spinner", () => {
+// ─── Helper: mock matchMedia to simulate reduced-motion preference ──
+
+function mockMatchMedia(prefersReducedMotion: boolean): () => void {
+  const original = window.matchMedia;
+  window.matchMedia = (query: string) =>
+    ({
+      matches: query === "(prefers-reduced-motion: reduce)" ? prefersReducedMotion : false,
+      media: query,
+      onchange: null,
+      addListener: () => {
+        /* noop */
+      },
+      removeListener: () => {
+        /* noop */
+      },
+      addEventListener: () => {
+        /* noop */
+      },
+      removeEventListener: () => {
+        /* noop */
+      },
+      dispatchEvent: () => false,
+    }) as MediaQueryList;
+  return () => {
+    window.matchMedia = original;
+  };
+}
+
+// ─── Running spinner (no reduced-motion) ────────────────────────────
+
+describe("StatusBadge — running spinner (normal motion)", () => {
+  let restoreMatchMedia: () => void;
+
+  beforeEach(() => {
+    restoreMatchMedia = mockMatchMedia(false);
+  });
+
+  afterEach(() => {
+    restoreMatchMedia();
+  });
+
   it("applies badge-spin class to the running icon", () => {
     render(<StatusBadge status="running" />);
     const icon = screen.getByTestId("badge-icon-running");
@@ -29,13 +69,59 @@ describe("StatusBadge — running spinner", () => {
     render(<StatusBadge status="running" />);
     const icon = screen.getByTestId("badge-icon-running");
     expect(icon.tagName.toLowerCase()).toBe("svg");
-    // badge-spin should coexist with lucide's own classes
     expect(icon.classList.contains("badge-spin")).toBe(true);
     expect(icon.classList.contains("lucide")).toBe(true);
   });
 });
 
-describe("StatusBadge — prefers-reduced-motion (CSS verification)", () => {
+// ─── Reduced-motion simulation ──────────────────────────────────────
+
+describe("StatusBadge — prefers-reduced-motion: reduce", () => {
+  let restoreMatchMedia: () => void;
+
+  beforeEach(() => {
+    restoreMatchMedia = mockMatchMedia(true);
+  });
+
+  afterEach(() => {
+    restoreMatchMedia();
+  });
+
+  it("does NOT apply badge-spin class to running icon under reduced motion", () => {
+    render(<StatusBadge status="running" />);
+    const icon = screen.getByTestId("badge-icon-running");
+    expect(icon.classList.contains("badge-spin")).toBe(false);
+  });
+
+  it("still renders the running icon as an SVG (static, no animation class)", () => {
+    render(<StatusBadge status="running" />);
+    const icon = screen.getByTestId("badge-icon-running");
+    expect(icon.tagName.toLowerCase()).toBe("svg");
+    expect(icon.classList.contains("badge-spin")).toBe(false);
+    // lucide class should still be present
+    expect(icon.classList.contains("lucide")).toBe(true);
+  });
+
+  it("still renders the correct label for running status", () => {
+    render(<StatusBadge status="running" />);
+    const label = screen.getByTestId("badge-label");
+    expect(label.textContent).toBe("Running");
+  });
+
+  it("non-running statuses also have no badge-spin class", () => {
+    const statuses = ["pending", "success", "error", "skipped"] as const;
+    for (const status of statuses) {
+      const { unmount } = render(<StatusBadge status={status} />);
+      const icon = screen.getByTestId(`badge-icon-${status}`);
+      expect(icon.classList.contains("badge-spin")).toBe(false);
+      unmount();
+    }
+  });
+});
+
+// ─── CSS file verification ──────────────────────────────────────────
+
+describe("StatusBadge — animations.css structure", () => {
   const cssPath = resolve(__dirname, "../../../../..", "src/styles/animations.css");
   let cssContent: string;
 
@@ -53,75 +139,10 @@ describe("StatusBadge — prefers-reduced-motion (CSS verification)", () => {
 
   it("includes @media (prefers-reduced-motion: reduce) that disables animation", () => {
     expect(cssContent).toContain("@media (prefers-reduced-motion: reduce)");
-    // Inside the media query, .badge-spin should have animation: none
     const reducedMotionBlock = cssContent.slice(
       cssContent.indexOf("@media (prefers-reduced-motion: reduce)"),
     );
     expect(reducedMotionBlock).toContain(".badge-spin");
     expect(reducedMotionBlock).toMatch(/animation:\s*none/);
-  });
-});
-
-describe("StatusBadge — matchMedia simulation", () => {
-  let originalMatchMedia: typeof window.matchMedia;
-
-  beforeEach(() => {
-    originalMatchMedia = window.matchMedia;
-  });
-
-  afterEach(() => {
-    window.matchMedia = originalMatchMedia;
-  });
-
-  it("running icon gets badge-spin class regardless of matchMedia (CSS handles disabling)", () => {
-    window.matchMedia = (query: string) =>
-      ({
-        matches: query === "(prefers-reduced-motion: reduce)",
-        media: query,
-        onchange: null,
-        addListener: () => {
-          /* noop */
-        },
-        removeListener: () => {
-          /* noop */
-        },
-        addEventListener: () => {
-          /* noop */
-        },
-        removeEventListener: () => {
-          /* noop */
-        },
-        dispatchEvent: () => false,
-      }) as MediaQueryList;
-
-    render(<StatusBadge status="running" />);
-    const icon = screen.getByTestId("badge-icon-running");
-    expect(icon.classList.contains("badge-spin")).toBe(true);
-  });
-
-  it("non-running status never has badge-spin, even without reduced-motion", () => {
-    window.matchMedia = (query: string) =>
-      ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: () => {
-          /* noop */
-        },
-        removeListener: () => {
-          /* noop */
-        },
-        addEventListener: () => {
-          /* noop */
-        },
-        removeEventListener: () => {
-          /* noop */
-        },
-        dispatchEvent: () => false,
-      }) as MediaQueryList;
-
-    render(<StatusBadge status="success" />);
-    const icon = screen.getByTestId("badge-icon-success");
-    expect(icon.classList.contains("badge-spin")).toBe(false);
   });
 });

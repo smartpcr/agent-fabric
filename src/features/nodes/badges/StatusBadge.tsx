@@ -1,5 +1,39 @@
+import { useState, useEffect } from "react";
 import { Clock, Loader2, CheckCircle2, XCircle, SkipForward } from "lucide-react";
 import "@/styles/animations.css";
+
+// ─── Reduced-motion detection ────────────────────────────────────────
+
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function getMatchMediaResult(query: string): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false;
+  }
+  return window.matchMedia(query).matches;
+}
+
+function usePrefersReducedMotion(): boolean {
+  const [prefersReduced, setPrefersReduced] = useState(() =>
+    getMatchMediaResult(REDUCED_MOTION_QUERY),
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
+    const mql = window.matchMedia(REDUCED_MOTION_QUERY);
+    const handler = (e: MediaQueryListEvent) => {
+      setPrefersReduced(e.matches);
+    };
+    mql.addEventListener("change", handler);
+    return () => {
+      mql.removeEventListener("change", handler);
+    };
+  }, []);
+
+  return prefersReduced;
+}
 
 /** The five possible execution states for a node's status badge. */
 export type BadgeStatus = "pending" | "running" | "success" | "error" | "skipped";
@@ -61,6 +95,8 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   const label = LABEL_MAP[status];
   const Icon = ICON_MAP[status];
   const color = COLOR_MAP[status];
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const shouldSpin = status === "running" && !prefersReducedMotion;
 
   return (
     <span
@@ -74,7 +110,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
         size={12}
         aria-hidden={true}
         data-testid={`badge-icon-${status}`}
-        className={status === "running" ? "badge-spin" : undefined}
+        className={shouldSpin ? "badge-spin" : undefined}
       />
       <span data-testid="badge-label">{label}</span>
     </span>
