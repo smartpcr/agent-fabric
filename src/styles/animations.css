@@ -1,0 +1,20 @@
+/* ─── Execution badge animations ──────────────────────────────────── */
+
+@keyframes badge-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.badge-spin {
+  animation: badge-spin 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-spin {
+    animation: none;
+  }
+}
