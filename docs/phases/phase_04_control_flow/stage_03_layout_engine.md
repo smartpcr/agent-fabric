@@ -1,10 +1,11 @@
 # Phase 4 — Stage 3: Layout Engine (ELK)
+
 > Adopt Eclipse Layout Kernel (WASM) for auto-layout with orthogonal back-edge routing.
 > Status: `[ ]` not started · **Effort**: 22h
 
 ## Steps
 
-- [ ] **Step 1**: Add `elkjs` dependency + loader shim
+- [x] **Step 1**: Add `elkjs` dependency + loader shim
   - File(s): `src/domain/layout/elkLoader.ts`, `package.json`, `tests/unit/domain/layout/elkLoader.test.ts`
   - Contents: Lazy-loaded singleton; caches `ELK` instance; tests mock the WASM module so jsdom doesn't actually execute it.
   - Test: 100% — loader caches; mock returns a stub for jsdom.
@@ -53,6 +54,7 @@
   - Effort: 3h
 
 ## Acceptance for Stage 3
+
 - All 8 steps `[x]` with score ≥ 90.
 - 100% unit coverage on `src/domain/layout/**`.
 - Performance benchmark within budget.
