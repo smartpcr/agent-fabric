@@ -1,11 +1,16 @@
-import { Grid3X3, LayoutGrid } from "lucide-react";
+import { Grid3X3, LayoutGrid, Save } from "lucide-react";
 import { useWorkflowStore } from "@/store/hooks";
+import { useValidation } from "@/features/property-grid/ValidationContext";
 
 export function Toolbar() {
   const snapEnabled = useWorkflowStore((s) => s.snapEnabled);
   const toggleSnap = useWorkflowStore((s) => s.toggleSnap);
   const layoutRunning = useWorkflowStore((s) => s.layoutRunning);
   const applyLayout = useWorkflowStore((s) => s.applyLayout);
+  const { errorCount, errorMessages } = useValidation();
+
+  const hasErrors = errorCount > 0;
+  const errorSummary = hasErrors ? errorMessages.join("; ") : undefined;
 
   return (
     <div data-testid="editor-toolbar" role="toolbar" aria-label="Editor toolbar">
@@ -30,6 +35,16 @@ export function Toolbar() {
         }}
       >
         <LayoutGrid size={14} aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        data-testid="save-button"
+        aria-label="Save"
+        title={hasErrors ? errorSummary : "Save"}
+        disabled={hasErrors}
+      >
+        <Save size={14} aria-hidden="true" />
+        Save
       </button>
     </div>
   );

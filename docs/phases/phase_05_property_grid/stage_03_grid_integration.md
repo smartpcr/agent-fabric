@@ -23,7 +23,7 @@
   - Test: Integration — undo restores previous form values; focus preserved.
   - Effort: 3h
 
-- [ ] **Step 4**: Validation → inline errors + global Save gate
+- [x] **Step 4**: Validation → inline errors + global Save gate
   - File(s): `src/features/property-grid/PropertyGrid.tsx` (extend), `src/features/editor/Toolbar.tsx` (extend), `tests/integration/property-grid.validation.test.tsx`
   - Contents: Error count badge; Save button disabled when any field invalid; error summary on hover.
   - Test: Integration — invalid field → Save disabled; correction re-enables.
