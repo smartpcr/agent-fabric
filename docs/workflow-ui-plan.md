@@ -472,18 +472,18 @@ A step is `[x]` only when score ≥ 90.
 
 ## Appendix A — Effort Rollup
 
-| Phase                         | Stages |   Steps | Effort (h) | Status   |
-| ----------------------------- | -----: | ------: | ---------: | -------- |
-| 0 — Foundation                |      3 |      17 |         40 | `[ ]` 0% |
-| 1 — Core Graph & Registry     |      4 |      30 |         70 | `[ ]` 0% |
-| 2 — Canvas & Drag-Drop        |      6 |      29 |         80 | `[ ]` 0% |
-| 3 — Ports, Edges & Validation |      5 |      23 |         60 | `[ ]` 0% |
-| 4 — Control Flow Nodes        |      3 |      23 |         80 | `[ ]` 0% |
-| 5 — Property Grid             |      4 |      25 |         70 | `[ ]` 0% |
-| 6 — Execution Visualization   |      6 |      32 |         80 | `[ ]` 0% |
-| 7 — Persistence & Undo        |      5 |      20 |         50 | `[ ]` 0% |
-| 8 — Polish & Release          |      4 |      17 |         50 | `[ ]` 0% |
-| **Total**                     | **40** | **216** |    **580** | **0%**   |
+| Phase                         | Stages |   Steps | Effort (h) | Status     |
+| ----------------------------- | -----: | ------: | ---------: | ---------- |
+| 0 — Foundation                |      3 |      17 |         40 | `[ ]` 0%   |
+| 1 — Core Graph & Registry     |      4 |      30 |         70 | `[ ]` 0%   |
+| 2 — Canvas & Drag-Drop        |      6 |      29 |         80 | `[ ]` 0%   |
+| 3 — Ports, Edges & Validation |      5 |      23 |         60 | `[ ]` 0%   |
+| 4 — Control Flow Nodes        |      3 |      23 |         80 | `[ ]` 0%   |
+| 5 — Property Grid             |      4 |      25 |         70 | `[x]` 100% |
+| 6 — Execution Visualization   |      6 |      32 |         80 | `[ ]` 0%   |
+| 7 — Persistence & Undo        |      5 |      20 |         50 | `[ ]` 0%   |
+| 8 — Polish & Release          |      4 |      17 |         50 | `[ ]` 0%   |
+| **Total**                     | **40** | **216** |    **580** | **0%**     |
 
 **Tracking rule**: a phase's **% complete** = Σ(completed step effort) / Σ(all step effort within the phase). A phase is `[x]` only when all stages are `[x]` AND every step scored ≥ 90.
 

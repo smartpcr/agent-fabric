@@ -1,9 +1,10 @@
 # Phase 5 — Property Grid (Schema-Driven Editor)
+
 > Part of [Workflow UI Implementation Plan](../workflow-ui-plan.md)
 
 **Goal**: Selecting a node shows a property grid built from its Zod schema. Supports 8 field types, inline validation, debounced commit, keyboard-only editing, and integrates with undo/redo.
 
-**Status**: `[ ]` not started · **Effort**: 70h · **Completed**: 0h · **Progress**: 0%
+**Status**: `[x]` complete · **Effort**: 70h · **Completed**: 70h · **Progress**: 100%
 
 ## Exit Criteria
 
@@ -15,13 +16,13 @@
 
 ## Stages
 
-| # | Stage | Document | Steps | Effort (h) | Status |
-|---|-------|----------|------:|-----------:|--------|
-| 1 | Form Engine | [stage_01_form_engine.md](phase_05_property_grid/stage_01_form_engine.md) | 5 | 16 | `[ ]` |
-| 2 | Field Primitives | [stage_02_field_primitives.md](phase_05_property_grid/stage_02_field_primitives.md) | 8 | 20 | `[ ]` |
-| 3 | Property Grid Integration | [stage_03_grid_integration.md](phase_05_property_grid/stage_03_grid_integration.md) | 7 | 20 | `[ ]` |
-| 4 | Phase 5 E2E | [stage_04_e2e.md](phase_05_property_grid/stage_04_e2e.md) | 5 | 14 | `[ ]` |
-| **Total** | | | **25** | **70** | `[ ]` 0% |
+| #         | Stage                     | Document                                                                            |  Steps | Effort (h) | Status     |
+| --------- | ------------------------- | ----------------------------------------------------------------------------------- | -----: | ---------: | ---------- |
+| 1         | Form Engine               | [stage_01_form_engine.md](phase_05_property_grid/stage_01_form_engine.md)           |      5 |         16 | `[x]`      |
+| 2         | Field Primitives          | [stage_02_field_primitives.md](phase_05_property_grid/stage_02_field_primitives.md) |      8 |         20 | `[x]`      |
+| 3         | Property Grid Integration | [stage_03_grid_integration.md](phase_05_property_grid/stage_03_grid_integration.md) |      7 |         20 | `[x]`      |
+| 4         | Phase 5 E2E               | [stage_04_e2e.md](phase_05_property_grid/stage_04_e2e.md)                           |      5 |         14 | `[x]`      |
+| **Total** |                           |                                                                                     | **25** |     **70** | `[x]` 100% |
 
 ## Architectural Notes
 
