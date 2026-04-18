@@ -1,7 +1,7 @@
 # Phase 3 — Stage 2: Connection Interaction
 
 > Live-validated drag-to-connect with snap, keyboard path, and undo.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` complete · **Effort**: 14h
 
 ## Steps
 

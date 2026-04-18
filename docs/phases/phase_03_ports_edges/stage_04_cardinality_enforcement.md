@@ -1,7 +1,7 @@
 # Phase 3 — Stage 4: Cardinality & DataType Enforcement
 
 > Enforce single/multi cardinality and dataType compatibility at connect time with user-visible feedback.
-> Status: `[ ]` not started · **Effort**: 10h
+> Status: `[x]` complete · **Effort**: 10h
 
 ## Steps
 
@@ -23,13 +23,13 @@
   - Test: 100% — each combination; message quality.
   - Effort: 3h
 
-- [ ] **Step 4**: Required input indicator (red outline when unconnected)
+- [x] **Step 4**: Required input indicator (red outline when unconnected)
   - File(s): `src/features/nodes/ports/InputHandle.tsx` (extend), `src/store/selectors/graphSelectors.ts` (extend), `tests/unit/features/nodes/ports/InputHandle.required.test.tsx`
   - Contents: Selector computes whether a required port has an inbound edge; handle applies `[data-missing="true"]` when missing.
   - Test: 100% — outline appears on unconnected required port; disappears when connected.
   - Effort: 2h
 
-- [ ] **Step 5**: Phase 3 acceptance + score review
+- [x] **Step 5**: Phase 3 acceptance + score review
   - File(s): —
   - Contents: Walk exit criteria; score each step; update phase status row.
   - Effort: 1h

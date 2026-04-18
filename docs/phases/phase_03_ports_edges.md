@@ -1,9 +1,10 @@
 # Phase 3 — Ports, Edges & Connection Validation
+
 > Part of [Workflow UI Implementation Plan](../workflow-ui-plan.md)
 
 **Goal**: Ports are first-class. A node can expose N inputs and M outputs. Connections drag visually, validate against port specs, reject incompatible pairs with a user-visible reason, and edges render with labels, types, and default / loop-back styling.
 
-**Status**: `[ ]` not started · **Effort**: 60h · **Completed**: 0h · **Progress**: 0%
+**Status**: `[~]` stages 1–4 complete; stage 5 (E2E) pending · **Effort**: 60h · **Completed**: 54h · **Progress**: 90%
 
 ## Exit Criteria
 
@@ -15,14 +16,14 @@
 
 ## Stages
 
-| # | Stage | Document | Steps | Effort (h) | Status |
-|---|-------|----------|------:|-----------:|--------|
-| 1 | Port Rendering | [stage_01_port_rendering.md](phase_03_ports_edges/stage_01_port_rendering.md) | 6 | 14 | `[ ]` |
-| 2 | Connection Interaction | [stage_02_connection_interaction.md](phase_03_ports_edges/stage_02_connection_interaction.md) | 6 | 14 | `[ ]` |
-| 3 | Edge Rendering | [stage_03_edge_rendering.md](phase_03_ports_edges/stage_03_edge_rendering.md) | 7 | 16 | `[ ]` |
-| 4 | Cardinality & DataType Enforcement | [stage_04_cardinality_enforcement.md](phase_03_ports_edges/stage_04_cardinality_enforcement.md) | 5 | 10 | `[ ]` |
-| 5 | Phase 3 E2E | [stage_05_e2e.md](phase_03_ports_edges/stage_05_e2e.md) | 3 | 6 | `[ ]` |
-| **Total** | | | **27** | **60** | `[ ]` 0% |
+| #         | Stage                              | Document                                                                                        |  Steps | Effort (h) | Status    |
+| --------- | ---------------------------------- | ----------------------------------------------------------------------------------------------- | -----: | ---------: | --------- |
+| 1         | Port Rendering                     | [stage_01_port_rendering.md](phase_03_ports_edges/stage_01_port_rendering.md)                   |      6 |         14 | `[x]`     |
+| 2         | Connection Interaction             | [stage_02_connection_interaction.md](phase_03_ports_edges/stage_02_connection_interaction.md)   |      6 |         14 | `[x]`     |
+| 3         | Edge Rendering                     | [stage_03_edge_rendering.md](phase_03_ports_edges/stage_03_edge_rendering.md)                   |      7 |         16 | `[x]`     |
+| 4         | Cardinality & DataType Enforcement | [stage_04_cardinality_enforcement.md](phase_03_ports_edges/stage_04_cardinality_enforcement.md) |      5 |         10 | `[x]`     |
+| 5         | Phase 3 E2E                        | [stage_05_e2e.md](phase_03_ports_edges/stage_05_e2e.md)                                         |      3 |          6 | `[ ]`     |
+| **Total** |                                    |                                                                                                 | **27** |     **60** | `[~]` 90% |
 
 > Note: Phase total shows **23 steps** in the main plan table, which sums the deliverable steps; the 27 here include E2E scenarios (counted separately as integration/e2e items). Either number is tracked through the stage checklists.
 
