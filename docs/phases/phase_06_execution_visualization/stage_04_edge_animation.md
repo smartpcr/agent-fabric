@@ -35,7 +35,7 @@
   - Test: 100% — class applied on `iteration` increments.
   - Effort: 2h
 
-- [ ] **Step 6**: Performance benchmark — 200-node graph, 20 ev/sec, p95 < 16ms
+- [x] **Step 6**: Performance benchmark — 200-node graph, 20 ev/sec, p95 < 16ms
   - File(s): `tests/integration/execution.perf.test.ts`, `tests/performance/execution.bench.ts`
   - Contents: Simulate 20 events per second for 10 seconds; measure frame times via `performance.now()`; fail if p95 > 16ms.
   - Test: Benchmark passes on CI.
