@@ -5,7 +5,6 @@ import {
   useReactFlow,
   SelectionMode,
   type NodeMouseHandler,
-  type NodeChange as XYNodeChange,
   type Connection,
   type FinalConnectionState,
 } from "@xyflow/react";
@@ -50,7 +49,6 @@ export function Canvas() {
   const clearSelection = useWorkflowStore((s) => s.clear);
   const clearEdges = useWorkflowStore((s) => s.clearEdges);
   const deleteSelected = useWorkflowStore((s) => s.deleteSelected);
-  const applyNodeChanges = useWorkflowStore((s) => s.applyNodeChanges);
   const setZoom = useWorkflowStore((s) => s.setZoom);
   const setPan = useWorkflowStore((s) => s.setPan);
   const interactive = useWorkflowStore((s) => s.interactive);
@@ -212,26 +210,6 @@ export function Canvas() {
     setZoom(vp.zoom);
     setPan(vp.x, vp.y);
   }, [getViewport, setZoom, setPan]);
-
-  // Propagate dimension changes from xyflow back to the store so
-  // ELK auto-layout knows the actual rendered node sizes.
-  const handleNodesChange = useCallback(
-    (changes: XYNodeChange[]) => {
-      const dimChanges = changes.filter(
-        (c): c is XYNodeChange & { type: "dimensions" } => c.type === "dimensions",
-      );
-      if (dimChanges.length > 0) {
-        applyNodeChanges(
-          dimChanges.map((c) => ({
-            type: "dimensions" as const,
-            id: c.id,
-            dimensions: c.dimensions,
-          })),
-        );
-      }
-    },
-    [applyNodeChanges],
-  );
 
   // When an xyflow node wrapper receives focus (e.g. via Tab), select it in our store
   const handleFocusCapture = useCallback(
@@ -398,7 +376,6 @@ export function Canvas() {
           onPaneClick={handlePaneClick}
           onSelectionChange={handleSelectionChange}
           onMoveEnd={handleMoveEnd}
-          onNodesChange={handleNodesChange}
           onConnect={handleConnect}
           onConnectStart={handleConnectStart}
           onConnectEnd={handleConnectEnd}
