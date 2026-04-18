@@ -1,5 +1,7 @@
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from "@xyflow/react";
 import { useEdgeExecutionState } from "@/features/execution/useEdgeExecutionState";
+import { usePrefersReducedMotion } from "@/features/edges/usePrefersReducedMotion";
+import "@/features/edges/edgeAnimations.css";
 
 const ARROW_MARKER_ID = "default-edge-arrow";
 const MAX_LABEL_LENGTH = 20;
@@ -23,6 +25,9 @@ export function DefaultEdge({
   data,
 }: EdgeProps) {
   const edgeExecState = useEdgeExecutionState(id);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const isActive = edgeExecState?.status === "active";
+  const flowClass = isActive && !prefersReducedMotion ? "edge-flow-active" : undefined;
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -57,6 +62,7 @@ export function DefaultEdge({
         path={edgePath}
         markerEnd={markerEnd ?? `url(#${ARROW_MARKER_ID})`}
         style={style}
+        className={flowClass}
       />
       {labelText && (
         <EdgeLabelRenderer>
