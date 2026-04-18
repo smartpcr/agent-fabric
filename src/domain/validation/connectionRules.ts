@@ -2,6 +2,10 @@ import type { WorkflowGraph } from "@/domain/models/graph";
 import type { NodeSpec } from "@/domain/models/nodeSpec";
 import type { PortSpec } from "@/domain/models/port";
 import { isAssignable, type DataTypeWhitelist } from "@/domain/validation/dataTypes";
+import { ok as okResult, err, type Result } from "@/domain/result";
+
+// Re-export Result so existing consumers (graphRules.ts) can continue importing from here.
+export type { Result };
 
 export type ConnectionErrorCode =
   | "SOURCE_NODE_NOT_FOUND"
@@ -21,16 +25,12 @@ export interface ConnectionInvalidError {
   readonly conflictingEdgeId?: string;
 }
 
-export type Result<T, E> =
-  | { readonly ok: true; readonly value: T }
-  | { readonly ok: false; readonly error: E };
-
 function ok(): Result<void, ConnectionInvalidError> {
-  return { ok: true, value: undefined };
+  return okResult(undefined);
 }
 
 function fail(code: ConnectionErrorCode, message: string): Result<void, ConnectionInvalidError> {
-  return { ok: false, error: { code, message } };
+  return err({ code, message });
 }
 
 export interface NodeSpecRegistry {
