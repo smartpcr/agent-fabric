@@ -16,6 +16,11 @@ function getDefaultStore(): StoreWithTemporal {
   return defaultStore;
 }
 
+/** Get the singleton store instance (useful for test harnesses). */
+export function getStoreInstance(): StoreApi<WorkflowState> {
+  return getDefaultStore();
+}
+
 export function useWorkflowStore(): WorkflowState;
 export function useWorkflowStore<T>(
   selector: (state: WorkflowState) => T,

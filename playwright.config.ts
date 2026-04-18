@@ -33,7 +33,7 @@ export default defineConfig({
   },
   projects,
   webServer: {
-    command: "npm run preview",
+    command: "npx vite build --mode e2e && npm run preview",
     port: 4173,
     reuseExistingServer: !process.env["CI"],
   },
