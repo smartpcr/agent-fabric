@@ -1,10 +1,11 @@
 # Phase 8 — Stage 3: Performance
+
 > Code-split heavy deps, benchmark suite, selector audit, Lighthouse CI.
 > Status: `[ ]` not started · **Effort**: 12h
 
 ## Steps
 
-- [ ] **Step 1**: Code-split Monaco / CodeField
+- [x] **Step 1**: Code-split Monaco / CodeField
   - File(s): `src/features/property-grid/fields/CodeField.tsx` (extend), `vite.config.ts` (manual chunks), `tests/unit/features/property-grid/fields/CodeField.lazy.test.tsx`
   - Contents: `React.lazy` + `Suspense`; manual chunk name `code-field`; skeleton during load.
   - Test: 100% — bundle stats show Monaco in its own chunk; main chunk under budget.
@@ -28,5 +29,6 @@
   - Effort: 2h
 
 ## Acceptance for Stage 3
+
 - All 4 steps `[x]` with score ≥ 90.
 - All performance budgets met.
