@@ -1,4 +1,4 @@
-import { test, expect, type Locator, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page, type Browser } from "@playwright/test";
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -255,5 +255,224 @@ test.describe("E2E: Scripted 5-node run — running → success", () => {
     for (const nodeId of nodeIds) {
       expect(await getBadgeStatus(page, nodeId)).toBe("success");
     }
+  });
+});
+
+// ── Reduced-motion E2E suite ──────────────────────────────────────────
+
+/**
+ * Helper: create a page inside a custom browser context with
+ * `reducedMotion: 'reduce'` and `forcedColors: 'active'`.
+ *
+ * Playwright's `test.use()` doesn't reliably propagate these emulation
+ * flags in all versions, so we create the context manually via the
+ * `browser` fixture.
+ */
+async function createReducedMotionPage(browser: Browser) {
+  const ctx = await browser.newContext({
+    reducedMotion: "reduce",
+    forcedColors: "active",
+  });
+  return ctx.newPage();
+}
+
+test.describe("E2E: Reduced-motion mode — animations disabled, state indicators kept", () => {
+  test("running badge has no badge-spin animation class under reduced motion", async ({
+    browser,
+  }) => {
+    const page = await createReducedMotionPage(browser);
+    await page["goto"]("/");
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+
+    // Verify emulation is active
+    const emulation = await page.evaluate(
+      () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    );
+    expect(emulation).toBe(true);
+
+    const RUN_ID = "e2e-reduced-1";
+    const nodeIds = await dropTaskNodes(page, 3);
+    expect(nodeIds).toHaveLength(3);
+
+    await startRun(page, RUN_ID);
+
+    // Emit node.started for all 3 nodes
+    for (let i = 0; i < nodeIds.length; i++) {
+      await emitEvent(page, {
+        type: "node.started",
+        runId: RUN_ID,
+        nodeId: nodeIds[i],
+        at: 1000 + i * 100,
+      });
+    }
+    await page.waitForTimeout(200);
+
+    // All nodes should still show running status badge (state indicator kept)
+    for (const nodeId of nodeIds) {
+      const status = await getBadgeStatus(page, nodeId);
+      expect(status).toBe("running");
+    }
+
+    // Running icon elements must NOT have the badge-spin CSS class
+    for (const nodeId of nodeIds) {
+      const cls = await page.evaluate((nid) => {
+        const nodeEl = document.querySelector(`[data-id="${nid}"]`);
+        if (!nodeEl) return null;
+        const icon = nodeEl.querySelector('[data-testid="badge-icon-running"]');
+        if (!icon) return null;
+        return icon.getAttribute("class") ?? "";
+      }, nodeId);
+
+      expect(cls).not.toBeNull();
+      expect(cls).not.toContain("badge-spin");
+    }
+
+    await page.context().close();
+  });
+
+  test("state indicators (badges) render correct status text under reduced motion", async ({
+    browser,
+  }) => {
+    const page = await createReducedMotionPage(browser);
+    await page["goto"]("/");
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+
+    const RUN_ID = "e2e-reduced-2";
+    const nodeIds = await dropTaskNodes(page, 3);
+
+    await startRun(page, RUN_ID);
+
+    // Start all nodes
+    for (let i = 0; i < nodeIds.length; i++) {
+      await emitEvent(page, {
+        type: "node.started",
+        runId: RUN_ID,
+        nodeId: nodeIds[i],
+        at: 1000 + i * 50,
+      });
+    }
+    await page.waitForTimeout(200);
+
+    // Badge labels should still display "Running" text
+    const labels = page.locator('[data-testid="badge-label"]');
+    await expect(labels).toHaveCount(3);
+    for (let i = 0; i < 3; i++) {
+      await expect(labels.nth(i)).toHaveText("Running");
+    }
+
+    // Transition to success
+    for (let i = 0; i < nodeIds.length; i++) {
+      await emitEvent(page, {
+        type: "node.succeeded",
+        runId: RUN_ID,
+        nodeId: nodeIds[i],
+        at: 2000 + i * 50,
+      });
+    }
+    await page.waitForTimeout(200);
+
+    // All badges should now show "Succeeded"
+    for (let i = 0; i < 3; i++) {
+      await expect(labels.nth(i)).toHaveText("Succeeded");
+    }
+
+    // Data-status attributes should be "success"
+    for (const nodeId of nodeIds) {
+      expect(await getBadgeStatus(page, nodeId)).toBe("success");
+    }
+
+    await page.context().close();
+  });
+
+  test("icons are present as static elements — no animation class anywhere", async ({
+    browser,
+  }) => {
+    const page = await createReducedMotionPage(browser);
+    await page["goto"]("/");
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+
+    const RUN_ID = "e2e-reduced-3";
+    const nodeIds = await dropTaskNodes(page, 3);
+
+    await startRun(page, RUN_ID);
+
+    // Start all nodes
+    for (let i = 0; i < nodeIds.length; i++) {
+      await emitEvent(page, {
+        type: "node.started",
+        runId: RUN_ID,
+        nodeId: nodeIds[i],
+        at: 1000 + i * 50,
+      });
+    }
+    await page.waitForTimeout(200);
+
+    // Each running node should have a visible icon element
+    for (const nodeId of nodeIds) {
+      const iconVisible = await page.evaluate((nid) => {
+        const nodeEl = document.querySelector(`[data-id="${nid}"]`);
+        if (!nodeEl) return false;
+        const icon = nodeEl.querySelector('[data-testid="badge-icon-running"]');
+        return icon !== null;
+      }, nodeId);
+      expect(iconVisible).toBe(true);
+    }
+
+    // Verify no badge-spin class on any icon
+    const anyAnimated = await page.evaluate(() => {
+      const icons = document.querySelectorAll('[data-testid^="badge-icon-"]');
+      return Array.from(icons).some((el) => {
+        const cls = el.getAttribute("class") ?? "";
+        return cls.includes("badge-spin");
+      });
+    });
+    expect(anyAnimated).toBe(false);
+
+    await page.context().close();
+  });
+
+  test("CSS animation is disabled via computed style under reduced motion", async ({ browser }) => {
+    const page = await createReducedMotionPage(browser);
+    await page["goto"]("/");
+    await page.waitForSelector('[role="option"][data-kind="task"]', { timeout: 10000 });
+
+    const RUN_ID = "e2e-reduced-4";
+    const nodeIds = await dropTaskNodes(page, 2);
+
+    await startRun(page, RUN_ID);
+
+    // Start nodes
+    for (let i = 0; i < nodeIds.length; i++) {
+      await emitEvent(page, {
+        type: "node.started",
+        runId: RUN_ID,
+        nodeId: nodeIds[i],
+        at: 1000 + i * 100,
+      });
+    }
+    await page.waitForTimeout(200);
+
+    // Verify badge elements render without any CSS animation on their icon
+    for (const nodeId of nodeIds) {
+      const animData = await page.evaluate((nid) => {
+        const nodeEl = document.querySelector(`[data-id="${nid}"]`);
+        if (!nodeEl) return null;
+        const icon = nodeEl.querySelector('[data-testid="badge-icon-running"]');
+        if (!icon) return null;
+        const computed = window.getComputedStyle(icon);
+        return {
+          animationName: computed.animationName,
+          className: icon.getAttribute("class") ?? "",
+        };
+      }, nodeId);
+
+      expect(animData).not.toBeNull();
+      // className should NOT contain badge-spin (React-side check)
+      expect(animData?.className ?? "").not.toContain("badge-spin");
+      // Computed animation should be "none" (CSS media query check)
+      expect(animData?.animationName).toBe("none");
+    }
+
+    await page.context().close();
   });
 });
