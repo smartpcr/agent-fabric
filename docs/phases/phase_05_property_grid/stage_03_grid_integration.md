@@ -11,7 +11,7 @@
   - Test: 100% — empty state; switches on selection change.
   - Effort: 3h
 
-- [ ] **Step 2**: Header: node kind, label (editable), id (read-only)
+- [x] **Step 2**: Header: node kind, label (editable), id (read-only)
   - File(s): `src/features/property-grid/PropertyGridHeader.tsx`, `tests/unit/features/property-grid/PropertyGridHeader.test.tsx`
   - Contents: Kind as badge; label inline-editable (commits via `updateNodeData({name})` for nodes that have `name`); id shown small + monospace with copy button.
   - Test: 100% — label edit; id read-only; copy id.
