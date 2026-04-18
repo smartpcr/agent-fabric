@@ -769,6 +769,26 @@ describe("collectSecretFieldNames", () => {
   it("handles empty descriptors array", () => {
     expect(collectSecretFieldNames([])).toEqual([]);
   });
+
+  it("recurses into valueType children for records", () => {
+    const descriptors: FieldDescriptor[] = [
+      {
+        name: "config",
+        type: "record",
+        required: true,
+        valueType: {
+          name: "value",
+          type: "object",
+          required: true,
+          children: [
+            { name: "host", type: "string", required: true },
+            { name: "apiKey", type: "string", required: true, secret: true },
+          ],
+        },
+      },
+    ];
+    expect(collectSecretFieldNames(descriptors)).toEqual(["apiKey"]);
+  });
 });
 
 describe("registerSecretFieldsFromDescriptors", () => {

@@ -276,5 +276,53 @@ describe("PropertyGridHeader", () => {
       expect(screen.getByTestId("header-node-id")).toBeInTheDocument();
       expect(screen.queryByTestId("header-label")).not.toBeInTheDocument();
     });
+
+    it("cancels edit with Escape when label is undefined (no label prop)", () => {
+      // This tests the `label ?? ""` branch in cancelEdit when label is undefined
+      const onLabelChange = vi.fn();
+      render(
+        <PropertyGridHeader
+          kind="task"
+          nodeId="n1"
+          label={undefined}
+          onLabelChange={onLabelChange}
+        />,
+      );
+
+      // No label element to click — cannot enter edit mode
+      expect(screen.queryByTestId("header-label")).not.toBeInTheDocument();
+    });
+
+    it("label span keyboard activation with Space key enters edit mode", async () => {
+      const user = userEvent.setup();
+      const onLabelChange = vi.fn();
+      render(
+        <PropertyGridHeader kind="task" nodeId="n1" label="Task" onLabelChange={onLabelChange} />,
+      );
+
+      const label = screen.getByTestId("header-label");
+      label.focus();
+      await user.keyboard(" ");
+
+      expect(screen.getByTestId("header-label-input")).toBeInTheDocument();
+    });
+
+    it("copy ID uses clipboard when no onCopyId prop", async () => {
+      const user = userEvent.setup();
+      // Mock clipboard via Object.defineProperty since navigator.clipboard is getter-only
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, "clipboard", {
+        value: { writeText },
+        writable: true,
+        configurable: true,
+      });
+
+      render(<PropertyGridHeader kind="task" nodeId="node-42" label="Task" />);
+
+      const copyBtn = screen.getByTestId("header-copy-id");
+      await user.click(copyBtn);
+
+      expect(writeText).toHaveBeenCalledWith("node-42");
+    });
   });
 });

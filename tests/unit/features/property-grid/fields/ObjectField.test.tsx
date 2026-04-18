@@ -666,5 +666,27 @@ describe("ObjectField", () => {
 
       expect(screen.queryByTestId("object-content-address")).not.toBeInTheDocument();
     });
+
+    it("defaults to expanded when sessionStorage throws", () => {
+      // Make sessionStorage.getItem throw
+      const originalGetItem = sessionStorage.getItem.bind(sessionStorage);
+      vi.spyOn(sessionStorage, "getItem").mockImplementation(() => {
+        throw new Error("Storage disabled");
+      });
+
+      render(
+        <ObjectField
+          descriptor={makeDescriptor()}
+          field={makeField({ value: { street: "Main" } })}
+          objectSchema={addressSchema}
+        />,
+      );
+
+      // Should default to expanded (not collapsed) despite the error
+      expect(screen.getByTestId("object-content-address")).toBeInTheDocument();
+
+      // Restore
+      vi.spyOn(sessionStorage, "getItem").mockImplementation(originalGetItem);
+    });
   });
 });

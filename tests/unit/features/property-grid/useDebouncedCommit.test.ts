@@ -399,5 +399,29 @@ describe("useDebouncedCommit", () => {
       expect(onCommit).toHaveBeenCalledTimes(2);
       expect(onCommit).toHaveBeenLastCalledWith("second");
     });
+
+    it("cancel is safe to call when no timer is active", () => {
+      const onCommit = vi.fn();
+      const { result } = renderHook(() => useDebouncedCommit({ onCommit, delay: 300 }));
+
+      // Cancel without ever staging a value — should not throw
+      act(() => {
+        result.current.cancel();
+      });
+
+      expect(onCommit).not.toHaveBeenCalled();
+    });
+
+    it("flush is safe to call when no value is staged", () => {
+      const onCommit = vi.fn();
+      const { result } = renderHook(() => useDebouncedCommit({ onCommit, delay: 300 }));
+
+      // Flush without ever staging a value — should not throw or commit
+      act(() => {
+        result.current.flush();
+      });
+
+      expect(onCommit).not.toHaveBeenCalled();
+    });
   });
 });

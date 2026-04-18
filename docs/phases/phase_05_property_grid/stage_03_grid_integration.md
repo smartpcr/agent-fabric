@@ -1,7 +1,7 @@
 # Phase 5 — Stage 3: Property Grid Integration
 
 > Wire the SchemaForm to the selected node, handle undo/redo re-hydration, multi-select editing, and validation gating.
-> Status: `[ ]` not started · **Effort**: 20h
+> Status: `[x]` complete · **Effort**: 20h
 
 ## Steps
 

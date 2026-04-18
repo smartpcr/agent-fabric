@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, cleanup, renderHook, act, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  cleanup,
+  renderHook,
+  act,
+  waitFor,
+  fireEvent,
+} from "@testing-library/react";
 import { useWorkflowStore } from "@/store/hooks";
 import { NodeRegistry } from "@/registry/NodeRegistry";
 import { registerBuiltins } from "@/registry/registerBuiltins";
@@ -359,6 +367,45 @@ describe("PropertyGrid", () => {
       await waitFor(() => {
         expect(screen.getByTestId("header-kind-badge").textContent).toContain("decision");
       });
+    });
+
+    it("multi-select label editing updates all nodes", async () => {
+      const { result } = renderHook(() => useWorkflowStore());
+
+      let nodeId1 = "";
+      let nodeId2 = "";
+      act(() => {
+        const spec = result.current.registry.get("task");
+        if (spec) {
+          nodeId1 = result.current.addNode(spec, { x: 0, y: 0 }).id;
+          nodeId2 = result.current.addNode(spec, { x: 100, y: 0 }).id;
+        }
+      });
+
+      act(() => {
+        result.current.selectMany([nodeId1, nodeId2]);
+      });
+
+      render(<PropertyGrid />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("multi-select-indicator")).toBeInTheDocument();
+      });
+
+      // Find the label display and click to edit
+      const label = screen.getByTestId("header-label");
+      fireEvent.click(label);
+
+      const input = screen.getByTestId("header-label-input");
+      fireEvent.change(input, { target: { value: "SharedName" } });
+      fireEvent.blur(input);
+
+      // Both nodes should have the new name
+      const store = result.current;
+      const node1 = store.nodes.find((n) => n.id === nodeId1);
+      const node2 = store.nodes.find((n) => n.id === nodeId2);
+      expect((node1?.data as Record<string, unknown>).name).toBe("SharedName");
+      expect((node2?.data as Record<string, unknown>).name).toBe("SharedName");
     });
   });
 });

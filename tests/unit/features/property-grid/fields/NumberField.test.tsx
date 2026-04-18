@@ -401,5 +401,41 @@ describe("NumberField", () => {
       const input = screen.getByTestId("field-testField");
       expect(input.name).toBe("myNumber");
     });
+
+    it("clamps to previous valid value on badInput (non-numeric rejected by browser)", () => {
+      const onChange = vi.fn();
+      render(
+        <NumberField descriptor={makeDescriptor()} field={makeField({ onChange, value: 7 })} />,
+      );
+
+      const input = screen.getByTestId("field-testField");
+      // Simulate browser rejecting non-numeric input: value is "" and validity.badInput is true
+      Object.defineProperty(input, "validity", {
+        value: { badInput: true },
+        configurable: true,
+      });
+      fireEvent.change(input, { target: { value: "" } });
+      // Should clamp to previous valid (7) because badInput is true
+      expect(onChange).toHaveBeenCalledWith(7);
+    });
+
+    it("does not call onChange when empty input and no previous valid value", () => {
+      const onChange = vi.fn();
+      render(
+        <NumberField
+          descriptor={makeDescriptor()}
+          field={makeField({ onChange, value: undefined })}
+        />,
+      );
+
+      const input = screen.getByTestId("field-testField");
+      Object.defineProperty(input, "validity", {
+        value: { badInput: true },
+        configurable: true,
+      });
+      fireEvent.change(input, { target: { value: "" } });
+      // No previous valid value and badInput=true, so onChange should not be called
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 });

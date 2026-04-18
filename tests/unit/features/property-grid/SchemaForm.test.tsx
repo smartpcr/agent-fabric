@@ -443,4 +443,14 @@ describe("SchemaForm", () => {
     const input = screen.getByTestId("field-name");
     expect(input.tagName).toBe("INPUT");
   });
+
+  it("prevents default form submission", () => {
+    const schema = z.object({ name: z.string() });
+    render(<SchemaForm schema={schema} value={{ name: "test" }} onChange={vi.fn()} />);
+
+    const form = screen.getByTestId("schema-form");
+    const submitEvent = new Event("submit", { bubbles: true, cancelable: true });
+    const defaultPrevented = !form.dispatchEvent(submitEvent);
+    expect(defaultPrevented).toBe(true);
+  });
 });

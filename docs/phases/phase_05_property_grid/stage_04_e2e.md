@@ -1,7 +1,7 @@
 # Phase 5 — Stage 4: Phase 5 E2E
 
 > Playwright scenarios covering property-grid editing, validation, arrays, multi-select, and accessibility.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` complete · **Effort**: 14h
 
 ## Steps
 
@@ -29,7 +29,7 @@
   - Test: Green.
   - Effort: 3h
 
-- [ ] **Step 5**: Phase 5 acceptance + score review
+- [x] **Step 5**: Phase 5 acceptance + score review
   - File(s): —
   - Contents: Walk exit criteria; update phase status row.
   - Effort: 2h

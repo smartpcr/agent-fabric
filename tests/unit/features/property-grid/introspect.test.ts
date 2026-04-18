@@ -454,4 +454,29 @@ describe("introspect", () => {
       expect(fields[0]?.secret).toBe(true);
     });
   });
+
+  describe("edge cases", () => {
+    it("returns empty array for a non-object schema", () => {
+      const schema = z.string();
+      expect(introspect(schema)).toEqual([]);
+    });
+
+    it("handles ZodRecord value type introspection", () => {
+      const schema = z.object({
+        meta: z.record(z.string(), z.number()),
+      });
+      const fields = introspect(schema);
+      expect(fields[0]?.type).toBe("record");
+      expect(fields[0]?.valueType?.type).toBe("number");
+    });
+
+    it("handles nested array element types", () => {
+      const schema = z.object({
+        matrix: z.array(z.array(z.string())),
+      });
+      const fields = introspect(schema);
+      expect(fields[0]?.type).toBe("array");
+      expect(fields[0]?.elementType?.type).toBe("array");
+    });
+  });
 });
