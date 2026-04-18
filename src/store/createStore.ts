@@ -27,6 +27,8 @@ export function createStore() {
           nodes: state.nodes,
           edges: state.edges,
         }),
+        equality: (pastState, currentState) =>
+          pastState.nodes === currentState.nodes && pastState.edges === currentState.edges,
       },
     ),
   );
