@@ -11,7 +11,7 @@
   - Test: 100% — open/close; focus trap; Escape dismisses.
   - Effort: 3h
 
-- [ ] **Step 2**: Event timeline for selected node
+- [x] **Step 2**: Event timeline for selected node
   - File(s): `src/features/execution/EventTimeline.tsx`, `tests/unit/features/execution/EventTimeline.test.tsx`
   - Contents: Chronologically ordered events for `(runId, nodeId)`; payload pretty-printed via `<pre>`; copyable.
   - Test: 100% — events in order; payload rendered; copy works.
