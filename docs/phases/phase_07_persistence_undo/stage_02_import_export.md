@@ -23,7 +23,7 @@
   - Test: Integration — simulated `DragEvent` with a `DataTransfer` file; import flow runs.
   - Effort: 2h
 
-- [ ] **Step 4**: Integration — export → manual edit → import round-trip
+- [x] **Step 4**: Integration — export → manual edit → import round-trip
   - File(s): `tests/integration/persistence.round-trip.test.ts`
   - Contents: Build graph; export; simulate minor field edit; import back; assert graph equals original + edit.
   - Test: Green.
