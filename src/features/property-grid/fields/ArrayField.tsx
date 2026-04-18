@@ -96,6 +96,87 @@ function InlineStringField({ descriptor, field }: FieldComponentProps) {
   );
 }
 
+/** Default field resolver that always returns InlineStringField. */
+const defaultFieldResolver: FieldResolver = {
+  resolveField: () => InlineStringField,
+};
+
+// ─── Recursive child field renderer (shared with SchemaForm) ────────
+
+/**
+ * Renders a single child field of an object-type array item.
+ * Resolves the component via the field registry — the same resolution
+ * path used by SchemaForm's FieldTree — so child fields of all types
+ * (string, number, boolean, nested objects) are handled consistently.
+ */
+function ChildFieldRenderer({
+  childDescriptor,
+  parentDescriptorName,
+  parentFieldName,
+  parentValue,
+  onParentChange,
+  parentOnBlur,
+  fieldResolver,
+}: {
+  readonly childDescriptor: FieldDescriptor;
+  readonly parentDescriptorName: string;
+  readonly parentFieldName: string;
+  readonly parentValue: Record<string, unknown>;
+  readonly onParentChange: (newObj: Record<string, unknown>) => void;
+  readonly parentOnBlur: () => void;
+  readonly fieldResolver: FieldResolver;
+}) {
+  // Nested object with children: recurse (mirrors SchemaForm FieldTree recursion)
+  if (childDescriptor.type === "object" && childDescriptor.children) {
+    const nestedValue =
+      typeof parentValue[childDescriptor.name] === "object" &&
+      parentValue[childDescriptor.name] !== null
+        ? (parentValue[childDescriptor.name] as Record<string, unknown>)
+        : {};
+    return (
+      <fieldset data-testid={`field-wrapper-${childDescriptor.name}`}>
+        <legend>{childDescriptor.name}</legend>
+        {childDescriptor.children.map((grandchild) => (
+          <ChildFieldRenderer
+            key={grandchild.name}
+            childDescriptor={grandchild}
+            parentDescriptorName={`${parentDescriptorName}-${childDescriptor.name}`}
+            parentFieldName={`${parentFieldName}.${childDescriptor.name}`}
+            parentValue={nestedValue}
+            onParentChange={(newNested) => {
+              onParentChange({ ...parentValue, [childDescriptor.name]: newNested });
+            }}
+            parentOnBlur={parentOnBlur}
+            fieldResolver={fieldResolver}
+          />
+        ))}
+      </fieldset>
+    );
+  }
+
+  // Resolve leaf child via the field registry (same path as SchemaForm FieldTree)
+  /* eslint-disable react-hooks/static-components -- resolveField returns a stable reference from the registry, not a new component */
+  const Component = fieldResolver.resolveField(childDescriptor);
+  const childName = `${parentDescriptorName}-${childDescriptor.name}`;
+
+  return (
+    <Component
+      descriptor={{ ...childDescriptor, name: childName }}
+      field={{
+        value: parentValue[childDescriptor.name],
+        onChange: (newVal: unknown) => {
+          onParentChange({ ...parentValue, [childDescriptor.name]: newVal });
+        },
+        onBlur: parentOnBlur,
+        name: `${parentFieldName}.${childDescriptor.name}`,
+        // eslint-disable-next-line no-empty-function
+        ref: () => {},
+      }}
+    />
+  );
+  /* eslint-enable react-hooks/static-components */
+}
+
 // ─── Recursive item renderer (shared form engine path) ──────────────
 
 /**
@@ -103,21 +184,23 @@ function InlineStringField({ descriptor, field }: FieldComponentProps) {
  * as SchemaForm's FieldTree:
  *
  * - For object-type items with children: recursively renders each child
- *   field via the field registry (mirrors SchemaForm's recursive FieldTree)
+ *   field via ChildFieldRenderer which resolves through the field registry
+ *   (mirrors SchemaForm's recursive FieldTree)
  * - For primitive items: renders via the pre-resolved component passed as prop
  *   (mirrors SchemaForm's leaf field rendering)
- *
- * This is the "recursive rendering via SchemaForm" path described in the spec.
  */
 function ArrayItemForm({
   descriptor,
   field,
   error,
   resolvedComponent: ResolvedComponent,
+  fieldResolver,
 }: FieldComponentProps & {
   readonly resolvedComponent: FieldComponent;
+  readonly fieldResolver?: FieldResolver;
 }) {
-  // Object-type with children: recursive rendering (same path as SchemaForm FieldTree)
+  // Object-type with children: recursive rendering via ChildFieldRenderer
+  // (same registry resolution path as SchemaForm FieldTree)
   if (descriptor.type === "object" && descriptor.children) {
     const objValue =
       typeof field.value === "object" && field.value !== null
@@ -126,26 +209,20 @@ function ArrayItemForm({
 
     return (
       <div data-testid={`object-fields-${descriptor.name}`}>
-        {descriptor.children.map((childDesc) => {
-          const childName = `${descriptor.name}-${childDesc.name}`;
-
-          return (
-            <InlineStringField
-              key={childDesc.name}
-              descriptor={{ ...childDesc, name: childName }}
-              field={{
-                value: objValue[childDesc.name],
-                onChange: (newVal: unknown) => {
-                  field.onChange({ ...objValue, [childDesc.name]: newVal });
-                },
-                onBlur: field.onBlur,
-                name: `${field.name}.${childDesc.name}`,
-                // eslint-disable-next-line no-empty-function
-                ref: () => {},
-              }}
-            />
-          );
-        })}
+        {descriptor.children.map((childDesc) => (
+          <ChildFieldRenderer
+            key={childDesc.name}
+            childDescriptor={childDesc}
+            parentDescriptorName={descriptor.name}
+            parentFieldName={field.name}
+            parentValue={objValue}
+            onParentChange={(newObj) => {
+              field.onChange(newObj);
+            }}
+            parentOnBlur={field.onBlur}
+            fieldResolver={fieldResolver ?? defaultFieldResolver}
+          />
+        ))}
         {error && (
           <span role="alert" data-testid={`item-error-${descriptor.name}`}>
             {error}
@@ -170,6 +247,7 @@ interface SortableItemProps {
   readonly onRemove: (index: number) => void;
   readonly onItemChange: (index: number, newValue: unknown) => void;
   readonly resolvedComponent: FieldComponent;
+  readonly fieldResolver?: FieldResolver;
   readonly itemError?: string;
 }
 
@@ -182,6 +260,7 @@ function SortableItem({
   onRemove,
   onItemChange,
   resolvedComponent,
+  fieldResolver,
   itemError,
 }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -241,6 +320,7 @@ function SortableItem({
         field={itemField}
         error={itemError}
         resolvedComponent={resolvedComponent}
+        fieldResolver={fieldResolver}
       />
 
       <button
@@ -395,6 +475,7 @@ export function ArrayField({
                 onRemove={handleRemove}
                 onItemChange={handleItemChange}
                 resolvedComponent={resolvedComponent}
+                fieldResolver={fieldResolver}
                 itemError={itemErrors?.[index]}
               />
             ))}

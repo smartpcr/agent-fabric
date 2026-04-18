@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach, beforeAll } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, cleanup, fireEvent, within } from "@testing-library/react";
 import { ArrayField, reorderArray } from "@/features/property-grid/fields/ArrayField";
 import {
@@ -8,27 +8,60 @@ import {
 } from "@/features/property-grid/registry";
 import type { FieldDescriptor } from "@/features/property-grid/introspect";
 
-/* eslint-disable @typescript-eslint/no-unnecessary-condition, no-empty-function */
-beforeAll(() => {
-  // dnd-kit uses pointer events that jsdom doesn't support
-  if (typeof globalThis.PointerEvent === "undefined") {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    globalThis.PointerEvent = MouseEvent as unknown as typeof PointerEvent;
-  }
-  if (!Element.prototype.hasPointerCapture) {
-    Element.prototype.hasPointerCapture = () => false;
-  }
-  if (!Element.prototype.setPointerCapture) {
-    Element.prototype.setPointerCapture = () => {};
-  }
-  if (!Element.prototype.releasePointerCapture) {
-    Element.prototype.releasePointerCapture = () => {};
-  }
-  if (!Element.prototype.scrollIntoView) {
-    Element.prototype.scrollIntoView = () => {};
-  }
+// ─── Module-level mocks (hoisted by vitest) ─────────────────────────
+
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+const mockState = vi.hoisted(() => ({
+  nanoidCounter: 0,
+  capturedOnDragEnd: undefined as ((event: any) => void) | undefined,
+}));
+
+vi.mock("nanoid", () => ({
+  nanoid: () => {
+    const id = mockState.nanoidCounter;
+    mockState.nanoidCounter += 1;
+    return `test-id-${String(id)}`;
+  },
+}));
+
+vi.mock("@dnd-kit/core", () => ({
+  DndContext: (props: any) => {
+    mockState.capturedOnDragEnd = props.onDragEnd;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return props.children;
+  },
+  closestCenter: () => null,
+  KeyboardSensor: vi.fn(),
+  PointerSensor: vi.fn(),
+  useSensor: () => ({}),
+  useSensors: () => [],
+}));
+
+vi.mock("@dnd-kit/sortable", () => ({
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  SortableContext: (props: any) => props.children,
+  sortableKeyboardCoordinates: () => null,
+  useSortable: () => ({
+    attributes: {},
+    listeners: {},
+    setNodeRef: vi.fn(),
+    transform: null,
+    transition: null,
+  }),
+  verticalListSortingStrategy: "vertical",
+}));
+
+vi.mock("@dnd-kit/utilities", () => ({
+  CSS: { Transform: { toString: () => undefined } },
+}));
+
+/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+beforeEach(() => {
+  mockState.nanoidCounter = 0;
+  mockState.capturedOnDragEnd = undefined;
 });
-/* eslint-enable @typescript-eslint/no-unnecessary-condition, no-empty-function */
 
 afterEach(cleanup);
 
@@ -84,6 +117,23 @@ function CustomNumberField({ descriptor, field, error }: FieldComponentProps) {
           {error}
         </span>
       )}
+    </div>
+  );
+}
+
+/** Custom string field for testing registry resolution of object children. */
+function CustomStringField({ descriptor, field }: FieldComponentProps) {
+  return (
+    <div data-testid={`custom-string-${descriptor.name}`}>
+      <input
+        type="text"
+        value={field.value !== null && field.value !== undefined ? String(field.value) : ""}
+        onChange={(e) => {
+          field.onChange(e.target.value);
+        }}
+        data-testid={`array-input-${descriptor.name}`}
+        aria-label={descriptor.name}
+      />
     </div>
   );
 }
@@ -244,6 +294,69 @@ describe("ArrayField", () => {
       expect(onChange).toHaveBeenCalledTimes(1);
       const result = getOnChangeResult(onChange);
       expect(result).toEqual([{ name: "Charlie" }]);
+    });
+
+    it("resolves object child fields via the field registry (mirrors SchemaForm FieldTree)", () => {
+      const registry = new FieldRegistry(CustomStringField as FieldComponent);
+      registry.registerField("string", CustomStringField as FieldComponent);
+      registry.registerField("number", CustomNumberField as FieldComponent);
+
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: {
+              name: "element",
+              type: "object",
+              required: true,
+              children: [
+                { name: "name", type: "string", required: true },
+                { name: "score", type: "number", required: false },
+              ],
+            },
+          })}
+          field={makeField({ value: [{ name: "Alice", score: 95 }] })}
+          fieldResolver={registry}
+        />,
+      );
+
+      // String child resolved via registry to CustomStringField
+      expect(screen.getByTestId("custom-string-tags-0-name")).toBeInTheDocument();
+
+      // Number child resolved via registry to CustomNumberField
+      expect(screen.getByTestId("custom-number-tags-0-score")).toBeInTheDocument();
+    });
+
+    it("propagates changes from registry-resolved object child fields", () => {
+      const onChange = vi.fn();
+      const registry = new FieldRegistry(CustomStringField as FieldComponent);
+      registry.registerField("string", CustomStringField as FieldComponent);
+      registry.registerField("number", CustomNumberField as FieldComponent);
+
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: {
+              name: "element",
+              type: "object",
+              required: true,
+              children: [
+                { name: "name", type: "string", required: true },
+                { name: "score", type: "number", required: false },
+              ],
+            },
+          })}
+          field={makeField({ onChange, value: [{ name: "Alice", score: 95 }] })}
+          fieldResolver={registry}
+        />,
+      );
+
+      // Change the number field via registry-resolved CustomNumberField
+      const scoreInput = screen.getByTestId("array-input-tags-0-score");
+      fireEvent.change(scoreInput, { target: { value: "100" } });
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      const result = getOnChangeResult(onChange);
+      expect(result).toEqual([{ name: "Alice", score: 100 }]);
     });
   });
 
@@ -493,6 +606,82 @@ describe("ArrayField", () => {
       const onChangePayload = reordered.map((i) => i.value);
       expect(onChangePayload).toEqual(["gamma", "alpha", "beta"]);
     });
+
+    it("reorders items via component-level onDragEnd handler", () => {
+      const onChange = vi.fn();
+      // nanoid counter starts at 0 → items get IDs: test-id-0, test-id-1, test-id-2
+      render(
+        <ArrayField
+          descriptor={makeDescriptor()}
+          field={makeField({ onChange, value: ["alpha", "beta", "gamma"] })}
+        />,
+      );
+
+      // The mocked DndContext captured the onDragEnd handler
+      expect(mockState.capturedOnDragEnd).toBeDefined();
+
+      // Simulate drag end: move first item (test-id-0) after last (test-id-2)
+      mockState.capturedOnDragEnd({
+        active: { id: "test-id-0" },
+        over: { id: "test-id-2" },
+      });
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      const result = getOnChangeResult(onChange);
+      expect(result).toEqual(["beta", "gamma", "alpha"]);
+    });
+
+    it("reorder via onDragEnd: swaps adjacent items", () => {
+      const onChange = vi.fn();
+      render(
+        <ArrayField
+          descriptor={makeDescriptor()}
+          field={makeField({ onChange, value: ["first", "second"] })}
+        />,
+      );
+
+      mockState.capturedOnDragEnd({
+        active: { id: "test-id-0" },
+        over: { id: "test-id-1" },
+      });
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(getOnChangeResult(onChange)).toEqual(["second", "first"]);
+    });
+
+    it("onDragEnd is a no-op when active === over", () => {
+      const onChange = vi.fn();
+      render(
+        <ArrayField
+          descriptor={makeDescriptor()}
+          field={makeField({ onChange, value: ["a", "b"] })}
+        />,
+      );
+
+      mockState.capturedOnDragEnd({
+        active: { id: "test-id-0" },
+        over: { id: "test-id-0" },
+      });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("onDragEnd is a no-op when over is null", () => {
+      const onChange = vi.fn();
+      render(
+        <ArrayField
+          descriptor={makeDescriptor()}
+          field={makeField({ onChange, value: ["a", "b"] })}
+        />,
+      );
+
+      mockState.capturedOnDragEnd({
+        active: { id: "test-id-0" },
+        over: null,
+      });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 
   describe("error display and aggregation", () => {
@@ -602,6 +791,32 @@ describe("ArrayField", () => {
 
       // Second item should not show an error
       expect(screen.queryByTestId("item-error-tags-1")).not.toBeInTheDocument();
+    });
+
+    it("item errors flow through registry-resolved components and aggregate to array level", () => {
+      const registry = new FieldRegistry(CustomNumberField as FieldComponent);
+      registry.registerField("number", CustomNumberField as FieldComponent);
+
+      render(
+        <ArrayField
+          descriptor={makeDescriptor({
+            elementType: { name: "element", type: "number", required: true },
+          })}
+          field={makeField({ value: [1, 2, 3] })}
+          fieldResolver={registry}
+          itemErrors={["Min is 5", undefined, "Max is 2"]}
+        />,
+      );
+
+      // Per-item errors render inside registry-resolved CustomNumberField
+      expect(screen.getByTestId("item-error-tags-0").textContent).toBe("Min is 5");
+      expect(screen.queryByTestId("item-error-tags-1")).not.toBeInTheDocument();
+      expect(screen.getByTestId("item-error-tags-2").textContent).toBe("Max is 2");
+
+      // Array-level aggregated error
+      const arrayError = screen.getByTestId("error-tags");
+      expect(arrayError.textContent).toBe("2 items with errors");
+      expect(arrayError.getAttribute("role")).toBe("alert");
     });
   });
 
