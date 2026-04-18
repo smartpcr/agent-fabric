@@ -35,7 +35,7 @@
   - Test: 100% — tooltip present; click dispatches `openInspector`.
   - Effort: 2h
 
-- [ ] **Step 6**: Integration — fake source drives badge transitions on real canvas
+- [x] **Step 6**: Integration — fake source drives badge transitions on real canvas
   - File(s): `tests/integration/execution.badge-transitions.test.tsx`
   - Contents: Mount canvas with 3 nodes; emit `node.started` → `node.succeeded` → assert badge states at each step.
   - Test: Green.

@@ -1,4 +1,5 @@
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from "@xyflow/react";
+import { useEdgeExecutionState } from "@/features/execution/useEdgeExecutionState";
 
 const ARROW_MARKER_ID = "default-edge-arrow";
 const MAX_LABEL_LENGTH = 20;
@@ -21,6 +22,8 @@ export function DefaultEdge({
   label,
   data,
 }: EdgeProps) {
+  const edgeExecState = useEdgeExecutionState(id);
+
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
@@ -35,7 +38,7 @@ export function DefaultEdge({
   const labelText = typeof rawLabel === "string" ? rawLabel : undefined;
 
   return (
-    <>
+    <g data-testid="default-edge" data-edge-id={id} data-edge-status={edgeExecState?.status}>
       <defs>
         <marker
           id={ARROW_MARKER_ID}
@@ -75,7 +78,7 @@ export function DefaultEdge({
           </div>
         </EdgeLabelRenderer>
       )}
-    </>
+    </g>
   );
 }
 
