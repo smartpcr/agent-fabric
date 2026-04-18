@@ -4,15 +4,18 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { EditorLayout } from "@/features/editor/EditorLayout";
 import { ToastProvider } from "@/features/editor/Toast";
 import { DragProvider } from "@/features/palette/DragContext";
+import { AnnouncerProvider } from "@/providers/AnnouncerProvider";
 
 function renderLayout() {
   return render(
     <ReactFlowProvider>
-      <ToastProvider>
-        <DragProvider>
-          <EditorLayout />
-        </DragProvider>
-      </ToastProvider>
+      <AnnouncerProvider>
+        <ToastProvider>
+          <DragProvider>
+            <EditorLayout />
+          </DragProvider>
+        </ToastProvider>
+      </AnnouncerProvider>
     </ReactFlowProvider>,
   );
 }

@@ -9,6 +9,7 @@ import {
 import { Canvas } from "@/features/canvas/Canvas";
 import { useGraphPersistence } from "@/features/canvas/useGraphPersistence";
 import { useHistoryShortcut } from "@/features/history/useHistoryShortcut";
+import { useStoreAnnouncer } from "@/hooks/useStoreAnnouncer";
 import { ConnectedPalette } from "@/features/palette/ConnectedPalette";
 import { PropertyGrid } from "@/features/property-grid/PropertyGrid";
 import { Toolbar } from "@/features/editor/Toolbar";
@@ -34,6 +35,7 @@ const PROPERTY_GRID_MIN_SIZE = 5;
 export function EditorLayout() {
   useGraphPersistence();
   useHistoryShortcut();
+  useStoreAnnouncer();
   const paletteRef = usePanelRef();
   const propertyGridRef = usePanelRef();
   const [sidePanelsCollapsed, setSidePanelsCollapsed] = useState(false);
