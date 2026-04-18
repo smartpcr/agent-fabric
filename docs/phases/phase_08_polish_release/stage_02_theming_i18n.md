@@ -23,7 +23,7 @@
   - Test: 100% — lint fails on a new hard-coded string; passes on migrated code.
   - Effort: 4h
 
-- [ ] **Step 4**: Locale switcher (Radix Select) — English + French
+- [x] **Step 4**: Locale switcher (Radix Select) — English + French
   - File(s): `src/features/editor/LocaleSwitcher.tsx`, `src/i18n/locales/fr.json`, `tests/unit/features/editor/LocaleSwitcher.test.tsx`
   - Contents: Dropdown changes `i18n.language`; persists; French translations as smoke (can be machine-translated for now).
   - Test: 100% — switch changes rendered strings.
