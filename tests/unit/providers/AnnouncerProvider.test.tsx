@@ -194,14 +194,15 @@ describe("AnnouncerProvider + useAnnounce", () => {
     expect(screen.getByTestId("announcer-live-region")).toHaveTextContent("Second msg");
   });
 
-  it("useAnnounce throws when used outside AnnouncerProvider", () => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    expect(() => renderHook(() => useAnnounce())).toThrow(
-      "useAnnounce used outside of AnnouncerProvider",
-    );
-
-    spy.mockRestore();
+  it("useAnnounce returns a no-op outside AnnouncerProvider", () => {
+    const { result } = renderHook(() => useAnnounce());
+    // Should not throw; returns a no-op announce function
+    expect(result.current).toHaveProperty("announce");
+    expect(typeof result.current.announce).toBe("function");
+    // Calling it should not throw
+    expect(() => {
+      result.current.announce("test");
+    }).not.toThrow();
   });
 
   it("announce returns a stable function identity across renders", () => {
@@ -227,5 +228,77 @@ describe("AnnouncerProvider + useAnnounce", () => {
 
     expect(refs).toHaveLength(2);
     expect(refs[0]).toBe(refs[1]);
+  });
+
+  it("announces connection success message in live region", () => {
+    render(
+      <AnnouncerProvider>
+        <AnnounceButton message="Connection created" />
+      </AnnouncerProvider>,
+    );
+
+    act(() => {
+      screen.getByText("Announce").click();
+    });
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(screen.getByTestId("announcer-live-region")).toHaveTextContent("Connection created");
+  });
+
+  it("announces connection rejection message in live region", () => {
+    render(
+      <AnnouncerProvider>
+        <AnnounceButton message="Connection rejected: duplicate edge" />
+      </AnnouncerProvider>,
+    );
+
+    act(() => {
+      screen.getByText("Announce").click();
+    });
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(screen.getByTestId("announcer-live-region")).toHaveTextContent(
+      "Connection rejected: duplicate edge",
+    );
+  });
+
+  it("announces keyboard connect result in live region", () => {
+    render(
+      <AnnouncerProvider>
+        <AnnounceButton message="Connected to input" />
+      </AnnouncerProvider>,
+    );
+
+    act(() => {
+      screen.getByText("Announce").click();
+    });
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(screen.getByTestId("announcer-live-region")).toHaveTextContent("Connected to input");
+  });
+
+  it("announces keyboard connect rejection in live region", () => {
+    render(
+      <AnnouncerProvider>
+        <AnnounceButton message="Connection to input rejected" />
+      </AnnouncerProvider>,
+    );
+
+    act(() => {
+      screen.getByText("Announce").click();
+    });
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(screen.getByTestId("announcer-live-region")).toHaveTextContent(
+      "Connection to input rejected",
+    );
   });
 });

@@ -39,6 +39,9 @@ function bundleStatsPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [react(), bundleStatsPlugin()],
+  server: {
+    port: 5050,
+  },
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),

@@ -23,6 +23,7 @@ import { useViewportPersistence } from "@/features/canvas/useViewportPersistence
 import { validateConnection } from "@/domain/validation/connectionRules";
 import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
 import { useDragContext } from "@/features/palette/DragContext";
+import { useAnnounce } from "@/hooks/useAnnounce";
 import { useToast } from "@/hooks/useToast";
 import { parseImportedJson } from "@/features/persistence/ImportExport";
 import { useWorkflowStore } from "@/store/hooks";
@@ -39,6 +40,7 @@ export function Canvas() {
   useViewportPersistence();
   const { state: dragState, endDrag } = useDragContext();
   const { show: showToast } = useToast();
+  const { announce } = useAnnounce();
   const addNode = useWorkflowStore((s) => s.addNode);
   const registry = useWorkflowStore((s) => s.registry);
   const nodes = useWorkflowStore((s) => s.nodes);
@@ -85,6 +87,13 @@ export function Canvas() {
     const handleEl = nodeEl?.querySelector<HTMLElement>(`[data-handleid="${target.portId}"]`);
     handleEl?.focus();
   }, [connectState.active, connectState.currentIndex, connectState.targets]);
+
+  // Mirror keyboard-connect announcements into the polite app-root live region
+  useEffect(() => {
+    if (connectState.announcement) {
+      announce(connectState.announcement);
+    }
+  }, [connectState.announcement, announce]);
 
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
   const rfNodes = useMemo(() => nodes.map((n) => ({ ...n, type: n.kind })), [nodes]);
@@ -270,7 +279,10 @@ export function Canvas() {
         target: targetNodeId,
         targetPort: targetPortId,
       });
-      if (!result.ok) {
+      if (result.ok) {
+        announce("Connection created");
+      } else {
+        announce(`Connection rejected: ${result.error.message}`);
         showToast({
           title: "Connection rejected",
           description: result.error.message,
@@ -278,7 +290,7 @@ export function Canvas() {
         });
       }
     },
-    [tryConnect, showToast, nodes, edges, registry],
+    [tryConnect, showToast, announce, nodes, edges, registry],
   );
 
   const handleConnectStart = useCallback(
@@ -314,6 +326,7 @@ export function Canvas() {
           registry,
         );
         if (!result.ok) {
+          announce(`Connection rejected: ${result.error.message}`);
           showToast({
             title: "Connection rejected",
             description: result.error.message,
@@ -322,7 +335,7 @@ export function Canvas() {
         }
       }
     },
-    [nodes, edges, registry, showToast],
+    [nodes, edges, registry, showToast, announce],
   );
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
