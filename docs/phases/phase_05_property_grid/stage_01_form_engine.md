@@ -29,7 +29,7 @@
   - Test: 100% — invalid value shows error; corrected value clears error.
   - Effort: 4h
 
-- [ ] **Step 5**: Debounced commit (300ms) with cancel on unmount
+- [x] **Step 5**: Debounced commit (300ms) with cancel on unmount
   - File(s): `src/features/property-grid/useDebouncedCommit.ts`, `tests/unit/features/property-grid/useDebouncedCommit.test.ts`
   - Contents: Collects changes; after 300ms idle, calls `onCommit`; on unmount, flushes only if the component was unmounted cleanly (not on error).
   - Test: 100% — fake timers; rapid edits coalesced; unmount cancels pending commit.
