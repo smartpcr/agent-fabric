@@ -35,7 +35,7 @@
   - Test: 100% — fires outside inputs; suppressed inside.
   - Effort: 3h
 
-- [ ] **Step 6**: 50-step chain integration
+- [x] **Step 6**: 50-step chain integration
   - File(s): `tests/integration/history.50-steps.test.tsx`
   - Contents: Perform 50 mutations; undo 50 times; assert initial state; redo 50 times; assert final state.
   - Test: Green.
