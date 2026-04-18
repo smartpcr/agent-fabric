@@ -45,6 +45,7 @@
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.72.1",
     "react-resizable-panels": "^4.10.0",
+    "reconnecting-websocket": "^4.4.0",
     "zod": "^4.3.6",
     "zundo": "^2.3.0",
     "zustand": "^5.0.12"
