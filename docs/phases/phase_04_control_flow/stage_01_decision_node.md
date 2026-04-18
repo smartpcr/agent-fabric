@@ -29,7 +29,7 @@
   - Test: 100% — chip visible; hover tooltip; empty condition shows "—".
   - Effort: 2h
 
-- [ ] **Step 5**: Property schema for decision (condition + branches)
+- [x] **Step 5**: Property schema for decision (condition + branches)
   - File(s): `src/registry/builtins/DecisionNode.spec.ts` (extend), `tests/unit/registry/builtins/DecisionNode.schema.test.ts`
   - Contents: Zod schemas for both variants; `defaultData` conforms.
   - Test: 100% — schema valid/invalid cases.

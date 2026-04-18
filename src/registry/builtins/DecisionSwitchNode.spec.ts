@@ -11,6 +11,8 @@ const decisionSwitchPropertySchema = z.object({
   branches: z.array(branchSchema).min(1),
 });
 
+export { branchSchema, decisionSwitchPropertySchema };
+
 type DecisionSwitchData = z.infer<typeof decisionSwitchPropertySchema>;
 
 /**

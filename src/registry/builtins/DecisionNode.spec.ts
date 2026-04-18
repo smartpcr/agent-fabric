@@ -6,6 +6,8 @@ const decisionPropertySchema = z.object({
   condition: z.string().min(1),
 });
 
+export { decisionPropertySchema };
+
 type DecisionData = z.infer<typeof decisionPropertySchema>;
 
 export const DecisionNodeSpec: NodeSpec<DecisionData> = {
