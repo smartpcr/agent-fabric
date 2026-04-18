@@ -1,13 +1,57 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useContext } from "react";
 import type { FieldComponentProps } from "@/features/property-grid/registry";
+import { ToastContext, type ToastVariant } from "@/features/editor/Toast";
 
 /** Sentinel value used to replace raw secrets in autosave payloads. */
 export const SECRET_SENTINEL = "<secret>";
 
+// ─── Autosave scrubbing ──────────────────────────────────────────────
+
+/**
+ * List of field names that are considered secret.
+ * Used by `scrubSecrets` to replace their raw values in autosave payloads.
+ */
+export const SECRET_FIELD_NAMES = new Set<string>();
+
+/** Register a field name as a secret for autosave scrubbing. */
+export function registerSecretField(name: string): void {
+  SECRET_FIELD_NAMES.add(name);
+}
+
+/**
+ * Recursively scrub secret field values from a data payload.
+ *
+ * Replaces the value of any key in `SECRET_FIELD_NAMES` with `SECRET_SENTINEL`.
+ * Returns a new object — does not mutate the input.
+ */
+export function scrubSecrets(data: unknown): unknown {
+  if (data === null || data === undefined) return data;
+  if (typeof data !== "object") return data;
+
+  if (Array.isArray(data)) {
+    return data.map((item) => scrubSecrets(item));
+  }
+
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+    if (SECRET_FIELD_NAMES.has(key)) {
+      result[key] = SECRET_SENTINEL;
+    } else if (typeof value === "object" && value !== null) {
+      result[key] = scrubSecrets(value);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 // ─── Extended props ──────────────────────────────────────────────────
 
 export interface SecretFieldProps extends FieldComponentProps {
-  /** Callback fired after a clipboard copy attempt (success or failure). */
+  /**
+   * Optional callback fired after a clipboard copy attempt.
+   * When omitted, the component uses the ToastContext (if available).
+   */
   readonly onCopyToast?: (opts: { title: string; variant?: string }) => void;
 }
 
@@ -16,15 +60,35 @@ export interface SecretFieldProps extends FieldComponentProps {
  *
  * - Renders `<input type="password">` by default
  * - Reveal button toggles between `type="password"` and `type="text"`
- * - Copy button writes the value to the clipboard and fires a toast callback
+ * - Copy button writes the value to the clipboard and fires a toast
+ *   (via ToastContext when available, or `onCopyToast` prop as fallback)
+ * - Auto-registers `descriptor.name` as a secret field for autosave scrubbing
  * - Autosave integration: use `scrubSecrets()` to replace raw values with the
  *   `SECRET_SENTINEL` before persisting.
  */
 export function SecretField({ descriptor, field, error, onCopyToast }: SecretFieldProps) {
   const [revealed, setRevealed] = useState(false);
+  const toastCtx = useContext(ToastContext);
+
+  // Auto-register this field name for autosave scrubbing on mount
+  useEffect(() => {
+    SECRET_FIELD_NAMES.add(descriptor.name);
+  }, [descriptor.name]);
 
   const errorId = `error-${descriptor.name}`;
   const displayValue = field.value !== null && field.value !== undefined ? String(field.value) : "";
+
+  const showToast = useCallback(
+    (opts: { title: string; variant?: string }) => {
+      if (onCopyToast) {
+        onCopyToast(opts);
+      } else if (toastCtx) {
+        const variant: ToastVariant = (opts.variant as ToastVariant | undefined) ?? "default";
+        toastCtx.show({ title: opts.title, variant });
+      }
+    },
+    [onCopyToast, toastCtx],
+  );
 
   const toggleReveal = useCallback(() => {
     setRevealed((prev) => !prev);
@@ -33,11 +97,11 @@ export function SecretField({ descriptor, field, error, onCopyToast }: SecretFie
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(displayValue);
-      onCopyToast?.({ title: "Copied to clipboard", variant: "success" });
+      showToast({ title: "Copied to clipboard", variant: "success" });
     } catch {
-      onCopyToast?.({ title: "Failed to copy", variant: "error" });
+      showToast({ title: "Failed to copy", variant: "error" });
     }
-  }, [displayValue, onCopyToast]);
+  }, [displayValue, showToast]);
 
   return (
     <div data-testid={`secret-field-${descriptor.name}`}>
@@ -81,44 +145,4 @@ export function SecretField({ descriptor, field, error, onCopyToast }: SecretFie
       )}
     </div>
   );
-}
-
-// ─── Autosave scrubbing ──────────────────────────────────────────────
-
-/**
- * List of field names that are considered secret.
- * Used by `scrubSecrets` to replace their raw values in autosave payloads.
- */
-export const SECRET_FIELD_NAMES = new Set<string>();
-
-/** Register a field name as a secret for autosave scrubbing. */
-export function registerSecretField(name: string): void {
-  SECRET_FIELD_NAMES.add(name);
-}
-
-/**
- * Recursively scrub secret field values from a data payload.
- *
- * Replaces the value of any key in `SECRET_FIELD_NAMES` with `SECRET_SENTINEL`.
- * Returns a new object — does not mutate the input.
- */
-export function scrubSecrets(data: unknown): unknown {
-  if (data === null || data === undefined) return data;
-  if (typeof data !== "object") return data;
-
-  if (Array.isArray(data)) {
-    return data.map((item) => scrubSecrets(item));
-  }
-
-  const result: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-    if (SECRET_FIELD_NAMES.has(key)) {
-      result[key] = SECRET_SENTINEL;
-    } else if (typeof value === "object" && value !== null) {
-      result[key] = scrubSecrets(value);
-    } else {
-      result[key] = value;
-    }
-  }
-  return result;
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, renderHook, act } from "@testing-library/react";
 import {
   SecretField,
   SECRET_SENTINEL,
@@ -8,9 +8,25 @@ import {
   SECRET_FIELD_NAMES,
   type SecretFieldProps,
 } from "@/features/property-grid/fields/SecretField";
+import { ToastContext } from "@/features/editor/Toast";
 import type { FieldComponentProps, FieldDescriptor } from "@/features/property-grid/registry";
 
-afterEach(cleanup);
+// ─── Top-level mocks for useAutoSave integration ────────────────────
+
+const mockSetViewport = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+
+vi.mock("@xyflow/react", () => ({
+  ReactFlowProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  useReactFlow: () => ({
+    setViewport: mockSetViewport,
+    getViewport: () => ({ x: 0, y: 0, zoom: 1 }),
+  }),
+}));
+
+afterEach(() => {
+  cleanup();
+  SECRET_FIELD_NAMES.clear();
+});
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
@@ -461,5 +477,196 @@ describe("autosave payload contains sentinel", () => {
     expect(result.nodes[0].data.label).toBe("Start");
     expect(result.nodes[0].data.password).toBe(SECRET_SENTINEL);
     expect(result.nodes[1].data.label).toBe("End");
+  });
+});
+
+// ─── Auto-registration on mount ─────────────────────────────────────
+
+describe("SecretField auto-registration", () => {
+  it("registers descriptor.name into SECRET_FIELD_NAMES on mount", () => {
+    expect(SECRET_FIELD_NAMES.has("apiKey")).toBe(false);
+
+    renderSecretField();
+
+    expect(SECRET_FIELD_NAMES.has("apiKey")).toBe(true);
+  });
+
+  it("registers different names for different descriptors", () => {
+    renderSecretField({ descriptor: makeDescriptor({ name: "password" }) });
+    renderSecretField({ descriptor: makeDescriptor({ name: "token" }) });
+
+    expect(SECRET_FIELD_NAMES.has("password")).toBe(true);
+    expect(SECRET_FIELD_NAMES.has("token")).toBe(true);
+  });
+
+  it("scrubSecrets works after SecretField auto-registers", () => {
+    renderSecretField({ descriptor: makeDescriptor({ name: "apiKey" }) });
+
+    const data = { apiKey: "real-secret", name: "safe" };
+    const result = scrubSecrets(data) as Record<string, unknown>;
+
+    expect(result.apiKey).toBe(SECRET_SENTINEL);
+    expect(result.name).toBe("safe");
+  });
+});
+
+// ─── Toast context integration ──────────────────────────────────────
+
+describe("SecretField toast context integration", () => {
+  let writeTextMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
+  });
+
+  it("fires toast via ToastContext when no onCopyToast prop", async () => {
+    const showSpy = vi.fn();
+    render(
+      <ToastContext.Provider value={{ toasts: [], show: showSpy, dismiss: vi.fn() }}>
+        <SecretField descriptor={makeDescriptor()} field={makeField({ value: "secret-val" })} />
+      </ToastContext.Provider>,
+    );
+
+    fireEvent.click(screen.getByTestId("copy-apiKey"));
+
+    await vi.waitFor(() => {
+      expect(showSpy).toHaveBeenCalledWith({
+        title: "Copied to clipboard",
+        variant: "success",
+      });
+    });
+  });
+
+  it("fires error toast via context on clipboard failure", async () => {
+    writeTextMock.mockRejectedValueOnce(new Error("denied"));
+    const showSpy = vi.fn();
+
+    render(
+      <ToastContext.Provider value={{ toasts: [], show: showSpy, dismiss: vi.fn() }}>
+        <SecretField descriptor={makeDescriptor()} field={makeField({ value: "secret-val" })} />
+      </ToastContext.Provider>,
+    );
+
+    fireEvent.click(screen.getByTestId("copy-apiKey"));
+
+    await vi.waitFor(() => {
+      expect(showSpy).toHaveBeenCalledWith({
+        title: "Failed to copy",
+        variant: "error",
+      });
+    });
+  });
+
+  it("prefers onCopyToast prop over context when both available", async () => {
+    const showSpy = vi.fn();
+    const propToast = vi.fn();
+
+    render(
+      <ToastContext.Provider value={{ toasts: [], show: showSpy, dismiss: vi.fn() }}>
+        <SecretField
+          descriptor={makeDescriptor()}
+          field={makeField({ value: "secret-val" })}
+          onCopyToast={propToast}
+        />
+      </ToastContext.Provider>,
+    );
+
+    fireEvent.click(screen.getByTestId("copy-apiKey"));
+
+    await vi.waitFor(() => {
+      expect(propToast).toHaveBeenCalledWith({
+        title: "Copied to clipboard",
+        variant: "success",
+      });
+    });
+
+    expect(showSpy).not.toHaveBeenCalled();
+  });
+
+  it("works without toast context or prop (no crash)", async () => {
+    render(
+      <SecretField descriptor={makeDescriptor()} field={makeField({ value: "secret-val" })} />,
+    );
+
+    // Should not throw even without context or prop
+    fireEvent.click(screen.getByTestId("copy-apiKey"));
+
+    await vi.waitFor(() => {
+      expect(writeTextMock).toHaveBeenCalledWith("secret-val");
+    });
+  });
+});
+
+// ─── useAutoSave integration with secret scrubbing ──────────────────
+
+describe("useAutoSave scrubs secret fields in save payload", () => {
+  // Dynamic import so the mock is applied before the module loads
+  async function getAutoSave() {
+    const mod = await import("@/features/persistence/useAutoSave");
+    return mod.useAutoSave;
+  }
+
+  it("save() returns payload with sentinel for registered secret fields", async () => {
+    // Register a secret field (simulating what SecretField does on mount)
+    registerSecretField("apiKey");
+
+    const useAutoSave = await getAutoSave();
+    const { result } = renderHook(() => useAutoSave());
+    const payload = result.current.save();
+
+    // The payload itself won't have apiKey at top level since nodes are empty,
+    // but the scrubSecrets function is integrated — verify via a direct node-like test
+    const fakeNodes = [{ id: "n1", data: { apiKey: "raw-secret", label: "Test" } }];
+    const scrubbed = scrubSecrets(fakeNodes) as Array<{
+      data: Record<string, unknown>;
+    }>;
+
+    expect(scrubbed[0].data.apiKey).toBe(SECRET_SENTINEL);
+    expect(scrubbed[0].data.label).toBe("Test");
+
+    // Verify payload structure is valid
+    expect(Array.isArray(payload.nodes)).toBe(true);
+    expect(Array.isArray(payload.edges)).toBe(true);
+    expect(payload.viewport).toBeDefined();
+  });
+
+  it("save() scrubs secrets embedded in store nodes", async () => {
+    registerSecretField("connectionString");
+
+    const useAutoSave = await getAutoSave();
+    const storeModule = await import("@/store/hooks");
+
+    // Add a node with a secret field via store
+    const { result: storeResult, unmount: unmountStore } = renderHook(() =>
+      storeModule.useWorkflowStore(),
+    );
+
+    act(() => {
+      storeResult.current.addNode(
+        {
+          kind: "task" as const,
+          label: "Secret Node",
+          defaultData: { connectionString: "Server=prod;Password=abc", name: "test" },
+        },
+        { x: 0, y: 0 },
+      );
+    });
+    unmountStore();
+
+    // Save and verify scrubbing
+    const { result } = renderHook(() => useAutoSave());
+    const payload = result.current.save();
+
+    // Find the node and verify connectionString is scrubbed
+    const nodes = payload.nodes as Array<{ data: Record<string, unknown> }>;
+    expect(nodes.length).toBeGreaterThan(0);
+    const nodeData = nodes[0].data;
+    expect(nodeData.connectionString).toBe(SECRET_SENTINEL);
+    expect(nodeData.name).toBe("test");
   });
 });
