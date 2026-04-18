@@ -43,6 +43,7 @@
     "dragItem": "Drag {{label}}",
     "removeItem": "Remove item {{index}}",
     "addItem": "Add {{name}} item",
+    "itemFallback": "Item {{index}}",
     "itemsWithErrors_one": "{{count}} item with errors",
     "itemsWithErrors_other": "{{count}} items with errors"
   },

@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 import {
   DndContext,
   closestCenter,
@@ -56,7 +57,7 @@ function itemLabel(value: unknown, index: number): string {
   if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
     return String(value);
   }
-  return `Item ${String(index + 1)}`;
+  return i18next.t("propertyGrid.itemFallback", { index: index + 1 });
 }
 
 /** Convert field.value to ArrayItem[] with stable ids. */
