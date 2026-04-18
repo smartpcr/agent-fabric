@@ -124,14 +124,12 @@ describe("TaskNode", () => {
   it("forwards selected prop to BaseNode", () => {
     renderTaskNode({ selected: true } as Partial<NodeProps>);
     const baseNode = screen.getByTestId("base-node");
-    expect(baseNode.getAttribute("aria-selected")).toBe("true");
     expect(baseNode.getAttribute("data-selected")).toBe("true");
   });
 
   it("defaults to not selected", () => {
     renderTaskNode();
     const baseNode = screen.getByTestId("base-node");
-    expect(baseNode.getAttribute("aria-selected")).toBe("false");
     expect(baseNode.getAttribute("data-selected")).toBe("false");
   });
 });

@@ -5,6 +5,8 @@ import {
   useReactFlow,
   SelectionMode,
   type NodeMouseHandler,
+  type NodeChange as RFNodeChange,
+  type EdgeChange as RFEdgeChange,
   type Connection,
   type FinalConnectionState,
 } from "@xyflow/react";
@@ -60,6 +62,8 @@ export function Canvas() {
   const toggleInteractive = useWorkflowStore((s) => s.toggleInteractive);
   const tryConnect = useWorkflowStore((s) => s.tryConnect);
   const restoreGraph = useWorkflowStore((s) => s.restoreGraph);
+  const applyNodeChanges = useWorkflowStore((s) => s.applyNodeChanges);
+  const _applyEdgeChanges = useWorkflowStore((s) => s.applyEdgeChanges);
   const { screenToFlowPosition, getViewport, zoomIn, zoomOut, fitView } = useReactFlow();
 
   // Track connect-drag source for snap override
@@ -97,6 +101,30 @@ export function Canvas() {
 
   // Map WorkflowNode (kind) → xyflow Node (type) so nodeTypes resolution works
   const rfNodes = useMemo(() => nodes.map((n) => ({ ...n, type: n.kind })), [nodes]);
+
+  // Forward position & dimensions changes so ReactFlow can track handle
+  // positions (required for connections) and allow node dragging.
+  // Selection and removal are handled by our own handlers.
+  const handleNodesChange = useCallback(
+    (changes: RFNodeChange[]) => {
+      const mapped: Parameters<typeof applyNodeChanges>[0] = [];
+      for (const c of changes) {
+        if (c.type === "position" && c.position) {
+          mapped.push({ type: "position", id: c.id, position: c.position });
+        } else if (c.type === "dimensions" && c.dimensions) {
+          mapped.push({ type: "dimensions", id: c.id, dimensions: c.dimensions });
+        }
+      }
+      if (mapped.length > 0) {
+        applyNodeChanges(mapped);
+      }
+    },
+    [applyNodeChanges],
+  );
+
+  const handleEdgesChange = useCallback((_changes: RFEdgeChange[]) => {
+    // Edge selection and removal are handled by handleEdgeClick and deleteSelected.
+  }, []);
 
   const handlePointerUp = useCallback(
     (e: React.PointerEvent) => {
@@ -458,6 +486,8 @@ export function Canvas() {
           nodesDraggable={interactive}
           nodesConnectable={interactive}
           elementsSelectable={interactive}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
           onNodeClick={handleNodeClick}
           onEdgeClick={handleEdgeClick}
           onPaneClick={handlePaneClick}

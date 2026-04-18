@@ -269,8 +269,8 @@ describe("Palette search / filter", () => {
 
     // Collapse the "flow" category
     const categoryDiv = screen.getByTestId("palette-category-flow");
-    const button = within(categoryDiv).getByRole("button", { hidden: true });
-    await user.click(button);
+    const toggle = within(categoryDiv).getByText("flow");
+    await user.click(toggle);
 
     // Verify flow items are hidden after collapse
     const afterCollapse = screen.getAllByRole("option");

@@ -102,12 +102,11 @@ export function BaseNode({
   const badgeStatus =
     hasNodeId && execState !== undefined ? STATUS_TO_BADGE[execState.status] : undefined;
 
-  /* eslint-disable jsx-a11y/role-supports-aria-props, jsx-a11y/no-noninteractive-tabindex, jsx-a11y/no-noninteractive-element-interactions */
+  /* eslint-disable jsx-a11y/no-noninteractive-tabindex, jsx-a11y/no-noninteractive-element-interactions */
   return (
     <div
       role="group"
       aria-label={title}
-      aria-selected={selected}
       data-selected={selected}
       data-testid="base-node"
       data-node-id={nodeId}

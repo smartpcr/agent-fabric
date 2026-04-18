@@ -21,6 +21,9 @@ export function useDragStart({ kind, disabled = false }: UseDragStartOptions): U
     (e: React.PointerEvent) => {
       if (disabled || state.isDragging) return;
 
+      // Prevent text selection during drag
+      e.preventDefault();
+
       const el = e.currentTarget as HTMLElement;
       const pointerId = e.pointerId;
       startPos.current = { x: e.clientX, y: e.clientY };
@@ -32,6 +35,7 @@ export function useDragStart({ kind, disabled = false }: UseDragStartOptions): U
         move?: (ev: PointerEvent) => void;
         up?: () => void;
         key?: (ev: KeyboardEvent) => void;
+        globalUp?: () => void;
       } = {};
 
       const releaseCapture = () => {
@@ -45,6 +49,7 @@ export function useDragStart({ kind, disabled = false }: UseDragStartOptions): U
       const cleanupAll = () => {
         if (listeners.move) el.removeEventListener("pointermove", listeners.move);
         if (listeners.up) el.removeEventListener("pointerup", listeners.up);
+        if (listeners.globalUp) window.removeEventListener("pointerup", listeners.globalUp);
         if (listeners.key) document.removeEventListener("keydown", listeners.key);
         startPos.current = null;
         isDraggingRef.current = false;
@@ -61,6 +66,21 @@ export function useDragStart({ kind, disabled = false }: UseDragStartOptions): U
         if (!isDraggingRef.current && distance > DRAG_THRESHOLD) {
           isDraggingRef.current = true;
           startDrag({ kind });
+
+          // Release pointer capture so pointerup reaches the drop target
+          // (canvas) instead of staying captured on this palette element.
+          releaseCapture();
+
+          // Promote pointerup from element to window level so it fires
+          // regardless of where the pointer is released.
+          if (listeners.move) el.removeEventListener("pointermove", listeners.move);
+          if (listeners.up) el.removeEventListener("pointerup", listeners.up);
+
+          listeners.globalUp = () => {
+            endDrag();
+            cleanupAll();
+          };
+          window.addEventListener("pointerup", listeners.globalUp);
         }
       };
 

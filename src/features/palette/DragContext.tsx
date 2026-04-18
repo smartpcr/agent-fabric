@@ -38,7 +38,7 @@ export function DragProvider({ children }: { readonly children: ReactNode }) {
     setState(IDLE_STATE);
   }, []);
 
-  // Global cleanup: any pointer release while dragging clears the drag state.
+  // Global cleanup: any pointer release or cancel while dragging clears state.
   // Canvas's own onPointerUp adds a node before this fires; releases
   // outside the canvas simply clear the drag without adding anything.
   useEffect(() => {
@@ -49,8 +49,10 @@ export function DragProvider({ children }: { readonly children: ReactNode }) {
     };
 
     window.addEventListener("pointerup", onGlobalPointerUp);
+    window.addEventListener("pointercancel", onGlobalPointerUp);
     return () => {
       window.removeEventListener("pointerup", onGlobalPointerUp);
+      window.removeEventListener("pointercancel", onGlobalPointerUp);
     };
   }, [state.isDragging, endDrag]);
 

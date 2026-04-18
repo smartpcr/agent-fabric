@@ -17,7 +17,7 @@
   - Test: 100% — message appears in live region; cleared after 3s.
   - Effort: 3h
 
-- [ ] **Step 3**: High-contrast theme pass
+- [x] **Step 3**: High-contrast theme pass
   - File(s): `src/styles/tokens.css` (extend), `tests/e2e/highContrast.spec.ts`
   - Contents: Add `[data-theme="high-contrast"]`; ensures AAA contrast ratios; screenshot snapshots.
   - Test: E2E — screenshots match baseline; axe reports 0 contrast violations.

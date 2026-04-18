@@ -41,18 +41,16 @@ describe("BaseNode", () => {
     expect(screen.queryByTestId("node-body")).not.toBeInTheDocument();
   });
 
-  it("has data-selected=false and aria-selected=false by default", () => {
+  it("has data-selected=false by default", () => {
     render(<BaseNode title="Task" icon="square-check" />);
     const node = screen.getByTestId("base-node");
     expect(node.getAttribute("data-selected")).toBe("false");
-    expect(node.getAttribute("aria-selected")).toBe("false");
   });
 
-  it("has data-selected=true and aria-selected=true when selected", () => {
+  it("has data-selected=true when selected", () => {
     render(<BaseNode title="Task" icon="square-check" selected />);
     const node = screen.getByTestId("base-node");
     expect(node.getAttribute("data-selected")).toBe("true");
-    expect(node.getAttribute("aria-selected")).toBe("true");
   });
 
   it("reflects selection change from prop update", () => {

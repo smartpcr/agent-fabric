@@ -98,11 +98,11 @@ describe("Palette", () => {
     expect(kinds).toContain("end");
   });
 
-  it("category section has a toggle button with aria-expanded", () => {
+  it("category section has a group with aria-label", () => {
     renderPalette();
     const categoryDiv = screen.getByTestId("palette-category-flow");
-    const button = within(categoryDiv).getByRole("button", { hidden: true });
-    expect(button).toHaveAttribute("aria-expanded", "true");
+    expect(categoryDiv).toHaveAttribute("role", "group");
+    expect(categoryDiv).toHaveAttribute("aria-label", "flow");
   });
 
   it("collapsing a category hides its items", async () => {
@@ -110,11 +110,12 @@ describe("Palette", () => {
     renderPalette();
 
     const categoryDiv = screen.getByTestId("palette-category-flow");
-    const button = within(categoryDiv).getByRole("button", { hidden: true });
+    // The toggle element is the first child div with role="none"
+    const toggle = within(categoryDiv).getByText("flow");
 
     expect(screen.getAllByRole("option").length).toBeGreaterThanOrEqual(3);
 
-    await user.click(button);
+    await user.click(toggle);
 
     expect(screen.queryAllByRole("option")).toHaveLength(0);
   });
