@@ -338,4 +338,48 @@ describe("PropertyGrid validation + Toolbar Save gate", () => {
     expect(screen.queryByTestId("error-count-badge")).not.toBeInTheDocument();
     expect(screen.getByTestId("save-button")).not.toBeDisabled();
   });
+
+  it("clears validation state when selection is cleared after having errors", async () => {
+    const { result: store } = renderHook(() => useWorkflowStore());
+
+    let nodeId = "";
+    act(() => {
+      const spec = store.current.registry.get("task");
+      if (spec) {
+        const node = store.current.addNode(spec, { x: 0, y: 0 });
+        nodeId = node.id;
+      }
+    });
+
+    act(() => {
+      store.current.select(nodeId, "replace");
+    });
+
+    renderApp();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("field-name")).toBeInTheDocument();
+    });
+
+    // Trigger validation error
+    act(() => {
+      fireEvent.change(screen.getByTestId("field-name"), { target: { value: "" } });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("save-button")).toBeDisabled();
+      expect(screen.getByTestId("error-count-badge")).toBeInTheDocument();
+    });
+
+    // Clear selection — form unmounts
+    act(() => {
+      store.current.clearSelection();
+    });
+
+    // Validation state should be cleared: save re-enabled, badge gone
+    await waitFor(() => {
+      expect(screen.getByTestId("save-button")).not.toBeDisabled();
+      expect(screen.queryByTestId("error-count-badge")).not.toBeInTheDocument();
+    });
+  });
 });

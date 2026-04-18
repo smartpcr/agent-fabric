@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useWorkflowStore } from "@/store/hooks";
 import { selectNodeSpec } from "@/store/selectors/graphSelectors";
 import { SchemaForm } from "@/features/property-grid/SchemaForm";
@@ -14,6 +14,7 @@ import { useValidation } from "@/features/property-grid/ValidationContext";
  * - Renders `SchemaForm` for the node's data
  * - Shows error count badge when validation errors exist
  * - Reports validation state via `ValidationContext` for Toolbar integration
+ * - Clears validation state when no form is active (unmount / deselect)
  * - Shows "Select a node" empty state when nothing is selected
  */
 export function PropertyGrid() {
@@ -28,6 +29,16 @@ export function PropertyGrid() {
   );
 
   const spec = useWorkflowStore((s) => (node ? selectNodeSpec(s, node.kind) : undefined));
+
+  const nodeData = node?.data as Record<string, unknown> | undefined;
+  const hasActiveForm = Boolean(node && spec && nodeData);
+
+  // Clear validation state when the form is not active (no node selected, unmount, etc.)
+  useEffect(() => {
+    if (!hasActiveForm) {
+      setValidation(0, []);
+    }
+  }, [hasActiveForm, setValidation]);
 
   const handleChange = useCallback(
     (value: Record<string, unknown>) => {
@@ -55,7 +66,6 @@ export function PropertyGrid() {
     [setValidation],
   );
 
-  const nodeData = node?.data as Record<string, unknown> | undefined;
   const nodeLabel = nodeData && typeof nodeData.name === "string" ? nodeData.name : undefined;
 
   return (

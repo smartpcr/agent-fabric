@@ -9,6 +9,7 @@ import {
 import { Canvas } from "@/features/canvas/Canvas";
 import { ConnectedPalette } from "@/features/palette/ConnectedPalette";
 import { PropertyGrid } from "@/features/property-grid/PropertyGrid";
+import { Toolbar } from "@/features/editor/Toolbar";
 
 /**
  * CSS grid baseline: 240px | 1fr | 320px
@@ -66,6 +67,9 @@ export function EditorLayout() {
 
   return (
     <div style={EDITOR_GRID_STYLE} data-testid="editor-grid">
+      <div style={{ gridColumn: "1 / -1" }}>
+        <Toolbar />
+      </div>
       <Group
         orientation="horizontal"
         style={{ gridColumn: "1 / -1", width: "100%", height: "100%" }}
