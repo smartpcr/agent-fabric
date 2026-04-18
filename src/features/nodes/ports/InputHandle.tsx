@@ -7,9 +7,15 @@ export interface InputHandleProps {
   readonly portSpec: PortSpec;
   readonly position?: Position;
   readonly nodeId?: string;
+  readonly "data-testid"?: string;
 }
 
-export function InputHandle({ portSpec, position = Position.Top, nodeId }: InputHandleProps) {
+export function InputHandle({
+  portSpec,
+  position = Position.Top,
+  nodeId,
+  "data-testid": testId,
+}: InputHandleProps) {
   const isMissing = useWorkflowStore((state) =>
     nodeId ? selectIsPortMissing(state, nodeId, portSpec.id, portSpec.required) : false,
   );
@@ -19,6 +25,7 @@ export function InputHandle({ portSpec, position = Position.Top, nodeId }: Input
       type="target"
       position={position}
       id={portSpec.id}
+      data-testid={testId}
       data-port-id={portSpec.id}
       data-missing={isMissing ? "true" : undefined}
       aria-label={portSpec.label}

@@ -181,5 +181,37 @@ describe("InputHandle — required input indicator", () => {
         expect(handle.getAttribute("data-missing")).toBe("true");
       });
     });
+
+    describe("CSS targeting contract for red outline", () => {
+      beforeEach(() => {
+        mockState = { edges: [] };
+      });
+
+      it("missing required port has port-handle class for CSS selector match", () => {
+        render(<InputHandle portSpec={requiredPort} nodeId="node-1" />);
+        const handle = screen.getByTestId("xyflow-handle");
+        // .port-handle[data-missing="true"] is the CSS selector for red outline
+        expect(handle.className).toContain("port-handle");
+        expect(handle.getAttribute("data-missing")).toBe("true");
+      });
+
+      it("connected required port has port-handle class but no data-missing", () => {
+        mockState = {
+          edges: [
+            {
+              id: "e1",
+              source: "src-node",
+              sourcePort: "out",
+              target: "node-1",
+              targetPort: "in-required",
+            },
+          ],
+        } as Partial<WorkflowState>;
+        render(<InputHandle portSpec={requiredPort} nodeId="node-1" />);
+        const handle = screen.getByTestId("xyflow-handle");
+        expect(handle.className).toContain("port-handle");
+        expect(handle.getAttribute("data-missing")).toBeNull();
+      });
+    });
   });
 });

@@ -1,5 +1,6 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { BaseNode } from "@/features/nodes/BaseNode";
+import { InputHandle } from "@/features/nodes/ports/InputHandle";
 import { OutputHandle } from "@/features/nodes/ports/OutputHandle";
 import { useWorkflowStore } from "@/store/hooks";
 import { selectNodeSpec } from "@/store/selectors/graphSelectors";
@@ -47,14 +48,12 @@ export function TaskNode({ id, data, type, selected }: NodeProps) {
               data-testid={`task-handle-${port.id}`}
             />
           ) : (
-            <Handle
+            <InputHandle
               key={port.id}
-              id={port.id}
-              type="target"
+              portSpec={port}
               position={portPosition(port)}
+              nodeId={id}
               data-testid={`task-handle-${port.id}`}
-              data-port-id={port.id}
-              aria-label={port.label}
             />
           ),
         )
