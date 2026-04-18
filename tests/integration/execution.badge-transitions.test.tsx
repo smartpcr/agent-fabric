@@ -2,22 +2,29 @@ import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { render, screen, cleanup, act, within } from "@testing-library/react";
 import { createStore, type WorkflowState } from "@/store/createStore";
 import { clearExecutionSelectorCache } from "@/store/selectors/executionSelectors";
+import { FakeExecutionEventSource } from "@/adapters/FakeExecutionEventSource";
 import type { StoreApi } from "zustand";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 
 /**
- * Integration test: fake execution source drives badge transitions on
- * rendered BaseNode components.
+ * Integration test: FakeExecutionEventSource drives badge transitions on
+ * rendered canvas nodes (BaseNode).
  *
- * Renders 3 nodes, emits `run.started` → per-node `node.started` →
- * `node.succeeded` (or `node.failed`) events via the store's
- * `applyExecutionEvent` action, and asserts badge status at each step.
+ * Uses the real adapter → store → selector → hook → component path:
+ *   FakeExecutionEventSource.emit()
+ *     → subscriber calls store.applyExecutionEvent()
+ *     → zustand update
+ *     → useExecutionState re-renders BaseNode
+ *     → StatusBadge shows updated state
+ *
+ * Mocks only @/store/hooks to redirect useWorkflowStore to a test store.
+ * Everything else (FakeExecutionEventSource, applyEvent, selectors,
+ * useExecutionState, BaseNode, StatusBadge) is real.
  */
 
 let store: StoreApi<WorkflowState>;
 
 // Mock only the store-hook boundary to use our controlled test store.
-// The real useExecutionState hook + selectNodeExecutionState are exercised.
 vi.mock("@/store/hooks", () => ({
   useWorkflowStore: (selector?: unknown, equalityFn?: unknown) =>
     useStoreWithEqualityFn(
@@ -33,19 +40,15 @@ const { BaseNode } = await import("@/features/nodes/BaseNode");
 const RUN_ID = "run-integration-1";
 const NODE_IDS = ["node-A", "node-B", "node-C"] as const;
 
+/** Renders 3 BaseNodes as a canvas surface. */
 function ThreeNodeCanvas() {
   return (
-    <div data-testid="canvas">
+    <div data-testid="canvas" role="application" aria-label="workflow canvas">
       <BaseNode title="Node A" icon="square-check" nodeId={NODE_IDS[0]} />
       <BaseNode title="Node B" icon="square-check" nodeId={NODE_IDS[1]} />
       <BaseNode title="Node C" icon="square-check" nodeId={NODE_IDS[2]} />
     </div>
   );
-}
-
-/** Get all status badges from the rendered canvas. */
-function getAllBadges() {
-  return screen.getAllByTestId("status-badge");
 }
 
 /** Get the badge for a specific node by querying the node's container. */
@@ -56,62 +59,40 @@ function getBadgeForNode(nodeId: string) {
   return within(nodeEl).queryByTestId("status-badge");
 }
 
+let fakeSource: FakeExecutionEventSource;
+let unsubscribe: () => void;
+
 beforeEach(() => {
   store = createStore();
+  fakeSource = new FakeExecutionEventSource();
+
+  // Start a run in the store and set it active
+  store.getState().startRun(RUN_ID);
+
+  // Bridge: subscribe the fake source for this run and feed events to the store
+  unsubscribe = fakeSource.subscribe(RUN_ID, (event) => {
+    store.getState().applyExecutionEvent(event);
+  });
 });
 
 afterEach(() => {
+  unsubscribe();
+  fakeSource.close();
   cleanup();
   clearExecutionSelectorCache();
 });
 
-describe("Integration: execution badge transitions", () => {
-  it("no badges before any execution events", () => {
+describe("Integration: FakeExecutionEventSource drives badge transitions", () => {
+  it("no badges before any events are emitted", () => {
     render(<ThreeNodeCanvas />);
     expect(screen.queryAllByTestId("status-badge")).toHaveLength(0);
   });
 
-  it("badges appear for all 3 nodes after run.started + node.started events", () => {
-    render(<ThreeNodeCanvas />);
-
-    // Start a run and set it active
-    act(() => {
-      store.getState().startRun(RUN_ID);
-    });
-
-    // Still no badges — nodes have no execution state yet
-    expect(screen.queryAllByTestId("status-badge")).toHaveLength(0);
-
-    // Emit node.started for all 3 nodes
-    act(() => {
-      for (const nodeId of NODE_IDS) {
-        store.getState().applyExecutionEvent({
-          type: "node.started",
-          runId: RUN_ID,
-          nodeId,
-          at: Date.now(),
-        });
-      }
-    });
-
-    // All 3 nodes should now show running badges
-    const badges = getAllBadges();
-    expect(badges).toHaveLength(3);
-    for (const badge of badges) {
-      expect(badge).toHaveAttribute("data-status", "running");
-    }
-  });
-
-  it("drives node A through started → succeeded transition", () => {
+  it("emitting node.started shows running badge on canvas node", () => {
     render(<ThreeNodeCanvas />);
 
     act(() => {
-      store.getState().startRun(RUN_ID);
-    });
-
-    // Start node A
-    act(() => {
-      store.getState().applyExecutionEvent({
+      fakeSource.emit({
         type: "node.started",
         runId: RUN_ID,
         nodeId: "node-A",
@@ -119,39 +100,48 @@ describe("Integration: execution badge transitions", () => {
       });
     });
 
-    const badgeA = getBadgeForNode("node-A");
-    expect(badgeA).not.toBeNull();
-    expect(badgeA).toHaveAttribute("data-status", "running");
+    const badge = getBadgeForNode("node-A");
+    expect(badge).not.toBeNull();
+    expect(badge).toHaveAttribute("data-status", "running");
 
-    // Node B and C should not have badges yet
+    // Other nodes still have no badge
     expect(getBadgeForNode("node-B")).toBeNull();
     expect(getBadgeForNode("node-C")).toBeNull();
+  });
 
-    // Succeed node A
+  it("emitting node.started → node.succeeded transitions badge on canvas", () => {
+    render(<ThreeNodeCanvas />);
+
+    // Step 1: node.started
     act(() => {
-      store.getState().applyExecutionEvent({
+      fakeSource.emit({
+        type: "node.started",
+        runId: RUN_ID,
+        nodeId: "node-A",
+        at: 1000,
+      });
+    });
+    expect(getBadgeForNode("node-A")).toHaveAttribute("data-status", "running");
+
+    // Step 2: node.succeeded
+    act(() => {
+      fakeSource.emit({
         type: "node.succeeded",
         runId: RUN_ID,
         nodeId: "node-A",
         at: 2000,
       });
     });
-
-    const updatedBadge = getBadgeForNode("node-A");
-    expect(updatedBadge).toHaveAttribute("data-status", "success");
+    expect(getBadgeForNode("node-A")).toHaveAttribute("data-status", "success");
   });
 
-  it("drives full 3-node sequence: started → succeeded for each", () => {
+  it("drives all 3 canvas nodes through started → succeeded via emit", () => {
     render(<ThreeNodeCanvas />);
 
-    act(() => {
-      store.getState().startRun(RUN_ID);
-    });
-
-    // Start all 3 nodes
+    // Emit node.started for all 3
     act(() => {
       for (const nodeId of NODE_IDS) {
-        store.getState().applyExecutionEvent({
+        fakeSource.emit({
           type: "node.started",
           runId: RUN_ID,
           nodeId,
@@ -160,14 +150,14 @@ describe("Integration: execution badge transitions", () => {
       }
     });
 
-    // All running
+    // All 3 should show running
     for (const nodeId of NODE_IDS) {
       expect(getBadgeForNode(nodeId)).toHaveAttribute("data-status", "running");
     }
 
-    // Succeed node-A
+    // Succeed them one by one and assert at each step
     act(() => {
-      store.getState().applyExecutionEvent({
+      fakeSource.emit({
         type: "node.succeeded",
         runId: RUN_ID,
         nodeId: "node-A",
@@ -178,22 +168,19 @@ describe("Integration: execution badge transitions", () => {
     expect(getBadgeForNode("node-B")).toHaveAttribute("data-status", "running");
     expect(getBadgeForNode("node-C")).toHaveAttribute("data-status", "running");
 
-    // Succeed node-B
     act(() => {
-      store.getState().applyExecutionEvent({
+      fakeSource.emit({
         type: "node.succeeded",
         runId: RUN_ID,
         nodeId: "node-B",
         at: 3000,
       });
     });
-    expect(getBadgeForNode("node-A")).toHaveAttribute("data-status", "success");
     expect(getBadgeForNode("node-B")).toHaveAttribute("data-status", "success");
     expect(getBadgeForNode("node-C")).toHaveAttribute("data-status", "running");
 
-    // Succeed node-C
     act(() => {
-      store.getState().applyExecutionEvent({
+      fakeSource.emit({
         type: "node.succeeded",
         runId: RUN_ID,
         nodeId: "node-C",
@@ -205,17 +192,12 @@ describe("Integration: execution badge transitions", () => {
     }
   });
 
-  it("handles mixed success and failure paths", () => {
+  it("handles success + error paths via fake source emit", () => {
     render(<ThreeNodeCanvas />);
 
     act(() => {
-      store.getState().startRun(RUN_ID);
-    });
-
-    // Start all nodes
-    act(() => {
       for (const nodeId of NODE_IDS) {
-        store.getState().applyExecutionEvent({
+        fakeSource.emit({
           type: "node.started",
           runId: RUN_ID,
           nodeId,
@@ -224,22 +206,21 @@ describe("Integration: execution badge transitions", () => {
       }
     });
 
-    // Succeed node-A, fail node-B, skip node-C
     act(() => {
-      store.getState().applyExecutionEvent({
+      fakeSource.emit({
         type: "node.succeeded",
         runId: RUN_ID,
         nodeId: "node-A",
         at: 2000,
       });
-      store.getState().applyExecutionEvent({
+      fakeSource.emit({
         type: "node.failed",
         runId: RUN_ID,
         nodeId: "node-B",
         at: 2000,
         payload: { error: "timeout" },
       });
-      store.getState().applyExecutionEvent({
+      fakeSource.emit({
         type: "node.skipped",
         runId: RUN_ID,
         nodeId: "node-C",
@@ -252,27 +233,33 @@ describe("Integration: execution badge transitions", () => {
     expect(getBadgeForNode("node-C")).toHaveAttribute("data-status", "skipped");
   });
 
-  it("badges disappear when run is cleared", () => {
+  it("closing the fake source stops event delivery", () => {
     render(<ThreeNodeCanvas />);
 
     act(() => {
-      store.getState().startRun(RUN_ID);
-      store.getState().applyExecutionEvent({
+      fakeSource.emit({
         type: "node.started",
         runId: RUN_ID,
         nodeId: "node-A",
         at: 1000,
       });
     });
+    expect(getBadgeForNode("node-A")).toHaveAttribute("data-status", "running");
 
-    expect(getBadgeForNode("node-A")).not.toBeNull();
+    // Close the source
+    fakeSource.close();
 
-    // Clear the run
+    // Emit after close — should not change state
     act(() => {
-      store.getState().clearRun(RUN_ID);
+      fakeSource.emit({
+        type: "node.succeeded",
+        runId: RUN_ID,
+        nodeId: "node-A",
+        at: 2000,
+      });
     });
 
-    // Badges should be gone (activeRunId cleared)
-    expect(screen.queryAllByTestId("status-badge")).toHaveLength(0);
+    // Still running — the emit was swallowed
+    expect(getBadgeForNode("node-A")).toHaveAttribute("data-status", "running");
   });
 });
