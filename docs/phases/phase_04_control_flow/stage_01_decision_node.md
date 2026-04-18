@@ -23,7 +23,7 @@
   - Test: 100% — 2, 3, 5 branches; `default` always present; handles evenly spaced.
   - Effort: 3h
 
-- [ ] **Step 4**: `ConditionalEdge` component with label chip
+- [x] **Step 4**: `ConditionalEdge` component with label chip
   - File(s): `src/features/edges/ConditionalEdge.tsx` (upgrade stub), `tests/unit/features/edges/ConditionalEdge.test.tsx`
   - Contents: Label rendered in a pill chip styled by `data.condition` state; hover tooltip shows full condition.
   - Test: 100% — chip visible; hover tooltip; empty condition shows "—".
