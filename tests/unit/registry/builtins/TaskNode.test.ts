@@ -56,8 +56,13 @@ describe("TaskNodeSpec", () => {
   });
 
   describe("defaultData", () => {
-    it("has name 'Task', empty params, and empty apiKey", () => {
-      expect(TaskNodeSpec.defaultData).toEqual({ name: "Task", params: {}, apiKey: "" });
+    it("has name 'Task', retries 3, empty params, and empty apiKey", () => {
+      expect(TaskNodeSpec.defaultData).toEqual({
+        name: "Task",
+        retries: 3,
+        params: {},
+        apiKey: "",
+      });
     });
 
     it("conforms to propertySchema", () => {
