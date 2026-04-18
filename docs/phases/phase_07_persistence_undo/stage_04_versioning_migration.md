@@ -17,7 +17,7 @@
   - Test: 100% — v1→v2→v3 composition; missing step throws; already-current is identity.
   - Effort: 3h
 
-- [ ] **Step 3**: Example migration fixture (v1 identity)
+- [x] **Step 3**: Example migration fixture (v1 identity)
   - File(s): `tests/fixtures/migration/v1.json`, `tests/unit/domain/serialization/migrate.identity.test.ts`
   - Contents: Fixture matches current schema; identity migration passes.
   - Test: 100%.

@@ -23,6 +23,11 @@ export function getStoreInstance(): StoreApi<WorkflowState> {
   return getDefaultStore();
 }
 
+/** Reset the singleton store (for test isolation). */
+export function resetDefaultStore(): void {
+  defaultStore = createStore() as StoreWithTemporal;
+}
+
 // ─── useWorkflowStore hook with .temporal property ───────────────────
 
 interface UseWorkflowStoreHook {
