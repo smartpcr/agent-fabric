@@ -17,7 +17,7 @@
   - Test: 100% — each event type mutates expected fields; unknown event logs warning and no-ops.
   - Effort: 3h
 
-- [ ] **Step 3**: Transition guards
+- [x] **Step 3**: Transition guards
   - File(s): `src/store/slices/executionSlice.ts` (extend), `tests/unit/store/slices/executionSlice.transitions.test.ts`
   - Contents: Illegal transitions (e.g. `succeeded` without `started`) dropped with `console.warn`; table-driven legal transitions.
   - Test: 100% — illegal transitions ignored; state unchanged; warning logged (spied).
