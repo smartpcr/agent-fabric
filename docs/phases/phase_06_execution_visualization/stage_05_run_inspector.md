@@ -23,7 +23,7 @@
   - Test: 100% — each dispatch; disabled states correct.
   - Effort: 2h
 
-- [ ] **Step 4**: `useExecutionSubscription` lifecycle hook
+- [x] **Step 4**: `useExecutionSubscription` lifecycle hook
   - File(s): `src/features/execution/useExecutionSubscription.ts`, `tests/unit/features/execution/useExecutionSubscription.test.tsx`
   - Contents: Subscribes on mount; unsubscribes on unmount; ignores post-unmount events via a ref flag.
   - Test: 100% — subscribe on mount; cleanup on unmount; late event dropped.
