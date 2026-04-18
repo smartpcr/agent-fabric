@@ -97,7 +97,13 @@ describe("validateGraph", () => {
     );
     g = addEdgeToGraph(
       g,
-      makeEdge({ source: loop.id, sourcePort: "body-out", target: loop.id, targetPort: "body-in" }),
+      makeEdge({
+        source: loop.id,
+        sourcePort: "body-out",
+        target: loop.id,
+        targetPort: "body-in",
+        kind: "loop-back",
+      }),
     );
     g = addEdgeToGraph(
       g,
@@ -287,11 +293,23 @@ describe("validateGraph", () => {
     );
     g = addEdgeToGraph(
       g,
-      makeEdge({ source: loop.id, sourcePort: "body-out", target: loop.id, targetPort: "body-in" }),
+      makeEdge({
+        source: loop.id,
+        sourcePort: "body-out",
+        target: loop.id,
+        targetPort: "body-in",
+        kind: "loop-back",
+      }),
     );
     g = addEdgeToGraph(
       g,
-      makeEdge({ source: loop.id, sourcePort: "body-out", target: loop.id, targetPort: "body-in" }),
+      makeEdge({
+        source: loop.id,
+        sourcePort: "body-out",
+        target: loop.id,
+        targetPort: "body-in",
+        kind: "loop-back",
+      }),
     );
     g = addEdgeToGraph(
       g,

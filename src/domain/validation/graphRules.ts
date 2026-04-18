@@ -160,7 +160,9 @@ function checkLoopNodes(graph: WorkflowGraph, registry: NodeSpecRegistry): Graph
       continue;
     }
 
-    const loopBackEdges = graph.edges.filter((e) => e.source === node.id && e.target === node.id);
+    const loopBackEdges = graph.edges.filter(
+      (e) => e.source === node.id && e.target === node.id && e.kind === "loop-back",
+    );
     const loopBackCount = loopBackEdges.length;
 
     if (loopBackCount === 0) {

@@ -95,6 +95,7 @@ describe("validateGraph — loop node rules", () => {
           sourcePort: "body-out",
           target: loop.id,
           targetPort: "body-in",
+          kind: "loop-back",
         }),
       );
       // loop done → end
@@ -155,6 +156,7 @@ describe("validateGraph — loop node rules", () => {
           sourcePort: "body-out",
           target: loop.id,
           targetPort: "body-in",
+          kind: "loop-back",
         }),
       );
       g = addEdgeToGraph(
@@ -164,6 +166,7 @@ describe("validateGraph — loop node rules", () => {
           sourcePort: "body-out",
           target: loop.id,
           targetPort: "body-in",
+          kind: "loop-back",
         }),
       );
       g = addEdgeToGraph(
@@ -199,7 +202,13 @@ describe("validateGraph — loop node rules", () => {
       // Back-edge targets "in" instead of "body-in"
       g = addEdgeToGraph(
         g,
-        makeEdge({ source: loop.id, sourcePort: "body-out", target: loop.id, targetPort: "in" }),
+        makeEdge({
+          source: loop.id,
+          sourcePort: "body-out",
+          target: loop.id,
+          targetPort: "in",
+          kind: "loop-back",
+        }),
       );
       g = addEdgeToGraph(
         g,
@@ -233,7 +242,13 @@ describe("validateGraph — loop node rules", () => {
       // Back-edge targets "done" (wrong port)
       g = addEdgeToGraph(
         g,
-        makeEdge({ source: loop.id, sourcePort: "body-out", target: loop.id, targetPort: "done" }),
+        makeEdge({
+          source: loop.id,
+          sourcePort: "body-out",
+          target: loop.id,
+          targetPort: "done",
+          kind: "loop-back",
+        }),
       );
       g = addEdgeToGraph(
         g,
@@ -271,6 +286,7 @@ describe("validateGraph — loop node rules", () => {
           sourcePort: "body-out",
           target: loop.id,
           targetPort: "body-in",
+          kind: "loop-back",
         }),
       );
       g = addEdgeToGraph(
@@ -303,6 +319,7 @@ describe("validateGraph — loop node rules", () => {
           sourcePort: "body-out",
           target: loop.id,
           targetPort: "body-in",
+          kind: "loop-back",
         }),
       );
       g = addEdgeToGraph(
@@ -328,7 +345,13 @@ describe("validateGraph — loop node rules", () => {
       );
       g = addEdgeToGraph(
         g,
-        makeEdge({ source: loop.id, sourcePort: "body-out", target: loop.id, targetPort: "in" }),
+        makeEdge({
+          source: loop.id,
+          sourcePort: "body-out",
+          target: loop.id,
+          targetPort: "in",
+          kind: "loop-back",
+        }),
       );
       g = addEdgeToGraph(
         g,
@@ -369,7 +392,13 @@ describe("validateGraph — loop node rules", () => {
       // loop2: back-edge to wrong port
       g = addEdgeToGraph(
         g,
-        makeEdge({ source: loop2.id, sourcePort: "body-out", target: loop2.id, targetPort: "in" }),
+        makeEdge({
+          source: loop2.id,
+          sourcePort: "body-out",
+          target: loop2.id,
+          targetPort: "in",
+          kind: "loop-back",
+        }),
       );
       g = addEdgeToGraph(
         g,
@@ -425,7 +454,13 @@ describe("validateGraph — loop node rules", () => {
       );
       g = addEdgeToGraph(
         g,
-        makeEdge({ source: loop.id, sourcePort: "body-out", target: loop.id, targetPort: "wrong" }),
+        makeEdge({
+          source: loop.id,
+          sourcePort: "body-out",
+          target: loop.id,
+          targetPort: "wrong",
+          kind: "loop-back",
+        }),
       );
       g = addEdgeToGraph(
         g,
