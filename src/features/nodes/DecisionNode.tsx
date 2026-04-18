@@ -1,5 +1,6 @@
 import { Position, type NodeProps } from "@xyflow/react";
 import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 import { makeOutputPort, type PortSpec } from "@/domain/models/port";
 import { BaseNode } from "@/features/nodes/BaseNode";
 import { InputHandle } from "@/features/nodes/ports/InputHandle";
@@ -29,7 +30,7 @@ function buildOutputPortsFromBranches(
       }),
     );
   }
-  ports.push(makeOutputPort({ id: "default", label: "default", dataType: "any" }));
+  ports.push(makeOutputPort({ id: "default", label: i18next.t("decision.default"), dataType: "any" }));
   return ports;
 }
 
@@ -280,7 +281,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
               transform: "translate(100%, -50%)",
             }}
           >
-            true
+            {t("decision.true")}
           </span>
         </>
       ) : null}
@@ -303,7 +304,7 @@ export function DecisionNode({ id, data, type, selected }: NodeProps) {
               transform: "translate(-50%, 100%)",
             }}
           >
-            false
+            {t("decision.false")}
           </span>
         </>
       ) : null}

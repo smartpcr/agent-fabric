@@ -28,7 +28,9 @@
     "nodeIdCopied": "Node ID copied",
     "nodeLabel": "Node label",
     "editNodeLabel": "Edit node label",
-    "copyNodeId": "Copy node ID"
+    "copyNodeId": "Copy node ID",
+    "mixed": "mixed",
+    "selectPlaceholder": "Select..."
   },
   "palette": {
     "ariaLabel": "Node Palette",
@@ -115,7 +117,21 @@
     "indicator": "loop indicator"
   },
   "decision": {
-    "branchCount": "{{count}} branches"
+    "branchCount": "{{count}} branches",
+    "default": "default",
+    "true": "true",
+    "false": "false"
+  },
+  "statusBadge": {
+    "pending": "Pending",
+    "running": "Running",
+    "succeeded": "Succeeded",
+    "failed": "Failed",
+    "skipped": "Skipped"
+  },
+  "iterationBadge": {
+    "iteration": "Iteration {{count}}",
+    "iterationOf": "Iteration {{count}} of {{total}}"
   },
   "errorBoundary": {
     "title": "Something went wrong",

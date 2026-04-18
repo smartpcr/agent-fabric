@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef, useMemo, useState } from "react";
 import { useForm, Controller, type Control, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import type { z } from "zod";
 import { introspect, type FieldDescriptor } from "@/features/property-grid/introspect";
 import {
@@ -178,6 +179,7 @@ function MixedFieldInput({
   };
   readonly error?: string;
 }) {
+  const { t } = useTranslation();
   const isMixed = field.value === MIXED_VALUE;
   const [editing, setEditing] = useState(false);
   const fieldId = `field-${descriptor.name}`;
@@ -197,7 +199,7 @@ function MixedFieldInput({
       <input
         type="text"
         id={fieldId}
-        placeholder={showMixed ? "mixed" : undefined}
+        placeholder={showMixed ? t("propertyGrid.mixed") : undefined}
         value={displayValue}
         onChange={(e) => {
           if (!editing) setEditing(true);

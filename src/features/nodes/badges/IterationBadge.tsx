@@ -1,4 +1,5 @@
 import { Repeat } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export interface IterationBadgeProps {
   /** Current iteration (1-based). Undefined or absent means the node is not a loop. */
@@ -25,6 +26,7 @@ const BADGE_STYLE: React.CSSProperties = {
  * Returns null when `iteration` is undefined (node is not a loop).
  */
 export function IterationBadge({ iteration, total }: IterationBadgeProps) {
+  const { t } = useTranslation();
   if (iteration === undefined) {
     return null;
   }
@@ -32,7 +34,9 @@ export function IterationBadge({ iteration, total }: IterationBadgeProps) {
   const iterStr = String(iteration);
   const text = total === undefined ? iterStr : `${iterStr} / ${String(total)}`;
   const label =
-    total === undefined ? `Iteration ${iterStr}` : `Iteration ${iterStr} of ${String(total)}`;
+    total === undefined
+      ? t("iterationBadge.iteration", { count: iterStr })
+      : t("iterationBadge.iterationOf", { count: iterStr, total: String(total) });
 
   return (
     <span role="status" aria-label={label} data-testid="iteration-badge" style={BADGE_STYLE}>
