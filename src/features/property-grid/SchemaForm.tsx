@@ -157,38 +157,36 @@ function MixedFieldInput({
   const isMixed = field.value === MIXED_VALUE;
   const [editing, setEditing] = useState(false);
 
-  const displayValue =
-    isMixed && !editing
-      ? ""
-      : typeof field.value === "string" || typeof field.value === "number"
-        ? String(field.value)
-        : "";
-  const showPlaceholder = isMixed && !editing;
+  // Show mixed placeholder when the sentinel is active and user hasn't started typing
+  const showMixed = isMixed && !editing;
+
+  const displayValue = showMixed
+    ? ""
+    : typeof field.value === "string" || typeof field.value === "number"
+      ? String(field.value)
+      : "";
 
   return (
     <input
       type="text"
-      placeholder={showPlaceholder ? "mixed" : undefined}
+      placeholder={showMixed ? "mixed" : undefined}
       value={displayValue}
       onChange={(e) => {
         if (!editing) setEditing(true);
         field.onChange(e.target.value);
       }}
-      onFocus={() => {
-        if (isMixed) setEditing(true);
-      }}
       onBlur={() => {
         field.onBlur();
-        // If user cleared to empty, revert to mixed sentinel so placeholder reappears
-        if (editing && (field.value === "" || field.value === undefined)) {
+        // Restore mixed presentation if the value is still the sentinel or was cleared
+        if (field.value === MIXED_VALUE || field.value === "" || field.value === undefined) {
           setEditing(false);
         }
       }}
       name={field.name}
       aria-label={descriptor.name}
       data-testid={`field-${descriptor.name}`}
-      data-mixed={isMixed && !editing ? "true" : undefined}
-      style={isMixed && !editing ? { fontStyle: "italic", color: "#999" } : undefined}
+      data-mixed={showMixed ? "true" : undefined}
+      style={showMixed ? { fontStyle: "italic", color: "#999" } : undefined}
     />
   );
 }

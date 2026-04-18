@@ -396,4 +396,65 @@ describe("PropertyGrid multi-select", () => {
       expect((node2?.data as Record<string, unknown>).name).toBe("New");
     });
   });
+
+  it("focus+blur without typing preserves mixed placeholder and data-mixed", async () => {
+    const { result: store } = renderHook(() => useWorkflowStore());
+
+    let nodeId1 = "";
+    let nodeId2 = "";
+    act(() => {
+      const spec = store.current.registry.get("task");
+      if (spec) {
+        nodeId1 = store.current.addNode(spec, { x: 0, y: 0 }).id;
+        nodeId2 = store.current.addNode(spec, { x: 100, y: 0 }).id;
+      }
+    });
+
+    // Different names → mixed
+    act(() => {
+      store.current.updateNodeData(nodeId1, { name: "Alpha", params: {}, apiKey: "" });
+    });
+    act(() => {
+      store.current.updateNodeData(nodeId2, { name: "Beta", params: {}, apiKey: "" });
+    });
+
+    act(() => {
+      store.current.selectMany([nodeId1, nodeId2]);
+    });
+
+    render(<PropertyGrid />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("field-name")).toBeInTheDocument();
+    });
+
+    const nameInput = screen.getByTestId("field-name");
+
+    // Initially mixed
+    expect(nameInput.placeholder).toBe("mixed");
+    expect(nameInput.getAttribute("data-mixed")).toBe("true");
+    expect(nameInput.value).toBe("");
+
+    // Focus then blur without typing
+    act(() => {
+      fireEvent.focus(nameInput);
+    });
+    act(() => {
+      fireEvent.blur(nameInput);
+    });
+
+    // Mixed state should be fully preserved
+    await waitFor(() => {
+      const input = screen.getByTestId("field-name");
+      expect(input.placeholder).toBe("mixed");
+      expect(input.getAttribute("data-mixed")).toBe("true");
+      expect(input.value).toBe("");
+    });
+
+    // Store values should be unchanged
+    const node1 = store.current.nodes.find((n) => n.id === nodeId1);
+    const node2 = store.current.nodes.find((n) => n.id === nodeId2);
+    expect((node1?.data as Record<string, unknown>).name).toBe("Alpha");
+    expect((node2?.data as Record<string, unknown>).name).toBe("Beta");
+  });
 });
