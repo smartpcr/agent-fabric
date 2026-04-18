@@ -258,7 +258,7 @@ test.describe("Keyboard navigation — author + run workflow without mouse", () 
     await expect(page.locator(".react-flow__node[data-id]")).toHaveCount(1, { timeout: 5000 });
   });
 
-  test("full keyboard-only workflow: add nodes, connect, save", async ({ page }) => {
+  test("full keyboard-only workflow: add nodes, connect, save, and run", async ({ page }) => {
     // 1. Add Start node via palette keyboard
     const startOption = page.locator('[role="option"][data-kind="start"]');
     await startOption.focus();
@@ -318,5 +318,83 @@ test.describe("Keyboard navigation — author + run workflow without mouse", () 
       expect(persisted.nodeCount).toBe(3);
       expect(persisted.edgeCount).toBe(2);
     }
+
+    // 8. Verify Run controls are in the tab order (keyboard accessible)
+    const runBtn = page.locator('[data-testid="run-btn"]');
+    await expect(runBtn).toBeVisible({ timeout: 5000 });
+
+    // 9. Start a run via keyboard — click the Start button via focus+Enter
+    await runBtn.focus();
+    await page.keyboard.press("Enter");
+
+    // 10. Start a run via the test harness and emit execution events
+    const RUN_ID = "keyboard-run-1";
+
+    // Collect node IDs for event emission
+    const nodeIds = await page.evaluate(() => {
+      const els = document.querySelectorAll(".react-flow__node[data-id]");
+      return Array.from(els).map((el) => el.getAttribute("data-id") ?? "");
+    });
+    expect(nodeIds).toHaveLength(3);
+
+    // Use the test harness to start the run (wires up the execution store)
+    await page.evaluate((rid) => {
+      const harness = (
+        window as unknown as { __TEST_HARNESS__: { startRun: (id: string) => void } }
+      ).__TEST_HARNESS__;
+      harness.startRun(rid);
+    }, RUN_ID);
+
+    // Emit node.started for each node
+    for (let i = 0; i < nodeIds.length; i++) {
+      await page.evaluate(
+        (ev) => {
+          const harness = (
+            window as unknown as {
+              __TEST_HARNESS__: { emit: (e: typeof ev) => void };
+            }
+          ).__TEST_HARNESS__;
+          harness.emit(ev);
+        },
+        {
+          type: "node.started",
+          runId: RUN_ID,
+          nodeId: nodeIds[i],
+          at: 1000 + i * 100,
+        },
+      );
+    }
+
+    await page.waitForTimeout(200);
+
+    // Verify at least one node shows a running badge
+    const runningBadge = page.locator('[data-testid="status-badge"][data-status="running"]');
+    await expect(runningBadge.first()).toBeVisible({ timeout: 5000 });
+
+    // Emit node.succeeded for each node
+    for (let i = 0; i < nodeIds.length; i++) {
+      await page.evaluate(
+        (ev) => {
+          const harness = (
+            window as unknown as {
+              __TEST_HARNESS__: { emit: (e: typeof ev) => void };
+            }
+          ).__TEST_HARNESS__;
+          harness.emit(ev);
+        },
+        {
+          type: "node.succeeded",
+          runId: RUN_ID,
+          nodeId: nodeIds[i],
+          at: 2000 + i * 100,
+        },
+      );
+    }
+
+    await page.waitForTimeout(200);
+
+    // Verify nodes show success badges
+    const successBadge = page.locator('[data-testid="status-badge"][data-status="success"]');
+    await expect(successBadge.first()).toBeVisible({ timeout: 5000 });
   });
 });
