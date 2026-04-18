@@ -8,6 +8,7 @@ import {
   type FieldComponentProps,
   type FieldResolver,
 } from "@/features/property-grid/registry";
+import { ArrayField } from "@/features/property-grid/fields/ArrayField";
 
 export type { FieldDescriptor } from "@/features/property-grid/introspect";
 export { introspect as introspectSchema } from "@/features/property-grid/introspect";
@@ -151,6 +152,7 @@ defaultFieldRegistry.registerField("string", StringField);
 defaultFieldRegistry.registerField("number", NumberField);
 defaultFieldRegistry.registerField("boolean", BooleanField);
 defaultFieldRegistry.registerField("enum", EnumField);
+defaultFieldRegistry.registerField("array", ArrayField);
 
 // ─── Mixed-field input component ─────────────────────────────────────
 

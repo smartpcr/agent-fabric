@@ -17,7 +17,7 @@
   - Test: Green.
   - Effort: 3h
 
-- [ ] **Step 3**: E2E — array field (add, remove, reorder)
+- [x] **Step 3**: E2E — array field (add, remove, reorder)
   - File(s): `tests/e2e/property-grid.spec.ts` (extend)
   - Contents: Work with a TaskNode's `params` array; add 3 items; remove middle; drag to reorder; verify order.
   - Test: Green.

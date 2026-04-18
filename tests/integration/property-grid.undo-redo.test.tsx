@@ -87,7 +87,7 @@ describe("PropertyGrid undo/redo integration", () => {
 
     // Update the node data (simulates user edit committed to store)
     act(() => {
-      store.current.updateNodeData(nodeId, { name: "Updated Task", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId, { name: "Updated Task", params: [], apiKey: "" });
     });
 
     // Wait for form to re-render with new value
@@ -132,7 +132,7 @@ describe("PropertyGrid undo/redo integration", () => {
 
     // Update and then undo
     act(() => {
-      store.current.updateNodeData(nodeId, { name: "Changed", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId, { name: "Changed", params: [], apiKey: "" });
     });
 
     await waitFor(() => {
@@ -189,7 +189,7 @@ describe("PropertyGrid undo/redo integration", () => {
 
     // Update data (creates undo history)
     act(() => {
-      store.current.updateNodeData(nodeId, { name: "Edited", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId, { name: "Edited", params: [], apiKey: "" });
     });
 
     await waitFor(() => {
@@ -243,7 +243,7 @@ describe("PropertyGrid undo/redo integration", () => {
 
     // Make two sequential updates
     act(() => {
-      store.current.updateNodeData(nodeId, { name: "First Edit", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId, { name: "First Edit", params: [], apiKey: "" });
     });
 
     await waitFor(() => {
@@ -251,7 +251,7 @@ describe("PropertyGrid undo/redo integration", () => {
     });
 
     act(() => {
-      store.current.updateNodeData(nodeId, { name: "Second Edit", params: {}, apiKey: "" });
+      store.current.updateNodeData(nodeId, { name: "Second Edit", params: [], apiKey: "" });
     });
 
     await waitFor(() => {
