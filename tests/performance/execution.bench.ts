@@ -1,13 +1,23 @@
 import { describe, it, expect } from "vitest";
 import { applyEvent, type RunState } from "@/store/slices/executionSlice";
+import { createStore } from "@/store/createStore";
+import {
+  selectNodeExecutionState,
+  selectEdgeExecutionState,
+  clearExecutionSelectorCache,
+} from "@/store/selectors/executionSelectors";
 import type { ExecutionEvent } from "@/domain/models/executionEvent";
 
 /**
  * Vitest benchmark for execution event processing performance.
  *
- * Simulates 20 events per second for 10 seconds (200 total events) against a
- * 200-node graph. Measures `applyEvent` throughput and per-event frame-time
- * budget compliance (p95 < 16ms).
+ * Two test suites:
+ *  1. Pure reducer throughput — times `applyEvent` across 10 iterations.
+ *  2. Store→selector pipeline — drives events through the real zustand store
+ *     and evaluates memoized selectors for 200 nodes + 199 edges per event,
+ *     measuring the full data-layer update cost.
+ *
+ * Both assert p95 < 16ms per event (one frame budget).
  */
 
 const NODE_COUNT = 200;
@@ -81,7 +91,11 @@ function percentile(sorted: number[], p: number): number {
 
 const RUN_ID = "bench-run-1";
 
-describe("execution event processing benchmark", () => {
+// ═══════════════════════════════════════════════════════════════════════
+// Suite 1: Pure reducer throughput
+// ═══════════════════════════════════════════════════════════════════════
+
+describe("execution event processing — reducer benchmark", () => {
   it(`applyEvent × ${TOTAL_EVENTS_STR} on ${NODE_COUNT_STR}-node graph — ${BENCH_ITERATIONS_STR} iterations`, () => {
     const iterationTimes: number[] = [];
 
@@ -112,12 +126,10 @@ describe("execution event processing benchmark", () => {
 
     // eslint-disable-next-line no-console
     console.log(
-      `[bench] ${BENCH_ITERATIONS_STR} iterations: median=${median.toFixed(2)}ms ` +
+      `[bench-reducer] ${BENCH_ITERATIONS_STR} iterations: median=${median.toFixed(2)}ms ` +
         `p95=${p95Total.toFixed(2)}ms per full ${TOTAL_EVENTS_STR}-event stream`,
     );
 
-    // Each full stream should complete well under the total frame budget
-    // (200 events × 16ms = 3200ms budget; actual should be <50ms total)
     expect(p95Total).toBeLessThan(3200);
   });
 
@@ -137,10 +149,56 @@ describe("execution event processing benchmark", () => {
 
     // eslint-disable-next-line no-console
     console.log(
-      `[bench] p95=${p95.toFixed(3)}ms median=${percentile(timings, 50).toFixed(3)}ms ` +
+      `[bench-reducer] p95=${p95.toFixed(3)}ms median=${percentile(timings, 50).toFixed(3)}ms ` +
         `max=${timings[timings.length - 1].toFixed(3)}ms`,
     );
 
     expect(p95).toBeLessThan(P95_BUDGET_MS);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// Suite 2: Store → selector pipeline benchmark
+// ═══════════════════════════════════════════════════════════════════════
+
+describe("execution event processing — store→selector pipeline benchmark", () => {
+  it(`store + selector eval for ${TOTAL_EVENTS_STR} events on ${NODE_COUNT_STR}-node graph, p95 < ${P95_BUDGET_STR}ms`, () => {
+    clearExecutionSelectorCache();
+    const store = createStore();
+    store.getState().startRun(RUN_ID);
+    const events = generateEventStream(RUN_ID, TOTAL_EVENTS);
+    const timings: number[] = [];
+
+    for (const event of events) {
+      const start = performance.now();
+
+      // Dispatch event through the real store action
+      store.getState().applyExecutionEvent(event);
+
+      // Evaluate selectors for all nodes and edges (simulates what 200
+      // mounted useEdgeExecutionState / useExecutionState hooks would do)
+      const state = store.getState();
+      for (let n = 0; n < NODE_COUNT; n++) {
+        selectNodeExecutionState(state, RUN_ID, nodeId(n));
+      }
+      for (let e = 0; e < EDGE_COUNT; e++) {
+        selectEdgeExecutionState(state, RUN_ID, edgeId(e));
+      }
+
+      timings.push(performance.now() - start);
+    }
+
+    timings.sort((a, b) => a - b);
+    const p95 = percentile(timings, 95);
+
+    // eslint-disable-next-line no-console
+    console.log(
+      `[bench-pipeline] store+selector p95=${p95.toFixed(3)}ms ` +
+        `median=${percentile(timings, 50).toFixed(3)}ms max=${timings[timings.length - 1].toFixed(3)}ms`,
+    );
+
+    expect(p95).toBeLessThan(P95_BUDGET_MS);
+
+    clearExecutionSelectorCache();
   });
 });
