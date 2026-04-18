@@ -27,6 +27,7 @@ import { CURRENT_SCHEMA_VERSION } from "@/domain/models/graph";
 import { useDragContext } from "@/features/palette/DragContext";
 import { useAnnounce } from "@/hooks/useAnnounce";
 import { useToast } from "@/hooks/useToast";
+import { useTranslation } from "react-i18next";
 import { parseImportedJson } from "@/features/persistence/ImportExport";
 import { useWorkflowStore } from "@/store/hooks";
 import type { WorkflowNode } from "@/domain/models/node";
@@ -40,6 +41,7 @@ interface ConnectDragSource {
 
 export function Canvas() {
   useViewportPersistence();
+  const { t } = useTranslation();
   const { state: dragState, endDrag } = useDragContext();
   const { show: showToast } = useToast();
   const { announce } = useAnnounce();
@@ -558,7 +560,7 @@ export function Canvas() {
             color: "rgb(59, 130, 246)",
           }}
         >
-          Drop workflow JSON to import
+          {t("canvas.dropToImport")}
         </div>
       )}
     </div>

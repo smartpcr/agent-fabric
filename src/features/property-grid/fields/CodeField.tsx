@@ -1,4 +1,5 @@
 import { Suspense, lazy, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { FieldComponentProps } from "@/features/property-grid/registry";
 
 // ─── Language hint extraction ────────────────────────────────────────
@@ -37,6 +38,7 @@ interface CodeFieldSkeletonProps {
 
 /** Skeleton placeholder shown while Monaco is loading. */
 export function CodeFieldSkeleton({ name, height }: CodeFieldSkeletonProps) {
+  const { t } = useTranslation();
   return (
     <div
       data-testid={`code-skeleton-${name}`}
@@ -51,7 +53,7 @@ export function CodeFieldSkeleton({ name, height }: CodeFieldSkeletonProps) {
         justifyContent: "center",
       }}
     >
-      <span>Loading editor…</span>
+      <span>{t("propertyGrid.loadingEditor")}</span>
     </div>
   );
 }

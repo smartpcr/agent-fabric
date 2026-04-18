@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useContext } from "react";
+import { useTranslation } from "react-i18next";
 import { ToastContext } from "@/features/editor/Toast";
 
 export interface PropertyGridHeaderProps {
@@ -27,6 +28,7 @@ export function PropertyGridHeader({
   onLabelChange,
   onCopyId,
 }: PropertyGridHeaderProps) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -163,7 +165,7 @@ export function PropertyGridHeader({
             background: "transparent",
           }}
         >
-          Copy
+          {t("propertyGrid.copy")}
         </button>
       </div>
     </div>

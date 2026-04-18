@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useExecutionCommand, type ExecutionCommand } from "@/hooks/useExecutionCommand";
 import type { RunStatus } from "@/store/slices/executionSlice";
 
@@ -21,6 +22,7 @@ export interface RunControlsProps {
  * - Ctrl+. → cancel
  */
 export function RunControls({ runStatus }: RunControlsProps) {
+  const { t } = useTranslation();
   const { dispatch } = useExecutionCommand();
 
   const isRunning = runStatus === "running";
@@ -64,7 +66,7 @@ export function RunControls({ runStatus }: RunControlsProps) {
           handleDispatch({ type: "run" });
         }}
       >
-        Start
+        {t("execution.start")}
       </button>
       <button
         data-testid="pause-btn"
@@ -74,7 +76,7 @@ export function RunControls({ runStatus }: RunControlsProps) {
           handleDispatch({ type: "pause" });
         }}
       >
-        Pause
+        {t("execution.pause")}
       </button>
       <button
         data-testid="cancel-btn"
@@ -84,7 +86,7 @@ export function RunControls({ runStatus }: RunControlsProps) {
           handleDispatch({ type: "cancel" });
         }}
       >
-        Cancel
+        {t("execution.cancel")}
       </button>
     </div>
   );

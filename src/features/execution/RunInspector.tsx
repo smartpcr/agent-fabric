@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useTranslation } from "react-i18next";
 
 export interface RunInspectorProps {
   /** Whether the inspector panel is open. */
@@ -17,6 +18,7 @@ export interface RunInspectorProps {
  * Opens on error badge click or from run controls.
  */
 export function RunInspector({ open, onClose, children }: RunInspectorProps) {
+  const { t } = useTranslation();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleOpenChange = useCallback(
@@ -81,7 +83,7 @@ export function RunInspector({ open, onClose, children }: RunInspectorProps) {
               data-testid="run-inspector-title"
               style={{ margin: 0, fontSize: 16, fontWeight: 600 }}
             >
-              Run Inspector
+              {t("execution.runInspector")}
             </Dialog.Title>
             <Dialog.Close asChild>
               <button

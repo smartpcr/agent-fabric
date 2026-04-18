@@ -1,10 +1,12 @@
 import { useContext } from "react";
-import { Grid3X3, LayoutGrid, Save } from "lucide-react";
+import { Grid3X3, LayoutGrid, Save, Sun, Moon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useWorkflowStore } from "@/store/hooks";
 import { UndoRedoButtons } from "@/features/history/UndoRedoButtons";
 import { RunControls } from "@/features/execution/runControls";
 import { ExecutionContext } from "@/providers/ExecutionProvider";
 import { useValidation } from "@/features/property-grid/ValidationContext";
+import { useTheme } from "@/providers/ThemeProvider";
 import type { RunStatus } from "@/store/slices/executionSlice";
 
 /** Read the active run's status from the store. Returns undefined when no run is active. */
@@ -17,6 +19,8 @@ function useActiveRunStatus(): RunStatus | undefined {
 }
 
 export function Toolbar() {
+  const { t } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
   const snapEnabled = useWorkflowStore((s) => s.snapEnabled);
   const toggleSnap = useWorkflowStore((s) => s.toggleSnap);
   const layoutRunning = useWorkflowStore((s) => s.layoutRunning);
@@ -56,6 +60,20 @@ export function Toolbar() {
       </button>
       <button
         type="button"
+        data-testid="theme-toggle"
+        aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+        aria-pressed={theme === "dark"}
+        title={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+        onClick={toggleTheme}
+      >
+        {theme === "light" ? (
+          <Moon size={14} aria-hidden="true" />
+        ) : (
+          <Sun size={14} aria-hidden="true" />
+        )}
+      </button>
+      <button
+        type="button"
         data-testid="save-button"
         aria-label="Save"
         title={hasErrors ? errorSummary : "Save"}
@@ -63,7 +81,7 @@ export function Toolbar() {
         disabled={hasErrors}
       >
         <Save size={14} aria-hidden="true" />
-        Save
+        {t("toolbar.save")}
       </button>
     </div>
   );

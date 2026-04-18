@@ -1,5 +1,41 @@
 {
   "app": {
     "title": "Workflow Editor"
+  },
+  "toolbar": {
+    "save": "Save"
+  },
+  "propertyGrid": {
+    "title": "Properties",
+    "selectNode": "Select a node",
+    "differentKinds": "Selected nodes have different kinds. Select nodes of the same kind to edit shared properties.",
+    "editingNodes": "Editing {{count}} nodes",
+    "copy": "Copy",
+    "loadingEditor": "Loading editor\u2026",
+    "noSchema": "No schema provided"
+  },
+  "palette": {
+    "noMatching": "No matching nodes"
+  },
+  "execution": {
+    "start": "Start",
+    "pause": "Pause",
+    "cancel": "Cancel",
+    "runInspector": "Run Inspector",
+    "noEvents": "No events recorded for this node.",
+    "copied": "Copied!",
+    "copyAction": "Copy"
+  },
+  "persistence": {
+    "saving": "Saving\u2026",
+    "save": "Save",
+    "load": "Load",
+    "new": "New",
+    "export": "Export",
+    "import": "Import",
+    "saved": "Saved {{timestamp}}"
+  },
+  "canvas": {
+    "dropToImport": "Drop workflow JSON to import"
   }
 }

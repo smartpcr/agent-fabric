@@ -1,4 +1,5 @@
 import type { ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 // ─── Props ───────────────────────────────────────────────────────────
 
@@ -81,6 +82,7 @@ export function SaveLoadBar({
   lastSavedAt,
   saving = false,
 }: SaveLoadBarProps) {
+  const { t } = useTranslation();
   const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     onNameChange(e.target.value);
   };
@@ -103,15 +105,15 @@ export function SaveLoadBar({
         onClick={onSave}
         disabled={saving}
       >
-        {saving ? "Saving…" : "Save"}
+        {saving ? t("persistence.saving") : t("persistence.save")}
       </button>
 
       <button type="button" data-testid="load-button" aria-label="Load" onClick={onLoad}>
-        Load
+        {t("persistence.load")}
       </button>
 
       <button type="button" data-testid="new-button" aria-label="New" onClick={onNew}>
-        New
+        {t("persistence.new")}
       </button>
 
       {dirty && (
@@ -126,7 +128,7 @@ export function SaveLoadBar({
 
       {lastSavedAt !== null && (
         <span data-testid="last-saved-timestamp" style={TIMESTAMP_STYLE}>
-          Saved {formatTimestamp(lastSavedAt)}
+          {t("persistence.saved", { timestamp: formatTimestamp(lastSavedAt) })}
         </span>
       )}
     </div>

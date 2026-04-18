@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { ExecutionEvent } from "@/domain/models/executionEvent";
 
 /** A node-scoped execution event (events with a `nodeId` field). */
@@ -41,6 +42,7 @@ function formatPayload(payload: unknown): string {
  * in a `<pre>` block. Each event's payload is copyable to the clipboard.
  */
 export function EventTimeline({ events, onCopy }: EventTimelineProps) {
+  const { t } = useTranslation();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const copyFn = onCopy ?? defaultCopyToClipboard;
 
@@ -65,7 +67,7 @@ export function EventTimeline({ events, onCopy }: EventTimelineProps) {
   if (sorted.length === 0) {
     return (
       <div data-testid="event-timeline-empty" style={{ color: "#94a3b8", fontStyle: "italic" }}>
-        No events recorded for this node.
+        {t("execution.noEvents")}
       </div>
     );
   }
@@ -137,7 +139,7 @@ export function EventTimeline({ events, onCopy }: EventTimelineProps) {
                     fontSize: 11,
                   }}
                 >
-                  {copiedIndex === idx ? "Copied!" : "Copy"}
+                  {copiedIndex === idx ? t("execution.copied") : t("execution.copyAction")}
                 </button>
               </div>
             ) : null}

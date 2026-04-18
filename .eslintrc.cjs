@@ -46,6 +46,18 @@ module.exports = {
       "error",
       { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
     ],
+    // Reject hard-coded strings in JSX text nodes — use t() from react-i18next instead.
+    "react/jsx-no-literals": [
+      "warn",
+      {
+        noStrings: true,
+        ignoreProps: true,
+        allowedStrings: [
+          " ", "\u00a0", "—", "·", "↻", "×", "▾", "▸", "✕",
+          "true", "false",
+        ],
+      },
+    ],
 
   },
   ignorePatterns: ["dist/", "node_modules/", "coverage/", "*.config.*"],

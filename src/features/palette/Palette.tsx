@@ -1,5 +1,6 @@
 import { useRef, useCallback, useMemo, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useTranslation } from "react-i18next";
 import { useWorkflowStore } from "@/store/hooks";
 import { PaletteCategory } from "@/features/palette/PaletteCategory";
 import { PaletteItem } from "@/features/palette/PaletteItem";
@@ -62,6 +63,7 @@ export interface PaletteProps {
 const DEFAULT_CENTER: Position = { x: 0, y: 0 };
 
 export function Palette({ getViewportCenter }: PaletteProps = {}) {
+  const { t } = useTranslation();
   const specs = useWorkflowStore((s) => s.registry.list(), shallowArrayEqual);
   const addNode = useWorkflowStore((s) => s.addNode);
   const registry = useWorkflowStore((s) => s.registry);
@@ -162,7 +164,7 @@ export function Palette({ getViewportCenter }: PaletteProps = {}) {
       </div>
       {filteredSpecs.length === 0 && debouncedQuery.trim() !== "" ? (
         <div role="status" style={{ padding: "8px", textAlign: "center" }}>
-          No matching nodes
+          {t("palette.noMatching")}
         </div>
       ) : (
         <div

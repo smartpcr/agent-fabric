@@ -1,4 +1,5 @@
 import { useCallback, useRef, type ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { CURRENT_SCHEMA_VERSION, type WorkflowGraph } from "@/domain/models/graph";
 import { GraphJsonV1 } from "@/domain/serialization/schema.v1";
 import { migrate } from "@/domain/serialization/migrate";
@@ -70,6 +71,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
  * timestamp.
  */
 export function ExportButton({ graph, onDownload = downloadBlob }: ExportButtonProps) {
+  const { t } = useTranslation();
   const handleExport = useCallback(() => {
     const json = JSON.stringify(graph, null, 2);
     const blob = new Blob([json], { type: "application/json" });
@@ -84,7 +86,7 @@ export function ExportButton({ graph, onDownload = downloadBlob }: ExportButtonP
       aria-label="Export workflow"
       onClick={handleExport}
     >
-      Export
+      {t("persistence.export")}
     </button>
   );
 }
@@ -198,6 +200,7 @@ export function ImportButton({
   // eslint-disable-next-line no-alert -- intentional user confirmation dialog
   confirm: confirmFn = (msg: string) => window.confirm(msg),
 }: ImportButtonProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
 
@@ -248,7 +251,7 @@ export function ImportButton({
         aria-label="Import workflow"
         onClick={handleClick}
       >
-        Import
+        {t("persistence.import")}
       </button>
       <input
         ref={inputRef}

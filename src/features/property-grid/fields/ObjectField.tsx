@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import type { z } from "zod";
+import { useTranslation } from "react-i18next";
 import type { FieldComponentProps, FieldResolver } from "@/features/property-grid/registry";
 import { SchemaFormFields } from "@/features/property-grid/SchemaForm";
 
@@ -63,6 +64,7 @@ export function ObjectField({
   fieldRegistry,
   childErrors,
 }: ObjectFieldProps) {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(() => readCollapsed(descriptor.name));
 
   const toggleCollapsed = useCallback(() => {
@@ -146,7 +148,7 @@ export function ObjectField({
               fieldRegistry={fieldRegistry}
             />
           ) : (
-            <span data-testid={`object-no-schema-${descriptor.name}`}>No schema provided</span>
+            <span data-testid={`object-no-schema-${descriptor.name}`}>{t("propertyGrid.noSchema")}</span>
           )}
         </div>
       )}
