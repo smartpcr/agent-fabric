@@ -23,13 +23,13 @@
   - Test: E2E — screenshots match baseline; axe reports 0 contrast violations.
   - Effort: 3h
 
-- [ ] **Step 4**: axe-core automated checks in CI on all main pages
+- [x] **Step 4**: axe-core automated checks in CI on all main pages
   - File(s): `tests/e2e/accessibility.spec.ts` (extend), `.github/workflows/e2e.yml` (extend)
   - Contents: Scan editor + run view + imported workflow view; fail on any violation.
   - Test: 0 violations gate in CI.
   - Effort: 2h
 
-- [ ] **Step 5**: Screen-reader manual walkthrough documented
+- [x] **Step 5**: Screen-reader manual walkthrough documented
   - File(s): `docs/a11y-walkthrough.md`
   - Contents: Step-by-step NVDA (Windows) and VoiceOver (macOS) walk; expected announcements; known gaps.
   - Effort: 2h
