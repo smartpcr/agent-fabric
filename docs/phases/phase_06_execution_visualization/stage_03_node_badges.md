@@ -23,7 +23,7 @@
   - Test: 100% — increments; absent when not a loop.
   - Effort: 2h
 
-- [ ] **Step 4**: `BaseNode` consumes `useExecutionState(nodeId)` and renders badges
+- [x] **Step 4**: `BaseNode` consumes `useExecutionState(nodeId)` and renders badges
   - File(s): `src/features/nodes/BaseNode.tsx` (extend), `src/features/execution/useExecutionState.ts`, `tests/unit/features/nodes/BaseNode.execution.test.tsx`
   - Contents: Hook subscribes to `activeRunId` + `nodeId`; passes state to badge; cleanup on unmount.
   - Test: 100% — badge updates on store change; no subscription leak.
