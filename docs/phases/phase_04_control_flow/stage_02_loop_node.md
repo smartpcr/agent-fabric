@@ -47,7 +47,7 @@
   - Test: Integration — edit via node UI reflects in store and property grid.
   - Effort: 2h
 
-- [ ] **Step 8**: Integration — while-loop; nested while inside for-each; validator passes
+- [x] **Step 8**: Integration — while-loop; nested while inside for-each; validator passes
   - File(s): `tests/integration/loop.end-to-end.test.tsx`
   - Contents: Build nested loops; validator returns ok; serialize; deserialize; deep-equal.
   - Test: Green.
