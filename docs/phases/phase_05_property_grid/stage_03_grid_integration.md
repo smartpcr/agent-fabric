@@ -41,7 +41,7 @@
   - Test: axe-core reports 0 violations on property grid panel.
   - Effort: 3h
 
-- [ ] **Step 7**: Integration — edit TaskNode `name`, verify `BaseNode` header updates
+- [x] **Step 7**: Integration — edit TaskNode `name`, verify `BaseNode` header updates
   - File(s): `tests/integration/property-grid.live-update.test.tsx`
   - Contents: Edit name via grid; after 300ms debounce, node header reflects the new value.
   - Test: Green.
