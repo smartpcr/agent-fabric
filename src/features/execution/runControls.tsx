@@ -1,0 +1,91 @@
+import { useEffect, useCallback } from "react";
+import { useExecutionCommand, type ExecutionCommand } from "@/hooks/useExecutionCommand";
+import type { RunStatus } from "@/store/slices/executionSlice";
+
+export interface RunControlsProps {
+  /** Current run status (determines disabled states). `undefined` means no active run. */
+  readonly runStatus: RunStatus | undefined;
+}
+
+/**
+ * Run control buttons: Start, Pause, and Cancel.
+ *
+ * Dispatches typed commands to `IExecutionCommandSink` via `useExecutionCommand`.
+ * Buttons are disabled based on the current `runStatus`:
+ * - Start: disabled when running
+ * - Pause: disabled when not running
+ * - Cancel: disabled when not running
+ *
+ * Keyboard shortcuts:
+ * - Ctrl+R → run
+ * - Ctrl+. → cancel
+ */
+export function RunControls({ runStatus }: RunControlsProps) {
+  const { dispatch } = useExecutionCommand();
+
+  const isRunning = runStatus === "running";
+
+  const handleDispatch = useCallback(
+    (command: ExecutionCommand) => {
+      void dispatch(command);
+    },
+    [dispatch],
+  );
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) {
+        return;
+      }
+
+      if (e.key === "r" && !isRunning) {
+        e.preventDefault();
+        handleDispatch({ type: "run" });
+      } else if (e.key === "." && isRunning) {
+        e.preventDefault();
+        handleDispatch({ type: "cancel" });
+      }
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => {
+      window.removeEventListener("keydown", handler);
+    };
+  }, [isRunning, handleDispatch]);
+
+  return (
+    <div data-testid="run-controls" role="toolbar" aria-label="Run controls">
+      <button
+        data-testid="run-btn"
+        aria-label="Start run"
+        disabled={isRunning}
+        onClick={() => {
+          handleDispatch({ type: "run" });
+        }}
+      >
+        Start
+      </button>
+      <button
+        data-testid="pause-btn"
+        aria-label="Pause run"
+        disabled={!isRunning}
+        onClick={() => {
+          handleDispatch({ type: "pause" });
+        }}
+      >
+        Pause
+      </button>
+      <button
+        data-testid="cancel-btn"
+        aria-label="Cancel run"
+        disabled={!isRunning}
+        onClick={() => {
+          handleDispatch({ type: "cancel" });
+        }}
+      >
+        Cancel
+      </button>
+    </div>
+  );
+}
