@@ -1,10 +1,11 @@
 # Phase 5 — Stage 4: Phase 5 E2E
+
 > Playwright scenarios covering property-grid editing, validation, arrays, multi-select, and accessibility.
 > Status: `[ ]` not started · **Effort**: 14h
 
 ## Steps
 
-- [ ] **Step 1**: E2E — edit string field, reload, value persists
+- [x] **Step 1**: E2E — edit string field, reload, value persists
   - File(s): `tests/e2e/property-grid.spec.ts`
   - Contents: Select a node; edit `name`; wait for debounce + autosave; reload; assert value restored.
   - Test: Green.
@@ -34,6 +35,7 @@
   - Effort: 2h
 
 ## Acceptance for Stage 4
+
 - All 5 steps `[x]` with score ≥ 90.
 - Phase 5 scored ≥ 90 overall.
 - E2E matrix green.

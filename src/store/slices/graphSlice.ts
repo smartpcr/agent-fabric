@@ -64,6 +64,8 @@ export interface GraphSlice {
   applyEdgeChanges: (changes: EdgeChange[]) => void;
   /** Run ELK auto-layout and update node positions in a single undo step. */
   applyLayout: (strategy?: LayoutStrategy) => Promise<void>;
+  /** Restore a full graph snapshot (nodes + edges). Used by persistence. */
+  restoreGraph: (nodes: WorkflowNode[], edges: WorkflowEdge[]) => void;
 }
 
 export function createGraphSlice(
@@ -146,7 +148,7 @@ export function createGraphSlice(
         return { ok: false, error: [{ path: "", message: `Node "${id}" not found` }] };
       }
 
-      const spec = state.nodeSpecs[node.kind];
+      const spec = state.nodeSpecs[node.kind] ?? state.registry.get(node.kind);
       if (!spec) {
         return { ok: false, error: [{ path: "", message: `No spec for kind "${node.kind}"` }] };
       }
@@ -257,6 +259,9 @@ export function createGraphSlice(
       } catch {
         set({ layoutRunning: false });
       }
+    },
+    restoreGraph: (nodes: WorkflowNode[], edges: WorkflowEdge[]) => {
+      set({ nodes, edges });
     },
   };
 }
