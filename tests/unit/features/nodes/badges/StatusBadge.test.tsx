@@ -8,55 +8,94 @@ afterEach(() => {
 
 // ─── Status × icon × label mapping ──────────────────────────────────
 
-const STATUS_CASES: { status: BadgeStatus; expectedLabel: string; iconTestId: string }[] = [
-  { status: "pending", expectedLabel: "Pending", iconTestId: "badge-icon-pending" },
-  { status: "running", expectedLabel: "Running", iconTestId: "badge-icon-running" },
-  { status: "success", expectedLabel: "Succeeded", iconTestId: "badge-icon-success" },
-  { status: "error", expectedLabel: "Failed", iconTestId: "badge-icon-error" },
-  { status: "skipped", expectedLabel: "Skipped", iconTestId: "badge-icon-skipped" },
+const STATUS_CASES: {
+  status: BadgeStatus;
+  expectedLabel: string;
+  iconTestId: string;
+  expectedIconClass: string;
+}[] = [
+  {
+    status: "pending",
+    expectedLabel: "Pending",
+    iconTestId: "badge-icon-pending",
+    expectedIconClass: "lucide-clock",
+  },
+  {
+    status: "running",
+    expectedLabel: "Running",
+    iconTestId: "badge-icon-running",
+    expectedIconClass: "lucide-loader-circle",
+  },
+  {
+    status: "success",
+    expectedLabel: "Succeeded",
+    iconTestId: "badge-icon-success",
+    expectedIconClass: "lucide-circle-check",
+  },
+  {
+    status: "error",
+    expectedLabel: "Failed",
+    iconTestId: "badge-icon-error",
+    expectedIconClass: "lucide-circle-x",
+  },
+  {
+    status: "skipped",
+    expectedLabel: "Skipped",
+    iconTestId: "badge-icon-skipped",
+    expectedIconClass: "lucide-skip-forward",
+  },
 ];
 
 describe("StatusBadge", () => {
   // ── Per-state rendering ──────────────────────────────────────
 
-  describe.each(STATUS_CASES)("status = $status", ({ status, expectedLabel, iconTestId }) => {
-    it("renders the correct icon", () => {
-      render(<StatusBadge status={status} />);
-      const icon = screen.getByTestId(iconTestId);
-      expect(icon).toBeInTheDocument();
-      expect(icon.tagName.toLowerCase()).toBe("svg");
-    });
+  describe.each(STATUS_CASES)(
+    "status = $status",
+    ({ status, expectedLabel, iconTestId, expectedIconClass }) => {
+      it("renders the correct icon", () => {
+        render(<StatusBadge status={status} />);
+        const icon = screen.getByTestId(iconTestId);
+        expect(icon).toBeInTheDocument();
+        expect(icon.tagName.toLowerCase()).toBe("svg");
+      });
 
-    it("renders the correct label text", () => {
-      render(<StatusBadge status={status} />);
-      const label = screen.getByTestId("badge-label");
-      expect(label.textContent).toBe(expectedLabel);
-    });
+      it("renders the expected lucide icon for the status", () => {
+        render(<StatusBadge status={status} />);
+        const icon = screen.getByTestId(iconTestId);
+        expect(icon.classList.toString()).toContain(expectedIconClass);
+      });
 
-    it("has role=status", () => {
-      render(<StatusBadge status={status} />);
-      const badge = screen.getByRole("status");
-      expect(badge).toBeInTheDocument();
-    });
+      it("renders the correct label text", () => {
+        render(<StatusBadge status={status} />);
+        const label = screen.getByTestId("badge-label");
+        expect(label.textContent).toBe(expectedLabel);
+      });
 
-    it("has aria-label describing the state", () => {
-      render(<StatusBadge status={status} />);
-      const badge = screen.getByRole("status");
-      expect(badge).toHaveAttribute("aria-label", expectedLabel);
-    });
+      it("has role=status", () => {
+        render(<StatusBadge status={status} />);
+        const badge = screen.getByRole("status");
+        expect(badge).toBeInTheDocument();
+      });
 
-    it("sets data-status attribute", () => {
-      render(<StatusBadge status={status} />);
-      const badge = screen.getByTestId("status-badge");
-      expect(badge).toHaveAttribute("data-status", status);
-    });
+      it("has aria-label describing the state", () => {
+        render(<StatusBadge status={status} />);
+        const badge = screen.getByRole("status");
+        expect(badge).toHaveAttribute("aria-label", expectedLabel);
+      });
 
-    it("icon has aria-hidden=true", () => {
-      render(<StatusBadge status={status} />);
-      const icon = screen.getByTestId(iconTestId);
-      expect(icon).toHaveAttribute("aria-hidden", "true");
-    });
-  });
+      it("sets data-status attribute", () => {
+        render(<StatusBadge status={status} />);
+        const badge = screen.getByTestId("status-badge");
+        expect(badge).toHaveAttribute("data-status", status);
+      });
+
+      it("icon has aria-hidden=true", () => {
+        render(<StatusBadge status={status} />);
+        const icon = screen.getByTestId(iconTestId);
+        expect(icon).toHaveAttribute("aria-hidden", "true");
+      });
+    },
+  );
 
   // ── Structural checks ────────────────────────────────────────
 
@@ -84,5 +123,16 @@ describe("StatusBadge", () => {
     const errorIcon = screen.getByTestId("badge-icon-error").innerHTML;
 
     expect(pendingIcon).not.toBe(errorIcon);
+  });
+
+  it("all five statuses produce distinct icons", () => {
+    const iconClasses = new Set<string>();
+    for (const { status, iconTestId } of STATUS_CASES) {
+      const { unmount } = render(<StatusBadge status={status} />);
+      const icon = screen.getByTestId(iconTestId);
+      iconClasses.add(icon.classList.toString());
+      unmount();
+    }
+    expect(iconClasses.size).toBe(5);
   });
 });
