@@ -23,6 +23,12 @@ export interface FieldDescriptor {
   readonly enumValues?: readonly string[];
   /** Schema description (from `.describe()`), used for placeholders/hints. */
   readonly description?: string;
+  /** Minimum value for number fields (from Zod `.min()`). */
+  readonly min?: number;
+  /** Maximum value for number fields (from Zod `.max()`). */
+  readonly max?: number;
+  /** Step value for number fields (from Zod `.step()` / `.multipleOf()`). */
+  readonly step?: number;
   /** Child descriptors for nested object fields. */
   readonly children?: readonly FieldDescriptor[];
   /** Descriptor for array element type. */
@@ -47,6 +53,17 @@ interface ZodDef {
 function getZodDef(schema: unknown): ZodDef | undefined {
   const typed = schema as { _zod?: { def?: ZodDef } } | null | undefined;
   return typed?._zod?.def;
+}
+
+interface ZodBag {
+  readonly minimum?: number;
+  readonly maximum?: number;
+  readonly multipleOf?: number;
+}
+
+function getZodBag(schema: unknown): ZodBag | undefined {
+  const typed = schema as { _zod?: { bag?: ZodBag } } | null | undefined;
+  return typed?._zod?.bag;
 }
 
 interface UnwrapResult {
@@ -88,6 +105,27 @@ const ZOD_TYPE_MAP: Record<string, FieldDescriptor["type"]> = {
   record: "record",
 };
 
+/** Extract description from Zod's .describe() */
+function extractDescription(schema: z.ZodType): string | undefined {
+  const desc = (schema as { description?: unknown }).description;
+  return typeof desc === "string" ? desc : undefined;
+}
+
+/** Extract numeric constraints from Zod's bag */
+function extractNumericConstraints(
+  type: FieldDescriptor["type"],
+  inner: z.ZodType,
+): Pick<FieldDescriptor, "min" | "max" | "step"> {
+  if (type !== "number") return {};
+  const bag = getZodBag(inner);
+  if (!bag) return {};
+  return {
+    min: bag.minimum,
+    max: bag.maximum,
+    step: bag.multipleOf,
+  };
+}
+
 /**
  * Introspect a single Zod type into a partial FieldDescriptor (without name).
  * Used to describe array element types and record value types.
@@ -111,17 +149,12 @@ function introspectType(schema: z.ZodType): Omit<FieldDescriptor, "name"> {
       ? { name: "value", ...introspectType(innerDef.valueType as z.ZodType) }
       : undefined;
 
-  // Extract description from Zod's .describe() — stored on the schema object itself
-  const description =
-    typeof (schema as { description?: unknown }).description === "string"
-      ? (schema as { description: string }).description
-      : undefined;
-
   return {
     type,
     required: unwrapped.required,
     defaultValue: unwrapped.defaultValue,
-    description,
+    description: extractDescription(schema),
+    ...extractNumericConstraints(type, unwrapped.inner),
     enumValues: type === "enum" && enumEntries ? Object.values(enumEntries) : undefined,
     children: children && children.length > 0 ? children : undefined,
     elementType,
