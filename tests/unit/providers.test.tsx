@@ -18,9 +18,10 @@ import { useTelemetry } from "@/hooks/useTelemetry";
 
 function stubRepo(): IWorkflowRepository {
   return {
-    load: vi.fn().mockResolvedValue({}),
-    save: vi.fn().mockResolvedValue(undefined),
-    list: vi.fn().mockResolvedValue([]),
+    get: vi.fn().mockResolvedValue({ ok: true, value: { graph: {}, etag: "etag-1" } }),
+    save: vi.fn().mockResolvedValue({ ok: true, value: { id: "w-1", etag: "etag-2" } }),
+    create: vi.fn().mockResolvedValue({ ok: true, value: { id: "w-1", etag: "etag-1" } }),
+    list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
   };
 }
 

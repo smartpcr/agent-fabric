@@ -23,7 +23,7 @@
   - Test: Green.
   - Effort: 2h
 
-- [ ] **Step 4**: E2E — reduced-motion mode disables animations but keeps state indicators
+- [x] **Step 4**: E2E — reduced-motion mode disables animations but keeps state indicators
   - File(s): `tests/e2e/run-workflow.spec.ts` (extend)
   - Contents: Run with `forcedColors` + `prefersReducedMotion` in Playwright context; assert static icons; no CSS animation class.
   - Test: Green.
