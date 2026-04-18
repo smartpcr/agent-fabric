@@ -21,10 +21,10 @@ describe("IterationBadge", () => {
 
   // ── Renders with iteration only ────────────────────────────────
 
-  it("shows iteration number without total", () => {
+  it("shows iteration number with ? when total is absent", () => {
     render(<IterationBadge iteration={3} />);
     const text = screen.getByTestId("iteration-text");
-    expect(text.textContent).toBe("3");
+    expect(text.textContent).toBe("3 / ?");
   });
 
   it("has correct aria-label without total", () => {
