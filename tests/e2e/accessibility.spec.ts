@@ -1,15 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-/**
- * Known pre-existing structural violations that are not contrast-related
- * and are tracked separately from this accessibility gate.
- */
-const EXCLUDED_RULES = ["aria-required-children", "region"];
-
 /** Run axe-core and assert 0 violations, logging details on failure. */
 async function assertNoAxeViolations(page: Page, context: string) {
-  const results = await new AxeBuilder({ page }).disableRules(EXCLUDED_RULES).analyze();
+  const results = await new AxeBuilder({ page }).analyze();
 
   if (results.violations.length > 0) {
     const summary = results.violations.map((v) => ({

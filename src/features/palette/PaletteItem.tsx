@@ -65,7 +65,7 @@ export function PaletteItem({ spec, disabled = false, style }: PaletteItemProps)
             <span>{spec.label}</span>
           </div>
         </Tooltip.Trigger>
-        <Tooltip.Portal>
+        <Tooltip.Portal container={document.getElementById("portal-root") ?? undefined}>
           <Tooltip.Content side="right" sideOffset={8}>
             {description}
             <Tooltip.Arrow />

@@ -21,6 +21,9 @@ export function useDragStart({ kind, disabled = false }: UseDragStartOptions): U
     (e: React.PointerEvent) => {
       if (disabled || state.isDragging) return;
 
+      // Prevent text selection during drag
+      e.preventDefault();
+
       const el = e.currentTarget as HTMLElement;
       const pointerId = e.pointerId;
       startPos.current = { x: e.clientX, y: e.clientY };

@@ -30,6 +30,7 @@ export function EditorPage() {
                   Workflow Editor
                 </h1>
                 <EditorLayout />
+                <div id="portal-root" />
               </main>
               <DragGhost />
             </DragProvider>

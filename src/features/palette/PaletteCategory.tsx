@@ -14,12 +14,16 @@ export function PaletteCategory({
   onToggle,
 }: PaletteCategoryProps) {
   return (
-    <div data-testid={`palette-category-${category}`}>
-      <button
-        type="button"
-        aria-expanded={defaultExpanded}
+    <div role="group" aria-label={category} data-testid={`palette-category-${category}`}>
+      <div
+        role="none"
         onClick={onToggle}
-        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle?.();
+          }
+        }}
         style={{
           width: "100%",
           textAlign: "left",
@@ -35,7 +39,7 @@ export function PaletteCategory({
       >
         <span aria-hidden="true">{defaultExpanded ? "▾" : "▸"}</span>
         {category}
-      </button>
+      </div>
       {defaultExpanded && children}
     </div>
   );

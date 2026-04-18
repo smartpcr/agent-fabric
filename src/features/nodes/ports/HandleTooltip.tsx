@@ -18,7 +18,7 @@ export function HandleTooltip({ portSpec, children }: HandleTooltipProps) {
     <Tooltip.Provider delayDuration={200}>
       <Tooltip.Root>
         <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
-        <Tooltip.Portal>
+        <Tooltip.Portal container={document.getElementById("portal-root") ?? undefined}>
           <Tooltip.Content side="top" sideOffset={6}>
             {content}
             <Tooltip.Arrow />
