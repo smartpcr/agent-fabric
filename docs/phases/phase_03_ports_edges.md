@@ -44,3 +44,33 @@
 - All steps `[x]` with score ≥ 90.
 - Multi-port TaskNode fixture lives in `tests/fixtures/` for reuse in Phases 4–6.
 - Zero axe-core violations on editor page with multi-port graph.
+
+## Acceptance Scorecard
+
+> Verified on completion of Stage 4 Step 5. All scores from evaluator iterations. Stage 5 (E2E) is not yet started and is excluded from scoring.
+
+### Exit Criteria Verification
+
+| #   | Criterion                                                                      | Evidence                                                                                                                                              | Verdict |
+| --- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1   | TaskNode variant exposes 2 inputs + 3 outputs; only compatible pairs connected | `MultiPortTaskNodeSpec` in `tests/fixtures/multiPortSpec.ts`; `connectionRules.ts` rejects incompatible pairs ✓                                       | ✅ Pass |
+| 2   | Invalid connection → rejection toast; no store mutation                        | `Canvas.tsx` `tryConnect` error path + `tests/integration/connection.rejection.test.tsx` ✓                                                            | ✅ Pass |
+| 3   | Edge labels render and are editable inline                                     | `DefaultEdge.tsx` label rendering + `InlineLabelEditor.tsx` double-click edit + `tests/unit/features/edges/InlineLabelEditor.test.tsx` ✓              | ✅ Pass |
+| 4   | Keyboard path: focus output → Enter → arrow → Enter to commit                  | `tests/integration/connection.keyboard.test.tsx` (8 tests) ✓                                                                                          | ✅ Pass |
+| 5   | Required input ports show visible indicator when unconnected                   | `InputHandle.tsx` emits `data-missing="true"` + CSS red outline in `tailwind.css` + `tests/unit/features/nodes/ports/InputHandle.required.test.tsx` ✓ | ✅ Pass |
+
+### Per-Stage Scores
+
+| Stage                                  |  Steps | Scores (per step)          | Stage Avg |
+| -------------------------------------- | -----: | -------------------------- | --------- |
+| 1 — Port Rendering                     |      6 | 94, 93, 92, 93, 94, 93     | **93.2**  |
+| 2 — Connection Interaction             |      6 | 93, 94, 92, 93, 93, 94     | **93.2**  |
+| 3 — Edge Rendering                     |      7 | 94, 93, 93, 94, 93, 92, 94 | **93.3**  |
+| 4 — Cardinality & DataType Enforcement |      5 | 93, 94, 93, 96, 94         | **94.0**  |
+| **Overall (stages 1–4)**               | **24** |                            | **93.4**  |
+
+### Test Evidence Summary
+
+- **Unit/Integration**: 972 tests, 97 files — all passing (`npx vitest run`)
+- **Multi-port fixture**: `tests/fixtures/multiPortSpec.ts` present for reuse in Phases 4–6
+- **Build**: `npx vite build` succeeds
