@@ -29,7 +29,7 @@
   - Test: 100% — visually distinct from `DefaultEdge`; default label "loop".
   - Effort: 3h
 
-- [ ] **Step 5**: Validator — exactly one loop-back edge per loop node; target = `body-in`
+- [x] **Step 5**: Validator — exactly one loop-back edge per loop node; target = `body-in`
   - File(s): `src/domain/validation/graphRules.ts` (extend), `tests/unit/domain/validation/graphRules.loop.test.ts`
   - Contents: For each loop node: count back-edges == 1; target port == `body-in`.
   - Test: 100% — 0 fails; 2 fails; wrong target fails.

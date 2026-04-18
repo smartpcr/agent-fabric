@@ -45,7 +45,9 @@ const loopSpec = spec(
   "loop",
   [
     makeInputPort({ id: "in", label: "In", dataType: "any" }),
-    makeOutputPort({ id: "out", label: "Out", dataType: "any" }),
+    makeOutputPort({ id: "body-out", label: "Body Out", dataType: "any" }),
+    makeInputPort({ id: "body-in", label: "Body In", dataType: "any" }),
+    makeOutputPort({ id: "done", label: "Done", dataType: "any" }),
   ],
   ["canHaveBackEdge"],
 );
@@ -95,11 +97,17 @@ describe("validateGraph", () => {
     );
     g = addEdgeToGraph(
       g,
-      makeEdge({ source: loop.id, sourcePort: "out", target: loop.id, targetPort: "in" }),
+      makeEdge({
+        source: loop.id,
+        sourcePort: "body-out",
+        target: loop.id,
+        targetPort: "body-in",
+        kind: "loop-back",
+      }),
     );
     g = addEdgeToGraph(
       g,
-      makeEdge({ source: loop.id, sourcePort: "out", target: end.id, targetPort: "in" }),
+      makeEdge({ source: loop.id, sourcePort: "done", target: end.id, targetPort: "in" }),
     );
 
     const result = validateGraph(g, registry);
@@ -258,7 +266,7 @@ describe("validateGraph", () => {
     );
     g = addEdgeToGraph(
       g,
-      makeEdge({ source: loop.id, sourcePort: "out", target: end.id, targetPort: "in" }),
+      makeEdge({ source: loop.id, sourcePort: "done", target: end.id, targetPort: "in" }),
     );
 
     const result = validateGraph(g, registry);
@@ -285,15 +293,27 @@ describe("validateGraph", () => {
     );
     g = addEdgeToGraph(
       g,
-      makeEdge({ source: loop.id, sourcePort: "out", target: loop.id, targetPort: "in" }),
+      makeEdge({
+        source: loop.id,
+        sourcePort: "body-out",
+        target: loop.id,
+        targetPort: "body-in",
+        kind: "loop-back",
+      }),
     );
     g = addEdgeToGraph(
       g,
-      makeEdge({ source: loop.id, sourcePort: "out", target: loop.id, targetPort: "in" }),
+      makeEdge({
+        source: loop.id,
+        sourcePort: "body-out",
+        target: loop.id,
+        targetPort: "body-in",
+        kind: "loop-back",
+      }),
     );
     g = addEdgeToGraph(
       g,
-      makeEdge({ source: loop.id, sourcePort: "out", target: end.id, targetPort: "in" }),
+      makeEdge({ source: loop.id, sourcePort: "done", target: end.id, targetPort: "in" }),
     );
 
     const result = validateGraph(g, registry);
