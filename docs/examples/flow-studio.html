@@ -474,7 +474,12 @@
       var(--node-shadow);
     z-index: 2;
   }
-  .node.dragging { cursor: grabbing; opacity: 0.85; }
+  .node.dragging { cursor: grabbing; opacity: 0.85; pointer-events: none; }
+  .branch-port.reparent-target,
+  .container-body.reparent-target {
+    border-color: var(--accent);
+    background: rgba(229,179,106,0.16);
+  }
 
   .node-head {
     display: flex; align-items: center; gap: 8px;
@@ -550,10 +555,12 @@
   .port.out { bottom: -7px; left: 50%; transform: translateX(-50%); }
   .port.out:hover { transform: translateX(-50%) scale(1.4); }
   .port.error {
-    bottom: -7px; right: 14px;
+    /* Anchor to the node's head row so error stays put as the body/branches grow */
+    top: 19px; right: -7px;
     background: var(--bg-4); border-color: var(--err);
   }
-  .port.error:hover { background: var(--err); }
+  .port.error:hover { transform: scale(1.4); background: var(--err); }
+  .node.nested > .port.error { top: 13px; }
   .port-label {
     position: absolute;
     font-size: 9px;
@@ -641,7 +648,8 @@
   .node.nested .node-head { padding: 6px 8px; }
   .node.nested .node-body { padding: 6px 8px; font-size: 11px; }
   .node.nested > .port.in,
-  .node.nested > .port.out {
+  .node.nested > .port.out,
+  .node.nested > .port.error {
     /* Keep visible so nested edges/insertion stays clear */
     width: 8px; height: 8px;
   }
@@ -660,7 +668,14 @@
   }
   .drop-zone.above { top: -10px; }
   .drop-zone.below { bottom: -10px; }
-  .drop-zone.error-below { bottom: -10px; left: auto; right: 4px; width: 32px; }
+  /* Error drop band sits next to the error port on the head row */
+  .drop-zone.error-right {
+    top: 6px;
+    left: auto; right: -10px;
+    width: 14px;
+    height: 28px;
+  }
+  .node.nested > .drop-zone.error-right { height: 22px; }
   body.dragging-palette .drop-zone {
     pointer-events: auto;
     opacity: 1;
@@ -671,6 +686,39 @@
   body.dragging-palette .drop-zone.drop-active {
     background: var(--accent);
     border-color: var(--accent);
+  }
+  /* Nested children get explicit gap slots between siblings, so per-child above/below
+     bands would be redundant (and would overlap). Hide them. */
+  body.dragging-palette .node.nested > .drop-zone.above,
+  body.dragging-palette .node.nested > .drop-zone.below { display: none; }
+
+  /* Inline "drop here" slots that appear between sibling children inside a slot
+     while a palette item is being dragged. */
+  .gap-drop-slot {
+    height: 0;
+    margin: 0;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    overflow: hidden;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-align: center;
+    transition: height 0.1s, opacity 0.1s, background 0.1s;
+  }
+  body.dragging-palette .gap-drop-slot {
+    pointer-events: auto;
+    opacity: 1;
+    height: 22px;
+    line-height: 22px;
+    background: rgba(229,179,106,0.10);
+    border: 1px dashed var(--accent);
+  }
+  body.dragging-palette .gap-drop-slot::before { content: 'Drop here'; }
+  body.dragging-palette .gap-drop-slot.drop-active {
+    background: var(--accent);
+    color: var(--accent-btn-text);
   }
 
   /* Node status ring */
@@ -1415,7 +1463,7 @@ function getPortPos(node, portKind, portName) {
 
   if (portKind === 'in') return { x: node.x + width/2, y: node.y };
   if (portKind === 'out') return { x: node.x + width/2, y: node.y + height };
-  if (portKind === 'error') return { x: node.x + width - 14, y: node.y + height };
+  if (portKind === 'error') return { x: node.x + width, y: node.y + 19 };
   if (portKind === 'branch') {
     const branches = type.branches || [];
     const idx = branches.indexOf(portName);
@@ -1634,15 +1682,43 @@ const Nodes = {
         empty.textContent = 'Drop component';
         slotEl.appendChild(empty);
       } else {
-        childIds.forEach(cid => {
+        // Render: gap[0] child[0] gap[1] child[1] gap[2] ...
+        slotEl.appendChild(this.makeGapSlot(parentNode.id, slot, 0));
+        childIds.forEach((cid, i) => {
           const child = State.nodes.get(cid);
           if (!child) return;
           const childEl = this.createElement(child, true);
           slotEl.appendChild(childEl);
           this.renderChildrenInto(childEl, child);
+          slotEl.appendChild(this.makeGapSlot(parentNode.id, slot, i + 1));
         });
       }
     });
+  },
+
+  makeGapSlot(parentId, slot, index) {
+    const gap = document.createElement('div');
+    gap.className = 'gap-drop-slot';
+    gap.dataset.parentId = parentId;
+    gap.dataset.slot = slot;
+    gap.dataset.index = String(index);
+    gap.addEventListener('dragover', (e) => {
+      if (!e.dataTransfer.types.includes('text/flow-node')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'copy';
+      gap.classList.add('drop-active');
+    });
+    gap.addEventListener('dragleave', () => gap.classList.remove('drop-active'));
+    gap.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      gap.classList.remove('drop-active');
+      const type = e.dataTransfer.getData('text/flow-node');
+      if (!type) return;
+      App.createChildNode(type, parentId, slot, index);
+    });
+    return gap;
   },
 
   findSlotEl(parentEl, parentNode, slot) {
@@ -1707,7 +1783,7 @@ const Nodes = {
     // Insertion drop zones — above the node (before its onStart) and below (after its onFinish/onError).
     const dropAbove = ports.in ? `<div class="drop-zone above" data-node-id="${node.id}" data-position="before"></div>` : '';
     const dropBelow = (ports.out || type.branches) ? `<div class="drop-zone below" data-node-id="${node.id}" data-position="after"></div>` : '';
-    const dropError = ports.error ? `<div class="drop-zone error-below" data-node-id="${node.id}" data-position="after-error"></div>` : '';
+    const dropError = ports.error ? `<div class="drop-zone error-right" data-node-id="${node.id}" data-position="after-error"></div>` : '';
 
     return `
       ${dropAbove}
@@ -1764,7 +1840,31 @@ const Nodes = {
   attachHandlers(el, node, isNested) {
     // Position drag (top-level only — nested children flow with their slot)
     if (!isNested) {
-      let dragging = false, startPos = null, nodeStart = null;
+      let dragging = false, startPos = null, nodeStart = null, lastHover = null;
+      const clearHover = () => {
+        if (lastHover) { lastHover.classList.remove('reparent-target'); lastHover = null; }
+      };
+      const findSlotAt = (clientX, clientY) => {
+        const target = document.elementFromPoint(clientX, clientY);
+        if (!target) return null;
+        const branchEl = target.closest('.branch-port[data-parent-id]');
+        if (branchEl) {
+          const parentEl = branchEl.closest('.node');
+          const parentId = parentEl && parentEl.dataset.id;
+          if (parentId && parentId !== node.id && !App.isDescendantOf(parentId, node.id)) {
+            return { el: branchEl, parentId, slot: branchEl.dataset.branch };
+          }
+        }
+        const bodyEl = target.closest('.container-body');
+        if (bodyEl) {
+          const parentEl = bodyEl.closest('.node.container');
+          const parentId = parentEl && parentEl.dataset.id;
+          if (parentId && parentId !== node.id && !App.isDescendantOf(parentId, node.id)) {
+            return { el: bodyEl, parentId, slot: '_body' };
+          }
+        }
+        return null;
+      };
       el.addEventListener('pointerdown', (e) => {
         if (e.target.classList.contains('port')) return;
         if (e.target.closest('.collapse-btn')) return;
@@ -1785,15 +1885,24 @@ const Nodes = {
         node.y = nodeStart.y + dy;
         el.style.left = node.x + 'px';
         el.style.top = node.y + 'px';
+        // Highlight slot under cursor (if any) for re-parenting feedback.
+        const hit = findSlotAt(e.clientX, e.clientY);
+        if (hit && hit.el !== lastHover) { clearHover(); lastHover = hit.el; lastHover.classList.add('reparent-target'); }
+        else if (!hit) { clearHover(); }
         Edges.render();
         Minimap.render();
         State.isDirty = true;
       });
       el.addEventListener('pointerup', (e) => {
-        if (dragging) {
-          dragging = false;
-          el.classList.remove('dragging');
-          el.releasePointerCapture(e.pointerId);
+        if (!dragging) return;
+        dragging = false;
+        el.classList.remove('dragging');
+        el.releasePointerCapture(e.pointerId);
+        const hit = findSlotAt(e.clientX, e.clientY);
+        clearHover();
+        if (hit) {
+          App.reparentNode(node.id, hit.parentId, hit.slot);
+        } else {
           App.markDirty();
         }
       });
@@ -1939,9 +2048,16 @@ const Edges = {
   },
 
   buildPath(s, t) {
-    const dy = Math.abs(t.y - s.y);
-    const offset = Math.max(40, Math.min(dy * 0.6, 120));
-    return `M ${s.x} ${s.y} C ${s.x} ${s.y + offset}, ${t.x} ${t.y - offset}, ${t.x} ${t.y}`;
+    // Pull the end point back along the line so the SVG arrow head lands just outside
+    // the destination port instead of being covered by it.
+    const dx = t.x - s.x, dy = t.y - s.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    const back = Math.min(11, Math.max(0, dist - 2));
+    const tx = t.x - dx * back / dist;
+    const ty = t.y - dy * back / dist;
+    const vdy = Math.abs(ty - s.y);
+    const offset = Math.max(40, Math.min(vdy * 0.6, 120));
+    return `M ${s.x} ${s.y} C ${s.x} ${s.y + offset}, ${tx} ${ty - offset}, ${tx} ${ty}`;
   },
 
   startDrag(port) {
@@ -2488,6 +2604,55 @@ const App = {
     this.select('node', node.id);
     this.log('info', null, `Created node "${node.name}"`);
     return node.id;
+  },
+
+  isDescendantOf(maybeDescendantId, ancestorId) {
+    const ancestor = State.nodes.get(ancestorId);
+    if (!ancestor || !ancestor.children) return false;
+    for (const slot of Object.keys(ancestor.children)) {
+      for (const cid of ancestor.children[slot]) {
+        if (cid === maybeDescendantId) return true;
+        if (this.isDescendantOf(maybeDescendantId, cid)) return true;
+      }
+    }
+    return false;
+  },
+
+  reparentNode(nodeId, newParentId, newSlot, index) {
+    const node = State.nodes.get(nodeId);
+    const newParent = State.nodes.get(newParentId);
+    if (!node || !newParent || nodeId === newParentId) return;
+    if (this.isDescendantOf(newParentId, nodeId)) return; // prevent cycle
+    // Detach from current parent (or canvas)
+    if (node.parentId) {
+      const oldParent = State.nodes.get(node.parentId);
+      if (oldParent && oldParent.children && oldParent.children[node.parentSlot]) {
+        oldParent.children[node.parentSlot] = oldParent.children[node.parentSlot].filter(id => id !== nodeId);
+      }
+    }
+    // Attach to new parent
+    ensureChildren(newParent);
+    const arr = newParent.children[newSlot] || (newParent.children[newSlot] = []);
+    if (arr.includes(nodeId)) arr.splice(arr.indexOf(nodeId), 1);
+    if (typeof index === 'number') {
+      arr.splice(Math.max(0, Math.min(index, arr.length)), 0, nodeId);
+    } else {
+      arr.push(nodeId);
+    }
+    node.parentId = newParentId;
+    node.parentSlot = newSlot;
+    // Drop any edge from newParent's matching branch port that pointed to this node — it's
+    // now implicitly the slot's content, so an explicit edge would be redundant.
+    [...State.edges.entries()].forEach(([eid, e]) => {
+      if (e.source === newParentId && e.sourcePort === 'branch' &&
+          e.sourcePortName === newSlot && e.target === nodeId) {
+        State.edges.delete(eid);
+      }
+    });
+    this.markDirty();
+    this.renderAll();
+    this.select('node', nodeId);
+    this.log('info', null, `Moved "${node.name}" into ${newParent.name || newParent.type}/${newSlot}`);
   },
 
   createChildNode(type, parentId, slot, index) {
