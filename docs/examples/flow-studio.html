@@ -2584,7 +2584,16 @@ const App = {
     this.bindShortcuts();
     this.bindTitleInput();
     this.bindFileInput();
+    this.syncThemeIcon();
     this.renderAll();
+  },
+
+  syncThemeIcon() {
+    const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    const dark = document.querySelector('#themeToggle .theme-icon-dark');
+    const light = document.querySelector('#themeToggle .theme-icon-light');
+    if (dark) dark.style.display = theme === 'dark' ? '' : 'none';
+    if (light) light.style.display = theme === 'light' ? '' : 'none';
   },
 
   renderAll() {
@@ -2606,6 +2615,17 @@ const App = {
   markDirty() {
     State.isDirty = true;
     this.renderStatus();
+  },
+
+  toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    const next = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('flow-studio:theme', next); } catch (_) {}
+    const dark = document.querySelector('#themeToggle .theme-icon-dark');
+    const light = document.querySelector('#themeToggle .theme-icon-light');
+    if (dark) dark.style.display = next === 'dark' ? '' : 'none';
+    if (light) light.style.display = next === 'light' ? '' : 'none';
   },
 
   select(kind, id) {
