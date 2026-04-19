@@ -1,7 +1,7 @@
 # Phase 8 — Stage 1: Accessibility Hardening
 
 > Full keyboard coverage, live announcements, high-contrast theme, automated + manual a11y audits.
-> Status: `[ ]` not started · **Effort**: 14h
+> Status: `[x]` complete · **Effort**: 14h
 
 ## Steps
 

@@ -1,7 +1,7 @@
 # Phase 8 — Stage 2: Theming & i18n
 
 > Light/dark theme, i18n framework, string extraction, locale switcher.
-> Status: `[ ]` not started · **Effort**: 12h
+> Status: `[x]` complete · **Effort**: 12h
 
 ## Steps
 

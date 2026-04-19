@@ -1,7 +1,7 @@
 # Phase 8 — Stage 4: Documentation & Release
 
 > User + developer docs, changelog, release pipeline.
-> Status: `[ ]` not started · **Effort**: 12h
+> Status: `[x]` complete · **Effort**: 12h
 
 ## Steps
 
@@ -15,12 +15,12 @@
   - Contents: How to define a `NodeSpec`, register it with the registry, author a React component for it, test it; link to example repo.
   - Effort: 3h
 
-- [ ] **Step 3**: Changelog + release pipeline
+- [x] **Step 3**: Changelog + release pipeline
   - File(s): `CHANGELOG.md`, `.github/workflows/release.yml`
   - Contents: Keep-a-Changelog format; release workflow triggered on `v*` tag push — runs full test matrix + Lighthouse + bundle size, then `npm publish` (library mode) or uploads Docker image (app mode).
   - Effort: 3h
 
-- [ ] **Step 4**: Final Phase 8 acceptance — full sweep
+- [x] **Step 4**: Final Phase 8 acceptance — full sweep
   - File(s): —
   - Contents: Walk all Phase 8 exit criteria; confirm coverage, bundle size, Lighthouse, a11y; score each step; mark the plan overall status.
   - Effort: 3h

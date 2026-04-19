@@ -1,9 +1,10 @@
 # Phase 8 — Polish, Accessibility & Release
+
 > Part of [Workflow UI Implementation Plan](../workflow-ui-plan.md)
 
 **Goal**: Production-ready: a11y certified, theming, i18n scaffolding, performance budgets met, docs, release pipeline.
 
-**Status**: `[ ]` not started · **Effort**: 50h · **Completed**: 0h · **Progress**: 0%
+**Status**: `[x]` complete · **Effort**: 50h · **Completed**: 50h · **Progress**: 100%
 
 ## Exit Criteria
 
@@ -15,13 +16,13 @@
 
 ## Stages
 
-| # | Stage | Document | Steps | Effort (h) | Status |
-|---|-------|----------|------:|-----------:|--------|
-| 1 | Accessibility Hardening | [stage_01_accessibility.md](phase_08_polish_release/stage_01_accessibility.md) | 5 | 14 | `[ ]` |
-| 2 | Theming & i18n | [stage_02_theming_i18n.md](phase_08_polish_release/stage_02_theming_i18n.md) | 4 | 12 | `[ ]` |
-| 3 | Performance | [stage_03_performance.md](phase_08_polish_release/stage_03_performance.md) | 4 | 12 | `[ ]` |
-| 4 | Docs & Release | [stage_04_docs_release.md](phase_08_polish_release/stage_04_docs_release.md) | 4 | 12 | `[ ]` |
-| **Total** | | | **17** | **50** | `[ ]` 0% |
+| #         | Stage                   | Document                                                                       |  Steps | Effort (h) | Status     |
+| --------- | ----------------------- | ------------------------------------------------------------------------------ | -----: | ---------: | ---------- |
+| 1         | Accessibility Hardening | [stage_01_accessibility.md](phase_08_polish_release/stage_01_accessibility.md) |      5 |         14 | `[x]`      |
+| 2         | Theming & i18n          | [stage_02_theming_i18n.md](phase_08_polish_release/stage_02_theming_i18n.md)   |      4 |         12 | `[x]`      |
+| 3         | Performance             | [stage_03_performance.md](phase_08_polish_release/stage_03_performance.md)     |      4 |         12 | `[x]`      |
+| 4         | Docs & Release          | [stage_04_docs_release.md](phase_08_polish_release/stage_04_docs_release.md)   |      4 |         12 | `[x]`      |
+| **Total** |                         |                                                                                | **17** |     **50** | `[x]` 100% |
 
 ## Architectural Notes
 

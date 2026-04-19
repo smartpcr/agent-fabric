@@ -1,7 +1,7 @@
 # Phase 8 — Stage 3: Performance
 
 > Code-split heavy deps, benchmark suite, selector audit, Lighthouse CI.
-> Status: `[ ]` not started · **Effort**: 12h
+> Status: `[x]` complete · **Effort**: 12h
 
 ## Steps
 
