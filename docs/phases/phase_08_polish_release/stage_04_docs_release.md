@@ -10,7 +10,7 @@
   - Contents: Step-by-step: open editor, add palette items, connect, edit properties, save, run; with screenshots.
   - Effort: 3h
 
-- [ ] **Step 2**: Developer docs — "Register a custom node" tutorial
+- [x] **Step 2**: Developer docs — "Register a custom node" tutorial
   - File(s): `docs/developer-guide/custom-node.md`
   - Contents: How to define a `NodeSpec`, register it with the registry, author a React component for it, test it; link to example repo.
   - Effort: 3h
