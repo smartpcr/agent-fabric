@@ -1,10 +1,11 @@
 # Phase 8 — Stage 4: Documentation & Release
+
 > User + developer docs, changelog, release pipeline.
 > Status: `[ ]` not started · **Effort**: 12h
 
 ## Steps
 
-- [ ] **Step 1**: User docs — "Author a workflow" tutorial
+- [x] **Step 1**: User docs — "Author a workflow" tutorial
   - File(s): `docs/user-guide/author.md`
   - Contents: Step-by-step: open editor, add palette items, connect, edit properties, save, run; with screenshots.
   - Effort: 3h
@@ -25,6 +26,7 @@
   - Effort: 3h
 
 ## Acceptance for Stage 4
+
 - All 4 steps `[x]` with score ≥ 90.
 - Release pipeline tested with a dry-run tag.
 - User + developer docs live under `docs/user-guide/` and `docs/developer-guide/`.
