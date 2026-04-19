@@ -70,4 +70,12 @@ describe("Developer guide — Register a Custom Node", () => {
     expect(content).toContain("makeInputPort");
     expect(content).toContain("makeOutputPort");
   });
+
+  it("includes an Example Repository section with links", () => {
+    const content = readFileSync(docPath, "utf8");
+    expect(content).toContain("Example Repository");
+    expect(content).toContain("TaskNode.spec.ts");
+    expect(content).toContain("TaskNode.tsx");
+    expect(content).toContain("reactflow.dev");
+  });
 });
