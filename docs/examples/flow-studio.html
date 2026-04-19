@@ -474,7 +474,9 @@
       var(--node-shadow);
     z-index: 2;
   }
-  .node.dragging { cursor: grabbing; opacity: 0.85; pointer-events: none; }
+  .node.dragging,
+  .node.dragging * { pointer-events: none; }
+  .node.dragging { cursor: grabbing; opacity: 0.85; }
   .branch-port.reparent-target,
   .container-body.reparent-target {
     border-color: var(--accent);
@@ -527,6 +529,7 @@
     color: var(--text-2);
     font-size: 11.5px;
     min-height: 18px;
+    position: relative;
   }
   .node-body-row {
     display: flex; align-items: center; gap: 6px;
@@ -555,12 +558,13 @@
   .port.out { bottom: -7px; left: 50%; transform: translateX(-50%); }
   .port.out:hover { transform: translateX(-50%) scale(1.4); }
   .port.error {
-    /* Anchor to the node's head row so error stays put as the body/branches grow */
-    top: 19px; right: -7px;
+    /* Lives inside .node-body, so it stays anchored to the body row regardless of
+       how the branches/children below grow. */
+    top: 50%; right: -7px;
+    transform: translateY(-50%);
     background: var(--bg-4); border-color: var(--err);
   }
-  .port.error:hover { transform: scale(1.4); background: var(--err); }
-  .node.nested > .port.error { top: 13px; }
+  .port.error:hover { transform: translateY(-50%) scale(1.4); background: var(--err); }
   .port-label {
     position: absolute;
     font-size: 9px;
@@ -606,9 +610,26 @@
   .branch-port-children {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     min-height: 8px;
   }
+  .container-children {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  /* Visible connector arrow rendered between consecutive sibling children inside a slot,
+     so users see that they are wired in sequence. */
+  .sibling-connector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--stroke-3);
+    pointer-events: none;
+    height: 18px;
+    margin: 0;
+  }
+  .sibling-connector svg { display: block; }
   .branch-port-empty {
     text-align: center;
     color: var(--text-3);
@@ -649,10 +670,11 @@
   .node.nested .node-body { padding: 6px 8px; font-size: 11px; }
   .node.nested > .port.in,
   .node.nested > .port.out,
-  .node.nested > .port.error {
+  .node.nested .port.error {
     /* Keep visible so nested edges/insertion stays clear */
     width: 8px; height: 8px;
   }
+  .node.nested .port.error { right: -5px; }
 
   /* Insertion drop zones above/below each node — only present while a palette drag is active */
   .drop-zone {
@@ -668,14 +690,14 @@
   }
   .drop-zone.above { top: -10px; }
   .drop-zone.below { bottom: -10px; }
-  /* Error drop band sits next to the error port on the head row */
+  /* Error drop band sits next to the error port on the body row's right edge.
+     It's a child of .node-body / .container-body, so it fills the body's height. */
   .drop-zone.error-right {
-    top: 6px;
+    top: -4px; bottom: -4px;
     left: auto; right: -10px;
     width: 14px;
-    height: 28px;
+    height: auto;
   }
-  .node.nested > .drop-zone.error-right { height: 22px; }
   body.dragging-palette .drop-zone {
     pointer-events: auto;
     opacity: 1;
@@ -1463,7 +1485,7 @@ function getPortPos(node, portKind, portName) {
 
   if (portKind === 'in') return { x: node.x + width/2, y: node.y };
   if (portKind === 'out') return { x: node.x + width/2, y: node.y + height };
-  if (portKind === 'error') return { x: node.x + width, y: node.y + 19 };
+  if (portKind === 'error') return { x: node.x + width, y: node.y + headH + bodyH/2 };
   if (portKind === 'branch') {
     const branches = type.branches || [];
     const idx = branches.indexOf(portName);
@@ -1682,7 +1704,8 @@ const Nodes = {
         empty.textContent = 'Drop component';
         slotEl.appendChild(empty);
       } else {
-        // Render: gap[0] child[0] gap[1] child[1] gap[2] ...
+        // Render: gap[0] child[0] connector gap[1] child[1] connector gap[2] ...
+        // (a connector goes between consecutive children; the gap-drop-slots are the drop targets)
         slotEl.appendChild(this.makeGapSlot(parentNode.id, slot, 0));
         childIds.forEach((cid, i) => {
           const child = State.nodes.get(cid);
@@ -1690,10 +1713,23 @@ const Nodes = {
           const childEl = this.createElement(child, true);
           slotEl.appendChild(childEl);
           this.renderChildrenInto(childEl, child);
+          if (i < childIds.length - 1) {
+            slotEl.appendChild(this.makeSiblingConnector());
+          }
           slotEl.appendChild(this.makeGapSlot(parentNode.id, slot, i + 1));
         });
       }
     });
+  },
+
+  makeSiblingConnector() {
+    const el = document.createElement('div');
+    el.className = 'sibling-connector';
+    el.innerHTML = '<svg width="12" height="18" viewBox="0 0 12 18" aria-hidden="true">' +
+      '<path d="M6 0 V 12" stroke="currentColor" stroke-width="1.4" fill="none"/>' +
+      '<path d="M2.5 11 L 6 16 L 9.5 11" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg>';
+    return el;
   },
 
   makeGapSlot(parentId, slot, index) {
@@ -1766,7 +1802,11 @@ const Nodes = {
     let portsHtml = '';
     if (ports.in) portsHtml += `<div class="port in" data-port-kind="in" data-node-id="${node.id}"></div>`;
     if (ports.out && !type.branches) portsHtml += `<div class="port out" data-port-kind="out" data-node-id="${node.id}"></div>`;
-    if (ports.error && !type.branches) portsHtml += `<div class="port error" data-port-kind="error" data-node-id="${node.id}" title="onError"></div>`;
+    // Note: error port is rendered INSIDE the body so its position stays anchored to the
+    // body row even as branches/children below cause the node to grow taller.
+    const errorPortHtml = (ports.error && !type.branches)
+      ? `<div class="port error" data-port-kind="error" data-node-id="${node.id}" title="onError"></div>`
+      : '';
 
     const branchesHtml = type.branches ? this.branchHtml(node) : '';
 
@@ -1776,14 +1816,14 @@ const Nodes = {
 
     const typeLabel = `<span class="node-type-label mono">${node.type}</span>`;
 
-    const bodyContent = node.type === 'container'
-      ? `<div class="container-body"><div class="container-children"></div></div>`
-      : `<div class="node-body">${this.bodyHtml(node)}</div>`;
-
     // Insertion drop zones — above the node (before its onStart) and below (after its onFinish/onError).
     const dropAbove = ports.in ? `<div class="drop-zone above" data-node-id="${node.id}" data-position="before"></div>` : '';
     const dropBelow = (ports.out || type.branches) ? `<div class="drop-zone below" data-node-id="${node.id}" data-position="after"></div>` : '';
-    const dropError = ports.error ? `<div class="drop-zone error-right" data-node-id="${node.id}" data-position="after-error"></div>` : '';
+    const dropError = (ports.error && !type.branches) ? `<div class="drop-zone error-right" data-node-id="${node.id}" data-position="after-error"></div>` : '';
+
+    const bodyContent = node.type === 'container'
+      ? `<div class="container-body"><div class="container-children"></div>${errorPortHtml}${dropError}</div>`
+      : `<div class="node-body">${this.bodyHtml(node)}${errorPortHtml}${dropError}</div>`;
 
     return `
       ${dropAbove}
@@ -1798,7 +1838,6 @@ const Nodes = {
       ${portsHtml}
       ${branchesHtml}
       ${dropBelow}
-      ${dropError}
     `;
   },
 
@@ -1896,9 +1935,13 @@ const Nodes = {
       el.addEventListener('pointerup', (e) => {
         if (!dragging) return;
         dragging = false;
+        // Resolve the slot under the cursor BEFORE we drop the .dragging class — that
+        // class is what makes the dragged node and its children pointer-events:none, so
+        // elementFromPoint can see what's underneath. Removing it first would cause the
+        // dragged node to occlude any slot it's hovering over.
+        const hit = findSlotAt(e.clientX, e.clientY);
         el.classList.remove('dragging');
         el.releasePointerCapture(e.pointerId);
-        const hit = findSlotAt(e.clientX, e.clientY);
         clearHover();
         if (hit) {
           App.reparentNode(node.id, hit.parentId, hit.slot);
