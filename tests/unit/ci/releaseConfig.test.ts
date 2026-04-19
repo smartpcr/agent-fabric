@@ -95,8 +95,66 @@ describe("Release workflow — .github/workflows/release.yml", () => {
     expect(publishDockerSection).toContain("needs: [test, build, lighthouse]");
   });
 
+  it("npm publish is not dry-run", () => {
+    const content = readFileSync(workflowPath, "utf8");
+    const publishSection = content.substring(content.indexOf("publish-npm:"));
+    const publishEnd = publishSection.indexOf("publish-docker:");
+    const npmSection = publishSection.substring(0, publishEnd > 0 ? publishEnd : undefined);
+    expect(npmSection).toContain("npm publish --provenance --access public");
+    expect(npmSection).not.toContain("--dry-run");
+  });
+
   it("publish jobs are conditioned on tag push", () => {
     const content = readFileSync(workflowPath, "utf8");
     expect(content).toContain("startsWith(github.ref, 'refs/tags/v')");
+  });
+
+  it("uses RELEASE_MODE to toggle library vs app publish", () => {
+    const content = readFileSync(workflowPath, "utf8");
+    expect(content).toContain("RELEASE_MODE");
+    // npm publish only in library mode
+    const npmSection = content.substring(
+      content.indexOf("publish-npm:"),
+      content.indexOf("publish-docker:"),
+    );
+    expect(npmSection).toContain("library");
+    // Docker publish only in app mode
+    const dockerSection = content.substring(content.indexOf("publish-docker:"));
+    expect(dockerSection).toContain("app");
+  });
+});
+
+describe("Dockerfile", () => {
+  const dockerfilePath = resolve(ROOT, "Dockerfile");
+
+  it("exists", () => {
+    expect(existsSync(dockerfilePath)).toBe(true);
+  });
+
+  it("uses multi-stage build with Node.js and nginx", () => {
+    const content = readFileSync(dockerfilePath, "utf8");
+    expect(content).toContain("FROM node:");
+    expect(content).toContain("FROM nginx:");
+  });
+
+  it("runs npm run build in the build stage", () => {
+    const content = readFileSync(dockerfilePath, "utf8");
+    expect(content).toContain("npm run build");
+  });
+
+  it("copies dist to nginx html directory", () => {
+    const content = readFileSync(dockerfilePath, "utf8");
+    expect(content).toContain("/usr/share/nginx/html");
+  });
+
+  it("configures SPA fallback for client-side routing", () => {
+    const content = readFileSync(dockerfilePath, "utf8");
+    expect(content).toContain("try_files");
+    expect(content).toContain("index.html");
+  });
+
+  it("exposes port 80", () => {
+    const content = readFileSync(dockerfilePath, "utf8");
+    expect(content).toContain("EXPOSE 80");
   });
 });

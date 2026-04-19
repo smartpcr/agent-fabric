@@ -10,6 +10,9 @@ permissions:
 
 env:
   NODE_VERSION: 22
+  # Release mode: "library" runs npm publish; "app" builds+pushes Docker image.
+  # Override via GitHub repository variable RELEASE_MODE (Settings → Variables).
+  RELEASE_MODE: ${{ vars.RELEASE_MODE || 'library' }}
 
 jobs:
   # ─── Full test matrix ──────────────────────────────────────────────
@@ -119,7 +122,8 @@ jobs:
     needs: [test, build, lighthouse]
     if: >-
       startsWith(github.ref, 'refs/tags/v') &&
-      github.event_name == 'push'
+      github.event_name == 'push' &&
+      (vars.RELEASE_MODE || 'library') == 'library'
 
     permissions:
       contents: read
@@ -142,8 +146,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish to npm (dry-run for private packages)
-        run: npm publish --provenance --access public --dry-run
+      - name: Publish to npm
+        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -154,7 +158,8 @@ jobs:
     needs: [test, build, lighthouse]
     if: >-
       startsWith(github.ref, 'refs/tags/v') &&
-      github.event_name == 'push'
+      github.event_name == 'push' &&
+      (vars.RELEASE_MODE || 'library') == 'app'
 
     permissions:
       contents: read
@@ -188,6 +193,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
