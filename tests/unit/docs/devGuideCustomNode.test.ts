@@ -71,9 +71,10 @@ describe("Developer guide — Register a Custom Node", () => {
     expect(content).toContain("makeOutputPort");
   });
 
-  it("includes an Example Repository section with links", () => {
+  it("includes an Example Repository section with GitHub URL and links", () => {
     const content = readFileSync(docPath, "utf8");
     expect(content).toContain("Example Repository");
+    expect(content).toContain("github.com/smartpcr/agent-fabric");
     expect(content).toContain("TaskNode.spec.ts");
     expect(content).toContain("TaskNode.tsx");
     expect(content).toContain("reactflow.dev");

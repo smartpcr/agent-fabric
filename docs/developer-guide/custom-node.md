@@ -426,19 +426,24 @@ Use this checklist to verify your custom node is complete:
 
 ## Example Repository
 
-For a complete, working example of a custom node from spec to tests, see
-the built-in **Task node** implementation in this repository:
+The **Agent Fabric** repository itself serves as the canonical example for
+custom node development:
 
-- **Spec**: [`src/registry/builtins/TaskNode.spec.ts`](../../src/registry/builtins/TaskNode.spec.ts)
-- **Component**: [`src/features/nodes/TaskNode.tsx`](../../src/features/nodes/TaskNode.tsx)
-- **Registration**: [`src/registry/registerBuiltins.ts`](../../src/registry/registerBuiltins.ts)
-- **Unit tests**: [`tests/unit/registry/builtins/TaskNode.test.ts`](../../tests/unit/registry/builtins/TaskNode.test.ts)
-- **Component tests**: [`tests/unit/features/nodes/TaskNode.test.tsx`](../../tests/unit/features/nodes/TaskNode.test.tsx)
+> **GitHub**: [github.com/smartpcr/agent-fabric](https://github.com/smartpcr/agent-fabric)
+
+Browse the built-in **Task node** implementation for a complete
+spec-to-test reference:
+
+- **Spec**: [`src/registry/builtins/TaskNode.spec.ts`](https://github.com/smartpcr/agent-fabric/blob/main/src/registry/builtins/TaskNode.spec.ts)
+- **Component**: [`src/features/nodes/TaskNode.tsx`](https://github.com/smartpcr/agent-fabric/blob/main/src/features/nodes/TaskNode.tsx)
+- **Registration**: [`src/registry/registerBuiltins.ts`](https://github.com/smartpcr/agent-fabric/blob/main/src/registry/registerBuiltins.ts)
+- **Unit tests**: [`tests/unit/registry/builtins/TaskNode.test.ts`](https://github.com/smartpcr/agent-fabric/blob/main/tests/unit/registry/builtins/TaskNode.test.ts)
+- **Component tests**: [`tests/unit/features/nodes/TaskNode.test.tsx`](https://github.com/smartpcr/agent-fabric/blob/main/tests/unit/features/nodes/TaskNode.test.tsx)
 
 The **Multi-port Task** variant shows a more complex port configuration:
 
-- **Spec**: [`src/registry/builtins/MultiPortTaskNode.spec.ts`](../../src/registry/builtins/MultiPortTaskNode.spec.ts)
-- **Tests**: [`tests/unit/registry/builtins/MultiPortTaskNode.test.tsx`](../../tests/unit/registry/builtins/MultiPortTaskNode.test.tsx)
+- **Spec**: [`src/registry/builtins/MultiPortTaskNode.spec.ts`](https://github.com/smartpcr/agent-fabric/blob/main/src/registry/builtins/MultiPortTaskNode.spec.ts)
+- **Tests**: [`tests/unit/registry/builtins/MultiPortTaskNode.test.tsx`](https://github.com/smartpcr/agent-fabric/blob/main/tests/unit/registry/builtins/MultiPortTaskNode.test.tsx)
 
 > **External reference**: The [xyflow custom nodes guide](https://reactflow.dev/learn/customization/custom-nodes)
 > covers the underlying React Flow custom node API that Agent Fabric
