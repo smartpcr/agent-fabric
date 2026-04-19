@@ -455,7 +455,8 @@
   /* ============ NODES ============ */
   .node {
     position: absolute;
-    width: 220px;
+    width: auto;
+    min-width: 220px;
     background: linear-gradient(180deg, var(--bg-3) 0%, var(--bg-2) 100%);
     border: 1px solid var(--stroke-1);
     border-radius: 10px;
@@ -567,26 +568,50 @@
   /* Branch ports for if/else/switch */
   .branch-ports {
     display: flex;
-    padding: 6px 10px 8px;
+    padding: 6px 10px 14px;
     gap: 8px;
     border-top: 1px solid var(--stroke-1);
     background: rgba(0,0,0,0.18);
     border-radius: 0 0 10px 10px;
+    align-items: stretch;
   }
   .branch-port {
     flex: 1;
     position: relative;
-    padding: 6px 6px 18px;
+    padding: 6px 6px 16px;
     border-radius: 5px;
     background: var(--bg-1);
     border: 1px dashed var(--stroke-1);
     font-size: 10px;
-    text-align: center;
     color: var(--text-2);
     font-family: 'JetBrains Mono', monospace;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    min-width: 50px;
+    min-width: 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  /* When children get added, give the slot more breathing room */
+  .branch-port:has(> .branch-port-children > .node) { min-width: 200px; }
+  .branch-port-label { text-align: center; }
+  .branch-port-children {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 8px;
+  }
+  .branch-port-empty {
+    text-align: center;
+    color: var(--text-3);
+    font-size: 10px;
+    padding: 14px 6px;
+    border: 1px dashed var(--stroke-1);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.015);
+    text-transform: none;
+    letter-spacing: 0;
   }
   .branch-port .port {
     position: absolute;
@@ -595,6 +620,58 @@
     transform: translateX(-50%);
   }
   .branch-port .port:hover { transform: translateX(-50%) scale(1.4); }
+  .branch-port.drop-active,
+  .container-body.drop-active {
+    border-color: var(--accent);
+    background: rgba(229,179,106,0.10);
+  }
+
+  /* Nested child nodes inside a branch slot or container body */
+  .node.nested {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: auto !important;
+    min-width: 0;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 2px 6px rgba(0,0,0,0.5);
+  }
+  .node.nested .node-head { padding: 6px 8px; }
+  .node.nested .node-body { padding: 6px 8px; font-size: 11px; }
+  .node.nested > .port.in,
+  .node.nested > .port.out {
+    /* Keep visible so nested edges/insertion stays clear */
+    width: 8px; height: 8px;
+  }
+
+  /* Insertion drop zones above/below each node — only present while a palette drag is active */
+  .drop-zone {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    height: 14px;
+    z-index: 4;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s, background 0.1s, height 0.1s;
+  }
+  .drop-zone.above { top: -10px; }
+  .drop-zone.below { bottom: -10px; }
+  .drop-zone.error-below { bottom: -10px; left: auto; right: 4px; width: 32px; }
+  body.dragging-palette .drop-zone {
+    pointer-events: auto;
+    opacity: 1;
+    background: rgba(229,179,106,0.14);
+    border: 1px dashed var(--accent);
+  }
+  body.dragging-palette .drop-zone:hover,
+  body.dragging-palette .drop-zone.drop-active {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
 
   /* Node status ring */
   .node::after {
@@ -655,16 +732,23 @@
     padding: 10px;
     min-height: 80px;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-radius: 0 0 11px 11px;
+    transition: background 0.12s, border-color 0.12s;
+    border: 1px dashed transparent;
   }
   .node.container.collapsed .container-body { display: none; }
   .node.container .container-hint {
-    position: absolute; inset: 10px;
-    display: grid; place-items: center;
     color: var(--text-3);
     font-size: 10.5px;
     font-family: 'JetBrains Mono', monospace;
     pointer-events: none;
     text-align: center;
+    padding: 18px 6px;
+    border: 1px dashed var(--stroke-1);
+    border-radius: 4px;
   }
   .node.container .container-child-count {
     font-size: 10px;
@@ -1287,6 +1371,21 @@ const uid = (p='n') => p + '_' + Math.random().toString(36).slice(2, 9);
 const now = () => Date.now();
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
+// Slot names for a node (branch names for if/switch/parallel/loop, '_body' for container).
+function getSlots(node) {
+  if (!node) return [];
+  const t = NodeTypes[node.type];
+  if (t && t.branches) return node.branches || t.branches;
+  if (node.type === 'container') return ['_body'];
+  return [];
+}
+function ensureChildren(node) {
+  const slots = getSlots(node);
+  if (!slots.length) return;
+  if (!node.children) node.children = {};
+  slots.forEach(s => { if (!node.children[s]) node.children[s] = []; });
+}
+
 function toast(msg, kind='info', ms=2800) {
   const el = document.createElement('div');
   el.className = 'toast ' + kind;
@@ -1296,8 +1395,13 @@ function toast(msg, kind='info', ms=2800) {
   setTimeout(() => el.remove(), ms);
 }
 
-// Port positions (relative to node top-left)
+// Port positions in canvasInner coordinate space.
+// Prefers live DOM measurement (so nested children + grown branch slots stay accurate),
+// falls back to math when the DOM hasn't been rendered yet.
 function getPortPos(node, portKind, portName) {
+  const dom = getPortPosFromDom(node.id, portKind, portName);
+  if (dom) return dom;
+
   const width = node.width || 220;
   const headH = 38;
   const bodyH = 32;
@@ -1321,6 +1425,29 @@ function getPortPos(node, portKind, portName) {
     return { x: node.x + bx, y: node.y + height };
   }
   return { x: node.x, y: node.y };
+}
+
+function getPortPosFromDom(nodeId, portKind, portName) {
+  const inner = document.getElementById('canvasInner');
+  if (!inner) return null;
+  let portEl = null;
+  if (portKind === 'branch') {
+    portEl = document.querySelector(
+      `.node[data-id="${nodeId}"] > .branch-ports > .branch-port[data-branch="${CSS.escape(portName)}"] > .port`
+    );
+  } else {
+    portEl = document.querySelector(`.node[data-id="${nodeId}"] > .port.${portKind}`);
+  }
+  if (!portEl || !portEl.isConnected) return null;
+  // getBoundingClientRect accounts for CSS transforms on the port (translateX(-50%)) and the
+  // canvasInner's pan/zoom transform. We undo the zoom to land back in untransformed space.
+  const innerRect = inner.getBoundingClientRect();
+  const portRect = portEl.getBoundingClientRect();
+  const zoom = (State && State.canvas && State.canvas.zoom) || 1;
+  return {
+    x: (portRect.left + portRect.width / 2 - innerRect.left) / zoom,
+    y: (portRect.top + portRect.height / 2 - innerRect.top) / zoom,
+  };
 }
 
 // -------------------- CANVAS --------------------
@@ -1436,7 +1563,7 @@ const Canvas = {
 const Minimap = {
   render() {
     const svg = document.getElementById('minimapSvg');
-    const nodes = [...State.nodes.values()];
+    const nodes = [...State.nodes.values()].filter(n => !n.parentId);
     if (!nodes.length) { svg.innerHTML = ''; return; }
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     nodes.forEach(n => {
@@ -1472,62 +1599,89 @@ const Minimap = {
 const Nodes = {
   render() {
     const layer = document.getElementById('nodesLayer');
-    const existing = new Set();
-    layer.querySelectorAll('.node').forEach(el => existing.add(el.dataset.id));
-
-    State.nodes.forEach((node, id) => {
-      let el = layer.querySelector(`.node[data-id="${id}"]`);
-      if (!el) {
-        el = this.createElement(node);
-        layer.appendChild(el);
-      }
-      this.updateElement(el, node);
-      existing.delete(id);
+    // Top-level nodes only at the layer level; nested ones are rendered inside their parents.
+    const topLevel = [...State.nodes.values()].filter(n => !n.parentId);
+    const presentIds = new Set(topLevel.map(n => n.id));
+    layer.querySelectorAll(':scope > .node').forEach(el => {
+      if (!presentIds.has(el.dataset.id)) el.remove();
     });
-    // Remove deleted
-    existing.forEach(id => {
-      const el = layer.querySelector(`.node[data-id="${id}"]`);
-      if (el) el.remove();
+    topLevel.forEach(node => {
+      let el = layer.querySelector(`:scope > .node[data-id="${node.id}"]`);
+      if (!el) {
+        el = this.createElement(node, false);
+        layer.appendChild(el);
+      } else {
+        this.refreshElement(el, node, false);
+      }
+      this.renderChildrenInto(el, node);
     });
   },
 
-  createElement(node) {
+  // Render the descendants of `parentNode` into the slot containers within `parentEl`.
+  renderChildrenInto(parentEl, parentNode) {
+    const slots = getSlots(parentNode);
+    if (!slots.length) return;
+    ensureChildren(parentNode);
+    slots.forEach(slot => {
+      const slotEl = this.findSlotEl(parentEl, parentNode, slot);
+      if (!slotEl) return;
+      const childIds = (parentNode.children && parentNode.children[slot]) || [];
+      // Rebuild children area each render — simple and correct for the demo.
+      slotEl.innerHTML = '';
+      if (!childIds.length) {
+        const empty = document.createElement('div');
+        empty.className = parentNode.type === 'container' ? 'container-hint' : 'branch-port-empty';
+        empty.textContent = 'Drop component';
+        slotEl.appendChild(empty);
+      } else {
+        childIds.forEach(cid => {
+          const child = State.nodes.get(cid);
+          if (!child) return;
+          const childEl = this.createElement(child, true);
+          slotEl.appendChild(childEl);
+          this.renderChildrenInto(childEl, child);
+        });
+      }
+    });
+  },
+
+  findSlotEl(parentEl, parentNode, slot) {
+    if (parentNode.type === 'container' && slot === '_body') {
+      return parentEl.querySelector(':scope > .container-body > .container-children');
+    }
+    return parentEl.querySelector(
+      `:scope > .branch-ports > .branch-port[data-branch="${CSS.escape(slot)}"] > .branch-port-children`
+    );
+  },
+
+  createElement(node, isNested) {
     const el = document.createElement('div');
-    el.className = 'node';
+    el.className = 'node' + (isNested ? ' nested' : '');
     el.dataset.id = node.id;
     el.innerHTML = this.html(node);
-    this.attachHandlers(el, node);
+    this.refreshElement(el, node, isNested);
+    this.attachHandlers(el, node, isNested);
     return el;
   },
 
-  updateElement(el, node) {
+  // Updates style/state on an existing top-level element without rebuilding children.
+  refreshElement(el, node, isNested) {
     const type = NodeTypes[node.type];
-    el.style.left = node.x + 'px';
-    el.style.top = node.y + 'px';
+    if (!isNested) {
+      el.style.left = node.x + 'px';
+      el.style.top = node.y + 'px';
+    }
     el.style.color = type.color;
     el.dataset.status = node.status || '';
-    if (State.selection.kind === 'node' && State.selection.id === node.id) {
-      el.classList.add('selected');
-    } else {
-      el.classList.remove('selected');
-    }
+    el.classList.toggle('selected', State.selection.kind === 'node' && State.selection.id === node.id);
     if (node.type === 'container') {
       el.classList.add('container');
       el.classList.toggle('collapsed', !!node.collapsed);
     }
-    // Rerender if name/config changed (simple approach: just update content)
-    const headTitle = el.querySelector('.node-title');
+    const headTitle = el.querySelector(':scope > .node-head > .node-title');
     if (headTitle) headTitle.textContent = node.name || type.label;
-    const bodyEl = el.querySelector('.node-body');
+    const bodyEl = el.querySelector(':scope > .node-body');
     if (bodyEl) bodyEl.innerHTML = this.bodyHtml(node);
-    // Rerender branches if they changed
-    const branchWrap = el.querySelector('.branch-ports');
-    if (type.branches && node.branches) {
-      if (branchWrap) branchWrap.outerHTML = this.branchHtml(node);
-      else el.insertAdjacentHTML('beforeend', this.branchHtml(node));
-      // Reattach branch port handlers
-      this.attachBranchHandlers(el, node);
-    }
   },
 
   html(node) {
@@ -1538,8 +1692,7 @@ const Nodes = {
     if (ports.out && !type.branches) portsHtml += `<div class="port out" data-port-kind="out" data-node-id="${node.id}"></div>`;
     if (ports.error && !type.branches) portsHtml += `<div class="port error" data-port-kind="error" data-node-id="${node.id}" title="onError"></div>`;
 
-    let branchesHtml = '';
-    if (type.branches) branchesHtml = this.branchHtml(node);
+    const branchesHtml = type.branches ? this.branchHtml(node) : '';
 
     const collapseBtn = node.type === 'container'
       ? `<button class="collapse-btn" onclick="event.stopPropagation(); App.toggleCollapse('${node.id}')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>`
@@ -1548,10 +1701,16 @@ const Nodes = {
     const typeLabel = `<span class="node-type-label mono">${node.type}</span>`;
 
     const bodyContent = node.type === 'container'
-      ? `<div class="container-body"><div class="container-hint">Drag components here<br>or use as a group</div></div>`
+      ? `<div class="container-body"><div class="container-children"></div></div>`
       : `<div class="node-body">${this.bodyHtml(node)}</div>`;
 
+    // Insertion drop zones — above the node (before its onStart) and below (after its onFinish/onError).
+    const dropAbove = ports.in ? `<div class="drop-zone above" data-node-id="${node.id}" data-position="before"></div>` : '';
+    const dropBelow = (ports.out || type.branches) ? `<div class="drop-zone below" data-node-id="${node.id}" data-position="after"></div>` : '';
+    const dropError = ports.error ? `<div class="drop-zone error-below" data-node-id="${node.id}" data-position="after-error"></div>` : '';
+
     return `
+      ${dropAbove}
       <div class="node-status-badge">${node.status || ''}</div>
       <div class="node-head">
         <div class="node-head-accent"></div>
@@ -1562,6 +1721,8 @@ const Nodes = {
       ${bodyContent}
       ${portsHtml}
       ${branchesHtml}
+      ${dropBelow}
+      ${dropError}
     `;
   },
 
@@ -1591,55 +1752,79 @@ const Nodes = {
     const branches = node.branches || type.branches || [];
     return `<div class="branch-ports">${
       branches.map(b => `
-        <div class="branch-port">${b}
+        <div class="branch-port" data-branch="${b}" data-parent-id="${node.id}">
+          <div class="branch-port-label">${b}</div>
+          <div class="branch-port-children"></div>
           <div class="port" data-port-kind="branch" data-port-name="${b}" data-node-id="${node.id}"></div>
         </div>
       `).join('')
     }</div>`;
   },
 
-  attachHandlers(el, node) {
-    // Node drag
-    let dragging = false, startPos = null, nodeStart = null;
-    el.addEventListener('pointerdown', (e) => {
-      if (e.target.classList.contains('port')) return;
-      if (e.target.closest('.collapse-btn')) return;
-      e.stopPropagation();
-      App.select('node', node.id);
-      dragging = true;
-      startPos = { x: e.clientX, y: e.clientY };
-      nodeStart = { x: node.x, y: node.y };
-      el.classList.add('dragging');
-      el.setPointerCapture(e.pointerId);
-    });
-    el.addEventListener('pointermove', (e) => {
-      if (!dragging) return;
-      const dx = (e.clientX - startPos.x) / State.canvas.zoom;
-      const dy = (e.clientY - startPos.y) / State.canvas.zoom;
-      node.x = nodeStart.x + dx;
-      node.y = nodeStart.y + dy;
-      el.style.left = node.x + 'px';
-      el.style.top = node.y + 'px';
-      Edges.render();
-      Minimap.render();
-      State.isDirty = true;
-    });
-    el.addEventListener('pointerup', (e) => {
-      if (dragging) {
-        dragging = false;
-        el.classList.remove('dragging');
-        el.releasePointerCapture(e.pointerId);
-        App.markDirty();
-      }
-    });
+  attachHandlers(el, node, isNested) {
+    // Position drag (top-level only — nested children flow with their slot)
+    if (!isNested) {
+      let dragging = false, startPos = null, nodeStart = null;
+      el.addEventListener('pointerdown', (e) => {
+        if (e.target.classList.contains('port')) return;
+        if (e.target.closest('.collapse-btn')) return;
+        if (e.target.classList.contains('drop-zone')) return;
+        e.stopPropagation();
+        App.select('node', node.id);
+        dragging = true;
+        startPos = { x: e.clientX, y: e.clientY };
+        nodeStart = { x: node.x, y: node.y };
+        el.classList.add('dragging');
+        el.setPointerCapture(e.pointerId);
+      });
+      el.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        const dx = (e.clientX - startPos.x) / State.canvas.zoom;
+        const dy = (e.clientY - startPos.y) / State.canvas.zoom;
+        node.x = nodeStart.x + dx;
+        node.y = nodeStart.y + dy;
+        el.style.left = node.x + 'px';
+        el.style.top = node.y + 'px';
+        Edges.render();
+        Minimap.render();
+        State.isDirty = true;
+      });
+      el.addEventListener('pointerup', (e) => {
+        if (dragging) {
+          dragging = false;
+          el.classList.remove('dragging');
+          el.releasePointerCapture(e.pointerId);
+          App.markDirty();
+        }
+      });
+    } else {
+      // Nested: still selectable on click.
+      el.addEventListener('pointerdown', (e) => {
+        if (e.target.classList.contains('port')) return;
+        if (e.target.classList.contains('drop-zone')) return;
+        e.stopPropagation();
+        App.select('node', node.id);
+      });
+    }
 
-    // Port handlers
-    this.attachPortHandlers(el, node);
-    this.attachBranchHandlers(el, node);
+    // Port handlers (covers both regular and branch ports inside this element only)
+    this.attachOwnPortHandlers(el, node);
+    // Slot drop handlers (own slots only — children's slots get attached during their own createElement)
+    this.attachOwnSlotHandlers(el, node);
+    // Insertion drop zones for this node
+    this.attachInsertionZones(el, node);
   },
 
-  attachPortHandlers(el, node) {
-    el.querySelectorAll('.port').forEach(port => {
+  attachOwnPortHandlers(el, node) {
+    // Direct child ports: top-level in/out/error
+    el.querySelectorAll(':scope > .port').forEach(port => {
+      port.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        Edges.startDrag(port);
+      });
+    });
+    // Branch ports of this node (one level down inside .branch-ports)
+    el.querySelectorAll(':scope > .branch-ports > .branch-port > .port').forEach(port => {
       port.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
         Edges.startDrag(port);
@@ -1647,13 +1832,53 @@ const Nodes = {
     });
   },
 
-  attachBranchHandlers(el, node) {
-    // already covered by attachPortHandlers if called after branch html exists
-    el.querySelectorAll('.branch-port .port').forEach(port => {
-      port.removeEventListener('pointerdown', port._handler);
-      const h = (e) => { e.stopPropagation(); Edges.startDrag(port); };
-      port._handler = h;
-      port.addEventListener('pointerdown', h);
+  attachOwnSlotHandlers(el, node) {
+    const slots = getSlots(node);
+    slots.forEach(slot => {
+      const dropEl = node.type === 'container' && slot === '_body'
+        ? el.querySelector(':scope > .container-body')
+        : el.querySelector(`:scope > .branch-ports > .branch-port[data-branch="${CSS.escape(slot)}"]`);
+      if (!dropEl) return;
+      dropEl.addEventListener('dragover', (e) => {
+        if (!e.dataTransfer.types.includes('text/flow-node')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'copy';
+        dropEl.classList.add('drop-active');
+      });
+      dropEl.addEventListener('dragleave', (e) => {
+        if (!dropEl.contains(e.relatedTarget)) dropEl.classList.remove('drop-active');
+      });
+      dropEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropEl.classList.remove('drop-active');
+        const type = e.dataTransfer.getData('text/flow-node');
+        if (!type) return;
+        App.createChildNode(type, node.id, slot);
+      });
+    });
+  },
+
+  attachInsertionZones(el, node) {
+    el.querySelectorAll(':scope > .drop-zone').forEach(dz => {
+      dz.addEventListener('dragover', (e) => {
+        if (!e.dataTransfer.types.includes('text/flow-node')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'copy';
+        dz.classList.add('drop-active');
+      });
+      dz.addEventListener('dragleave', () => dz.classList.remove('drop-active'));
+      dz.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dz.classList.remove('drop-active');
+        const type = e.dataTransfer.getData('text/flow-node');
+        if (!type) return;
+        const position = dz.dataset.position; // 'before' | 'after' | 'after-error'
+        App.insertNodeRelative(type, node.id, position);
+      });
     });
   }
 };
@@ -1809,6 +2034,11 @@ const Palette = {
       item.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/flow-node', item.dataset.type);
         e.dataTransfer.effectAllowed = 'copy';
+        document.body.classList.add('dragging-palette');
+      });
+      item.addEventListener('dragend', () => {
+        document.body.classList.remove('dragging-palette');
+        document.querySelectorAll('.drop-active').forEach(el => el.classList.remove('drop-active'));
       });
     });
   }
@@ -2227,7 +2457,7 @@ const App = {
   },
 
   // ---------- NODE OPS ----------
-  createNode(type, x, y) {
+  createNode(type, x, y, opts = {}) {
     const tpl = NodeTypes[type];
     const node = {
       id: uid('n'),
@@ -2237,14 +2467,65 @@ const App = {
       width: 220,
       config: clone(tpl.config || {}),
       status: '',
+      parentId: opts.parentId || null,
+      parentSlot: opts.parentSlot || null,
     };
     if (tpl.branches) node.branches = [...tpl.branches];
     if (type === 'container') { node.width = 280; node.height = 180; node.collapsed = false; }
+    ensureChildren(node);
     State.nodes.set(node.id, node);
+    if (node.parentId) {
+      const parent = State.nodes.get(node.parentId);
+      if (parent) {
+        ensureChildren(parent);
+        const arr = parent.children[node.parentSlot];
+        const idx = (typeof opts.index === 'number') ? Math.max(0, Math.min(opts.index, arr.length)) : arr.length;
+        arr.splice(idx, 0, node.id);
+      }
+    }
     this.markDirty();
     this.renderAll();
     this.select('node', node.id);
     this.log('info', null, `Created node "${node.name}"`);
+    return node.id;
+  },
+
+  createChildNode(type, parentId, slot, index) {
+    const parent = State.nodes.get(parentId);
+    if (!parent) return null;
+    const slots = getSlots(parent);
+    if (!slots.includes(slot)) return null;
+    return this.createNode(type, 0, 0, { parentId, parentSlot: slot, index });
+  },
+
+  insertNodeRelative(type, refNodeId, position) {
+    const ref = State.nodes.get(refNodeId);
+    if (!ref) return null;
+    if (ref.parentId) {
+      const parent = State.nodes.get(ref.parentId);
+      const arr = parent.children[ref.parentSlot] || [];
+      const idx = arr.indexOf(refNodeId);
+      const insertAt = position === 'before' ? idx : idx + 1;
+      return this.createChildNode(type, ref.parentId, ref.parentSlot, insertAt);
+    }
+    // Top-level: try to splice into existing edge; otherwise create alongside.
+    const newId = this.createNode(type, ref.x, ref.y + (position === 'before' ? -180 : 180));
+    if (position === 'before') {
+      const incoming = [...State.edges.values()].find(e => e.target === refNodeId && e.targetPort === 'in');
+      if (incoming) {
+        incoming.target = newId;
+        this.createEdge({ source: newId, sourcePort: 'out', target: refNodeId, targetPort: 'in' });
+      }
+    } else {
+      const sourcePort = position === 'after-error' ? 'error' : 'out';
+      const outgoing = [...State.edges.values()].find(e => e.source === refNodeId && e.sourcePort === sourcePort);
+      if (outgoing) {
+        const oldTarget = outgoing.target;
+        outgoing.target = newId;
+        this.createEdge({ source: newId, sourcePort: 'out', target: oldTarget, targetPort: 'in' });
+      }
+    }
+    return newId;
   },
 
   updateNode(id, patch) {
@@ -2265,10 +2546,30 @@ const App = {
   },
 
   deleteNode(id) {
-    State.nodes.delete(id);
-    // Remove edges touching this node
+    const node = State.nodes.get(id);
+    if (!node) return;
+    // Detach from parent
+    if (node.parentId) {
+      const parent = State.nodes.get(node.parentId);
+      if (parent && parent.children && parent.children[node.parentSlot]) {
+        parent.children[node.parentSlot] = parent.children[node.parentSlot].filter(cid => cid !== id);
+      }
+    }
+    // Cascade-delete descendants
+    const collect = (nid, acc = []) => {
+      const n = State.nodes.get(nid);
+      if (!n) return acc;
+      acc.push(nid);
+      if (n.children) {
+        Object.values(n.children).forEach(arr => arr.forEach(cid => collect(cid, acc)));
+      }
+      return acc;
+    };
+    const toDelete = new Set(collect(id));
+    toDelete.forEach(nid => State.nodes.delete(nid));
+    // Remove edges touching any deleted node
     [...State.edges.entries()].forEach(([eid, e]) => {
-      if (e.source === id || e.target === id) State.edges.delete(eid);
+      if (toDelete.has(e.source) || toDelete.has(e.target)) State.edges.delete(eid);
     });
     this.markDirty();
     this.select(null);
