@@ -63,7 +63,31 @@ describe("Phase 8 — Final acceptance sweep", () => {
     });
   });
 
-  describe("Exit Criteria 5: Semver release pipeline", () => {
+  describe("Exit Criteria 5: Test coverage gated in CI", () => {
+    it("CI workflow runs test:coverage", () => {
+      const content = readFile(".github/workflows/ci.yml");
+      expect(content).toContain("test:coverage");
+    });
+
+    it("release workflow runs test:coverage", () => {
+      const content = readFile(".github/workflows/release.yml");
+      expect(content).toContain("test:coverage");
+    });
+
+    it("CI workflow uploads coverage report", () => {
+      const content = readFile(".github/workflows/ci.yml");
+      expect(content).toContain("coverage-report");
+      expect(content).toContain("upload-artifact");
+    });
+
+    it("acceptance report confirms coverage", () => {
+      const report = readFile("docs/phases/phase_08_acceptance.md");
+      expect(report).toMatch(/coverage/i);
+      expect(report).toMatch(/test:coverage/);
+    });
+  });
+
+  describe("Exit Criteria 6: Semver release pipeline", () => {
     it("release workflow triggers on v* tags", () => {
       const content = readFile(".github/workflows/release.yml");
       expect(content).toContain("v*");
@@ -282,7 +306,7 @@ describe("Phase 8 — Final acceptance sweep", () => {
 
     it("acceptance report confirms all exit criteria passed", () => {
       const report = readFile("docs/phases/phase_08_acceptance.md");
-      expect(report).toMatch(/Exit criteria met.*5\s*\/\s*5/);
+      expect(report).toMatch(/Exit criteria met.*6\s*\/\s*6/);
     });
 
     it("definition of done checklist is fully checked", () => {

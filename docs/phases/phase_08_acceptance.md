@@ -37,7 +37,15 @@
 - `.github/workflows/lighthouse.yml` runs Lighthouse CI on every PR.
 - Release pipeline (`.github/workflows/release.yml`) runs Lighthouse before publish.
 
-### 5. Semver release pipeline publishes on tag push
+### 5. Test coverage gated in CI and release pipelines
+
+**Status**: ✅ PASS
+
+- `.github/workflows/ci.yml` runs `npm run test:coverage` on every push/PR and uploads the coverage report as an artifact.
+- `.github/workflows/release.yml` runs `npm run test:coverage` as the first gate in the release pipeline before build, Lighthouse, and publish.
+- Coverage reports are retained for 14 days via `actions/upload-artifact@v4`.
+
+### 6. Semver release pipeline publishes on tag push
 
 **Status**: ✅ PASS
 
@@ -105,7 +113,7 @@
 | Total steps       | 17      |
 | Steps scored ≥ 90 | 17 / 17 |
 | Overall average   | 92.6    |
-| Exit criteria met | 5 / 5   |
+| Exit criteria met | 6 / 6   |
 
 **Phase 8 Status**: ✅ **COMPLETE**
 
