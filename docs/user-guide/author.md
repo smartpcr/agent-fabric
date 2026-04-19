@@ -218,7 +218,7 @@ Congratulations — you've authored and run your first workflow! 🎉
 
 ---
 
-> **Updating screenshots**: To regenerate the screenshot images, run
-> `node scripts/generate-doc-screenshots.mjs`. To replace them with real
-> application captures, use Playwright or your browser's screenshot tools
-> while the app is running (`npm run dev`).
+> **Updating screenshots**: To recapture the screenshot images, run
+> `npx playwright test tests/e2e/capture-screenshots.spec.ts --project=chromium`.
+> This builds the app, starts a preview server, and captures real UI states
+> for each documented step.
