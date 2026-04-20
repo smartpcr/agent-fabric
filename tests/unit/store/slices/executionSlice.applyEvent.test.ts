@@ -193,7 +193,10 @@ describe("applyEvent — pure reducer", () => {
       expect(node?.startedAt).toBe(1100);
     });
 
-    it("works even if node was not previously started", () => {
+    it("rejects succeeded without started (transition guard)", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {
+        /* silent */
+      });
       const runs = runsWithStarted();
       const event: ExecutionEvent = {
         type: "node.succeeded",
@@ -203,12 +206,16 @@ describe("applyEvent — pure reducer", () => {
       };
       const result = applyEvent(runs, event);
 
-      const node = result.get("run-1")?.nodes.get("node-1");
-      expect(node?.status).toBe("succeeded");
-      expect(node?.finishedAt).toBe(1200);
+      // State unchanged — illegal transition
+      expect(result).toBe(runs);
+      expect(warnSpy).toHaveBeenCalled();
+      warnSpy.mockRestore();
     });
 
     it("returns unchanged state if run does not exist", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {
+        /* silent — transition guard fires for missing run */
+      });
       const runs = emptyRuns();
       const event: ExecutionEvent = {
         type: "node.succeeded",
@@ -217,6 +224,7 @@ describe("applyEvent — pure reducer", () => {
         nodeId: "node-1",
       };
       expect(applyEvent(runs, event)).toBe(runs);
+      warnSpy.mockRestore();
     });
   });
 
@@ -248,6 +256,9 @@ describe("applyEvent — pure reducer", () => {
     });
 
     it("returns unchanged state if run does not exist", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {
+        /* silent — transition guard fires for missing run */
+      });
       const runs = emptyRuns();
       const event: ExecutionEvent = {
         type: "node.failed",
@@ -256,6 +267,7 @@ describe("applyEvent — pure reducer", () => {
         nodeId: "node-1",
       };
       expect(applyEvent(runs, event)).toBe(runs);
+      warnSpy.mockRestore();
     });
   });
 
@@ -345,6 +357,9 @@ describe("applyEvent — pure reducer", () => {
     });
 
     it("returns unchanged state if run does not exist", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {
+        /* silent — transition guard fires for missing run */
+      });
       const runs = emptyRuns();
       const event: ExecutionEvent = {
         type: "edge.taken",
@@ -353,6 +368,7 @@ describe("applyEvent — pure reducer", () => {
         edgeId: "edge-1",
       };
       expect(applyEvent(runs, event)).toBe(runs);
+      warnSpy.mockRestore();
     });
   });
 
